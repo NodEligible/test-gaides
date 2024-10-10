@@ -1,4 +1,5 @@
 #!/bin/bash
+
 import yaml
 
 def replace_port(docker_compose_file, old_port, new_port):
