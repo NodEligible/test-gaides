@@ -133,7 +133,7 @@ echo ""  # Move to a new line after the key press
 [ ! -d "$KEYS_DIR" ] && mkdir -p "$KEYS_DIR"
 echo $password > $PASSWORD_FILE
 
-deposit_amount=3600
+deposit_amount=36000
 
 while true; do
     read -p "Please enter your withdrawal address: " with_addr
