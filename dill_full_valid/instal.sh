@@ -309,4 +309,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable dill.service
 sudo systemctl start dill
 
-echo "start light node done"
+echo "start full node done"
