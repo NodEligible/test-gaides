@@ -59,8 +59,8 @@ echo "--------------------------------------------------------------------------
 echo "Установка Dill Alps ноды"
 echo "-----------------------------------------------------------------------------"
 
-curl -s https://raw.githubusercontent.com/DOUBLE-TOP/tools/main/main.sh | bash &>/dev/null
-curl -s https://raw.githubusercontent.com/DOUBLE-TOP/tools/main/ufw.sh | bash &>/dev/null
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh | bash &>/dev/null
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh | bash &>/dev/null
 curl -O https://dill-release.s3.ap-southeast-1.amazonaws.com/v1.0.3/dill-v1.0.3-linux-amd64.tar.gz
 tar -xzvf dill-v1.0.3-linux-amd64.tar.gz && rm -rf dill-v1.0.3-linux-amd64.tar.gz
 
