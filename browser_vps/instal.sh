@@ -142,4 +142,3 @@ fi
 show "${GREEN}Откройте этот адрес http://$IP:10000/ для запуска браузера извне${RESET}"
 show "${GREEN}Введите имя пользователя: $USERNAME${RESET}"
 show "${GREEN}Введите пароль в браузере${RESET}"
-show "${GREEN}Не забудьте подписаться https://t.me/maycrypto${RESET}"
