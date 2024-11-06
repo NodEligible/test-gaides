@@ -97,7 +97,7 @@ fi
 mkdir -p "$HOME/chromium/config"
 
 # Запуск контейнера с Chromium
-container_name="maycrypto_browser_$USERNAME"
+container_name="chromium_browser_$USERNAME"
 if [ "$(docker ps -q -f name=$container_name)" ]; then
   show "Контейнер $container_name уже запущен."
 else
