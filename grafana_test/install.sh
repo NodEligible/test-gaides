@@ -2,7 +2,6 @@
 #--------------------------------------------------------------------
 # Скрипт для встановлення Grafana Server на Ubuntu (22.04, 24.04) з дашбордом
 #--------------------------------------------------------------------
-curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
 # Color codes for output
 YELLOW='\e[0;33m'
