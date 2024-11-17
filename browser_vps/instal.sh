@@ -20,7 +20,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Функция для отображения логотипа
-display_logo() {
+logo() {
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 }
 
