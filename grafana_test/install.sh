@@ -2,7 +2,15 @@
 #--------------------------------------------------------------------
 # Скрипт для встановлення Grafana Server на Ubuntu (22.04, 24.04) з дашбордом
 #--------------------------------------------------------------------
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
+# Color codes for output
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${YELLOW}Установка Grafana...${NC}"
 # Версія Grafana
 GRAFANA_VERSION="10.4.2"
 
@@ -69,6 +77,7 @@ systemctl start grafana-server
 # Виведення статусу Grafana
 systemctl status grafana-server
 
-echo "Grafana встановлено з дашбордом!"
-echo "Перейдіть до Grafana, щоб перевірити дашборд за адресою: http://<ваша-IP>:3000"
+echo -e "${GREEN}Grafana установлена ​​с дашбордом!${NC}"
+echo -e "${YELLOW}Перейдите к Grafana, чтобы проверить дашборд по адресу: http://${PROMETHEUS_IP}:19970${NC}"
+echo -e "${YELLOW}Перейдите к Prometheus, чтобы проверить дашборд по адресу: http://${PROMETHEUS_IP}:19980${NC}"
 
