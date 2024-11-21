@@ -16,6 +16,7 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
 else
     echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
+    exit 1
 fi
 
 echo -e "${YELLOW}Установка Docker...${NC}"
@@ -24,6 +25,7 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}Docker успешно установлен!${NC}"
 else
     echo -e "${RED}Ошибка при установке Docker!${NC}"
+    exit 1
 fi
 
 # Получение внешнего IP-адреса
@@ -38,13 +40,13 @@ read -p "Введите имя пользователя: " USERNAME
 
 # Запрашиваем пароль с подтверждением
 read -s -p "Введите пароль: " PASSWORD
-echo  # Переход на новую строку
+echo
 read -s -p "Подтвердите пароль: " PASSWORD_CONFIRM
 echo
 
 if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
-  error "Пароли не совпадают. Пожалуйста, запустите скрипт заново и введите пароли правильно."
-  exit 1
+    echo -e "${RED}Пароли не совпадают. Попробуйте снова.${NC}"
+    exit 1
 fi
 
 # Сохранение учетных данных
@@ -55,14 +57,15 @@ cat <<EOL > "$CREDENTIALS_FILE"
   "password": "$PASSWORD"
 }
 EOL
+chmod 600 "$CREDENTIALS_FILE"
 
 # Проверка и загрузка образа Docker с Chromium
 echo -e "${YELLOW}Загрузка последнего образа Docker с Chromium...${NC}"
 if ! docker pull linuxserver/chromium:latest; then
-  echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
-  exit 1
+    echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
+    exit 1
 else
-  echo -e "${GREEN}Образ Docker с Chromium успешно загружен.${NC}"
+    echo -e "${GREEN}Образ Docker с Chromium успешно загружен.${NC}"
 fi
 
 # Создание конфигурационной папки
@@ -70,35 +73,36 @@ mkdir -p "$HOME/chromium/config"
 
 # Запуск контейнера с Chromium
 container_name="chromium_browser_$USERNAME"
-if [ "$(docker ps -q -f name=$container_name)" ]; then
-  echo -e "${GREEN}Контейнер $container_name уже запущен.${NC}"
+if [ "$(docker ps -a -q -f name=$container_name)" ]; then
+    echo -e "${GREEN}Контейнер $container_name уже существует. Запускаем...${NC}"
+    docker start "$container_name"
 else
-  echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
+    echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
-  docker run -d --name "$container_name" \
-    --privileged \
-    -e TITLE=ShishkaCrypto \
-    -e DISPLAY=:1 \
-    -e PUID=1000 \
-    -e PGID=1000 \
-    -e CUSTOM_USER="$USERNAME" \
-    -e PASSWORD="$PASSWORD" \
-    -e LANGUAGE=en_US.UTF-8 \
-    -v "$HOME/chromium/config:/config" \
-    -p 10000:3000 \
-    --shm-size="2gb" \
-    --restart unless-stopped \
-    lscr.io/linuxserver/chromium:latest
+    docker run -d --name "$container_name" \
+        --privileged \
+        -e TITLE=ShishkaCrypto \
+        -e DISPLAY=:1 \
+        -e PUID=1000 \
+        -e PGID=1000 \
+        -e CUSTOM_USER="$USERNAME" \
+        -e PASSWORD="$PASSWORD" \
+        -e LANGUAGE=en_US.UTF-8 \
+        -v "$HOME/chromium/config:/config" \
+        -p 10000:3000 \
+        --shm-size="2gb" \
+        --restart unless-stopped \
+        lscr.io/linuxserver/chromium:latest
 
-  if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
-  else
-    echo -e "${RED}Не удалось запустить контейнер с Chromium.${NC}"
-    exit 1
-  fi
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
+    else
+        echo -e "${RED}Не удалось запустить контейнер с Chromium.${NC}"
+        exit 1
+    fi
 fi
 
 # Вывод информации для пользователя
-echo -e "${YELLOW}http://${SERVER_IP}:10000/ для запуска браузера извне${NC}"
-echo -e "${YELLOW}Введите имя пользователя: $USERNAME${NC}"
-echo -e "${YELLOW}http://Введите пароль в браузере${NC}"
+echo -e "${YELLOW}Открывайте браузер по адресу: ${SERVER_URL}${NC}"
+echo -e "${YELLOW}Имя пользователя: $USERNAME${NC}"
+echo -e "${YELLOW}Введите ваш пароль при входе.${NC}"
