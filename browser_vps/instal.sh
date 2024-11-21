@@ -9,6 +9,10 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+echo -e "${YELLOW}Открываем порт.${NC}"
+sudo ufw allow 10000/tcp
+
+echo -e "${YELLOW}Добавляем в систему русский язык.${NC}"
 sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
