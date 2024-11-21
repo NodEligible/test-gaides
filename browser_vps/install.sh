@@ -96,7 +96,7 @@ else
         -e PGID=1000 \
         -e CUSTOM_USER="$USERNAME" \
         -e PASSWORD="$PASSWORD" \
-        -e LANGUAGE=en_US.UTF-8 \
+        -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
         -p 10000:3002 \
         --shm-size="2gb" \
