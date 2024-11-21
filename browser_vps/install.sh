@@ -9,8 +9,9 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${YELLOW}Открываем порт.${NC}"
+echo -e "${YELLOW}Открываем порты.${NC}"
 sudo ufw allow 10000/tcp
+sudo ufw allow 3002/tcp
 
 echo -e "${YELLOW}Добавляем в систему русский язык.${NC}"
 sudo locale-gen ru_RU.UTF-8
@@ -95,7 +96,7 @@ else
         -e PASSWORD="$PASSWORD" \
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
-        -p 10000:3000 \
+        -p 10000:3002 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
