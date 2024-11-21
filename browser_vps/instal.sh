@@ -9,6 +9,9 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+sudo locale-gen ru_RU.UTF-8
+sudo update-locale
+
 # Обновление и установка зависимостей
 echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
@@ -87,7 +90,7 @@ else
         -e PGID=1000 \
         -e CUSTOM_USER="$USERNAME" \
         -e PASSWORD="$PASSWORD" \
-        -e LANGUAGE=en_US.UTF-8 \
+        -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
         -p 10000:3000 \
         --shm-size="2gb" \
