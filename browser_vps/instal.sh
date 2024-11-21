@@ -1,65 +1,34 @@
 #!/bin/bash
 
-# Цвета для вывода
-GREEN="\033[32m"
-RED="\033[31m"
-RESET="\033[0m"
-
-show() {
-  echo -e "${GREEN}$1${RESET}"
-}
-
-error() {
-  echo -e "${RED}$1${RESET}"
-}
-
-# Проверка на запуск от имени root
-if [ "$EUID" -ne 0 ]; then
-  error "Пожалуйста, запустите скрипт с правами root."
-  exit 1
-fi
-
-# Функция для отображения логотипа
-logo() {
+# Display the logo (assuming it's needed)
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
-}
 
-# Отображение логотипа
-display_logo
+# Color codes for output
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
 
 # Обновление и установка зависимостей
-show "Обновление системы и установка зависимостей..."
+echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
-
-for package in git curl; do
-  if ! [ -x "$(command -v $package)" ]; then
-    show "Устанавливаю $package..."
-    sudo apt install -y $package
-  else
-    show "$package уже установлен."
-  fi
-done
-
-# Проверка и установка Docker
-if ! [ -x "$(command -v docker)" ]; then
-  show "Установка Docker..."
-  curl -fsSL https://get.docker.com | sh
-  if ! [ -x "$(command -v docker)" ]; then
-    error "Не удалось установить Docker."
-    exit 1
-  else
-    show "Docker успешно установлен."
-  fi
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
 else
-  show "Docker уже установлен."
+    echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
+fi
+
+echo -e "${YELLOW}Установка Docker...${NC}"
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Docker успешно установлен!${NC}"
+else
+    echo -e "${RED}Ошибка при установке Docker!${NC}"
 fi
 
 # Получение внешнего IP-адреса
-IP=$(curl -s ifconfig.me)
-if [ -z "$IP" ]; then
-  error "Не удалось получить внешний IP адрес."
-  exit 1
-fi
+SERVER_IP=$(hostname -I | awk '{print $1}')
+SERVER_URL="http://${SERVER_IP}:10000/"
 
 # Запрашиваем имя пользователя
 read -p "Введите имя пользователя: " USERNAME
@@ -85,12 +54,12 @@ cat <<EOL > "$CREDENTIALS_FILE"
 EOL
 
 # Проверка и загрузка образа Docker с Chromium
-show "Загрузка последнего образа Docker с Chromium..."
+echo -e "${YELLOW}Загрузка последнего образа Docker с Chromium...${NC}"
 if ! docker pull linuxserver/chromium:latest; then
-  error "Не удалось загрузить образ Docker с Chromium."
+  echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
   exit 1
 else
-  show "Образ Docker с Chromium успешно загружен."
+  echo -e "${GREEN}Образ Docker с Chromium успешно загружен.${NC}"
 fi
 
 # Создание конфигурационной папки
@@ -99,9 +68,9 @@ mkdir -p "$HOME/chromium/config"
 # Запуск контейнера с Chromium
 container_name="chromium_browser_$USERNAME"
 if [ "$(docker ps -q -f name=$container_name)" ]; then
-  show "Контейнер $container_name уже запущен."
+  echo -e "${GREEN}Контейнер $container_name уже запущен.${NC}"
 else
-  show "Запуск контейнера с Chromium..."
+  echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
   docker run -d --name "$container_name" \
     --privileged \
@@ -119,14 +88,14 @@ else
     lscr.io/linuxserver/chromium:latest
 
   if [ $? -eq 0 ]; then
-    show "Контейнер с Chromium успешно запущен."
+    echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
   else
-    error "Не удалось запустить контейнер с Chromium."
+    echo -e "${RED}Не удалось запустить контейнер с Chromium.${NC}"
     exit 1
   fi
 fi
 
 # Вывод информации для пользователя
-show "${GREEN}Откройте этот адрес http://$IP:10000/ для запуска браузера извне${RESET}"
-show "${GREEN}Введите имя пользователя: $USERNAME${RESET}"
-show "${GREEN}Введите пароль в браузере${RESET}"
+echo -e "${YELLOW}http://${SERVER_IP}:10000/ для запуска браузера извне${NC}"
+echo -e "${YELLOW}Введите имя пользователя: $USERNAME${NC}"
+echo -e "${YELLOW}http://Введите пароль в браузере${NC}"
