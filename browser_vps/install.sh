@@ -3,6 +3,13 @@
 # Display the logo (assuming it's needed)
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
+
+sudo locale-gen ru_RU.UTF-8
+sudo update-locale
+
+sudo ufw allow 3002/tcp
+sudo ufw allow 10000/tcp
+
 # Color codes for output
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
