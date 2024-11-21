@@ -79,14 +79,14 @@ fi
 mkdir -p "$HOME/chromium/config"
 
 # Запуск контейнера с Chromium
-container_name="chromium_browser_$USERNAME"
-if [ "$(docker ps -a -q -f name=$container_name)" ]; then
-    echo -e "${GREEN}Контейнер $container_name уже существует. Запускаем...${NC}"
-    docker start "$container_name"
+container_name="browser"
+if [ "$(docker ps -a -q -f name=$browser)" ]; then
+    echo -e "${GREEN}Контейнер $browser уже существует. Запускаем...${NC}"
+    docker start "$browser"
 else
     echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
-    docker run -d --name "$container_name" \
+    docker run -d --name "$browser" \
         --privileged \
         -e TITLE=ShishkaCrypto \
         -e DISPLAY=:1 \
