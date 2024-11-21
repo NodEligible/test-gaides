@@ -9,14 +9,6 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${YELLOW}Открываем порты.${NC}"
-sudo ufw allow 10000/tcp
-sudo ufw allow 3002/tcp
-
-echo -e "${YELLOW}Добавляем в систему русский язык.${NC}"
-sudo locale-gen ru_RU.UTF-8
-sudo update-locale
-
 # Обновление и установка зависимостей
 echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
@@ -41,6 +33,7 @@ SERVER_IP=$(hostname -I | awk '{print $1}')
 SERVER_URL="http://${SERVER_IP}:10000/"
 
 echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${SERVER_IP}${NC}"
+echo -e "${YELLOW}SERVER_URL: ${SERVER_URL}${NC}"
 
 # Запрашиваем имя пользователя
 read -p "Введите имя пользователя: " USERNAME
@@ -78,15 +71,17 @@ fi
 # Создание конфигурационной папки
 mkdir -p "$HOME/chromium/config"
 
-# Запуск контейнера с Chromium
+# Название контейнера
 container_name="browser"
-if [ "$(docker ps -a -q -f name=$browser)" ]; then
-    echo -e "${GREEN}Контейнер $browser уже существует. Запускаем...${NC}"
-    docker start "$browser"
+
+# Запуск контейнера с Chromium
+if [ "$(docker ps -a -q -f name=$container_name)" ]; then
+    echo -e "${GREEN}Контейнер $container_name уже существует. Запускаем...${NC}"
+    docker start "$container_name"
 else
     echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
-    docker run -d --name "$browser" \
+    docker run -d --name "$container_name" \
         --privileged \
         -e TITLE=ShishkaCrypto \
         -e DISPLAY=:1 \
@@ -94,9 +89,9 @@ else
         -e PGID=1000 \
         -e CUSTOM_USER="$USERNAME" \
         -e PASSWORD="$PASSWORD" \
-        -e LANGUAGE=ru_RU.UTF-8 \
+        -e LANGUAGE=en_US.UTF-8 \
         -v "$HOME/chromium/config:/config" \
-        -p 10000:3000 \
+        -p 10000:3002 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
@@ -110,6 +105,6 @@ else
 fi
 
 # Вывод информации для пользователя
-echo -e "${YELLOW}Открывайте браузер по адресу: ${SERVER_IP}:10000/${NC}"
+echo -e "${YELLOW}Открывайте браузер по адресу: ${SERVER_URL}${NC}"
 echo -e "${YELLOW}Имя пользователя: $USERNAME${NC}"
 echo -e "${YELLOW}Введите ваш пароль при входе.${NC}"
