@@ -31,7 +31,7 @@ SERVER_IP=$(hostname -I | awk '{print $1}')
 SERVER_URL="http://${SERVER_IP}:10000/"
 
 echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${SERVER_IP}${NC}"
-echo -e "${YELLOW}SERVER_URL: ${SERVER_IP}${NC}"
+echo -e "${YELLOW}SERVER_URL: ${SERVER_URL}${NC}"
 
 # Запрашиваем имя пользователя
 read -p "Введите имя пользователя: " USERNAME
