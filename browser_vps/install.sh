@@ -99,8 +99,7 @@ else
         -p 10000:3000 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        lscr.io/linuxserver/chromium:latest \
-        /usr/bin/chromium-browser --no-sandbox --remote-debugging-port=3002
+        lscr.io/linuxserver/chromium:latest
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
