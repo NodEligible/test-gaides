@@ -7,7 +7,6 @@ curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/d
 sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
-sudo ufw allow 3002/tcp
 sudo ufw allow 10000/tcp
 
 # Color codes for output
@@ -37,10 +36,9 @@ fi
 
 # Получение внешнего IP-адреса
 SERVER_IP=$(hostname -I | awk '{print $1}')
-BROWSER_URL="http://${SERVER_IP}:19980"
+BROWSER_URL="http://${SERVER_IP}:10000"
 
 echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${SERVER_IP}${NC}"
-echo -e "${YELLOW}SERVER_URL: ${BROWSER_URL}${NC}"
 
 # Запрашиваем имя пользователя
 read -p "Введите имя пользователя: " USERNAME
