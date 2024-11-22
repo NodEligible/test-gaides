@@ -98,10 +98,11 @@ else
         -e PASSWORD="$PASSWORD" \
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
-        -p 10000:3000 \
+        -p 10000:3002 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        lscr.io/linuxserver/chromium:latest
+        lscr.io/linuxserver/chromium:latest \
+        /usr/bin/chromium-browser --no-sandbox --remote-debugging-port=3002
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
