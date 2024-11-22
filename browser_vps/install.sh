@@ -98,7 +98,7 @@ else
         -e PASSWORD="$PASSWORD" \
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
-        -p 10000:3002 \
+        -p 10000:3000 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest \
