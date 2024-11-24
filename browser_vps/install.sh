@@ -7,7 +7,7 @@ curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/d
 sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
-sudo ufw allow 10000/tcp
+sudo ufw allow 11000/tcp
 
 # Color codes for output
 YELLOW='\e[0;33m'
