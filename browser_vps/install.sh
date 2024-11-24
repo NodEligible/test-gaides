@@ -36,7 +36,7 @@ fi
 
 # Получение внешнего IP-адреса
 SERVER_IP=$(hostname -I | awk '{print $1}')
-BROWSER_URL="http://${SERVER_IP}:10000"
+BROWSER_URL="http://${SERVER_IP}:11000"
 
 echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${SERVER_IP}${NC}"
 
