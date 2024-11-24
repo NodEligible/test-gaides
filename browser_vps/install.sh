@@ -110,6 +110,6 @@ else
 fi
 
 # Вывод информации для пользователя
-echo -e "${YELLOW}Открывайте браузер по адресу: http://${SERVER_IP}:10000/${NC}"
+echo -e "${YELLOW}Открывайте браузер по адресу: http://${SERVER_IP}:11000/${NC}"
 echo -e "${YELLOW}Имя пользователя: $USERNAME${NC}"
 echo -e "${YELLOW}Введите ваш пароль при входе.${NC}"
