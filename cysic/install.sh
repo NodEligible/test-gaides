@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Перевірка, чи передано параметри
+if [ "$#" -ne 1 ]; then
     read -p "Введите адрес кошелька для ревардов: " CLAIM_REWARD_ADDRESS
     if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
         echo "Claim reward address cannot be empty. Exiting..."
@@ -10,8 +11,8 @@ else
     CLAIM_REWARD_ADDRESS=$1
 fi
 
-sudo apt update
-sudo apt upgrade
+# Оновлення системи
+sudo apt update && sudo apt upgrade -y
 
 # Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
 rm -rf ~/cysic-verifier
