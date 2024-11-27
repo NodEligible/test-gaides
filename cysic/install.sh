@@ -10,6 +10,9 @@ else
     CLAIM_REWARD_ADDRESS=$1
 fi
 
+sudo apt update
+sudo apt upgrade
+
 # Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
 rm -rf ~/cysic-verifier
 cd ~
