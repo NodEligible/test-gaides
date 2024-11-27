@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Перевірка, чи передано параметри
-    read -p "Please enter your claim reward address: " CLAIM_REWARD_ADDRESS
+    read -p "Введите адрес кошелька для ревардов: " CLAIM_REWARD_ADDRESS
     if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
         echo "Claim reward address cannot be empty. Exiting..."
         exit 1
