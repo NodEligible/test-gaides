@@ -49,4 +49,36 @@ chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
 
+# Створення скрипта управління
+cat <<EOF > ~/cysic-verifier/manage_verifier.sh
+#!/bin/bash
+
+case \$1 in
+    start)
+        echo "Starting cysic-verifier..."
+        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
+        echo "Cysic verifier started. Logs are being saved to ~/cysic-verifier/logs.txt"
+        ;;
+    stop)
+        echo "Stopping cysic-verifier..."
+        pkill -f "./verifier"
+        echo "Cysic verifier stopped."
+        ;;
+    status)
+        echo "Checking status of cysic-verifier..."
+        ps aux | grep "./verifier" | grep -v "grep"
+        ;;
+    logs)
+        echo "Showing logs of cysic-verifier..."
+        tail -f ~/cysic-verifier/logs.txt
+        ;;
+    *)
+        echo "Usage: \$0 {start|stop|status|logs}"
+        ;;
+esac
+EOF
+
+# Налаштування прав для скрипта управління
+chmod +x ~/cysic-verifier/manage_verifier.sh
+
 echo "Setup complete. Use 'cd ~/cysic-verifier && ./start.sh' to start the verifier."
