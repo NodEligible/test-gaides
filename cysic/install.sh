@@ -1,12 +1,14 @@
 #!/bin/bash
 
 # Перевірка, чи передано параметри
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <claim_reward_address>"
-    exit 1
+    read -p "Please enter your claim reward address: " CLAIM_REWARD_ADDRESS
+    if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
+        echo "Claim reward address cannot be empty. Exiting..."
+        exit 1
+    fi
+else
+    CLAIM_REWARD_ADDRESS=$1
 fi
-
-CLAIM_REWARD_ADDRESS=$1
 
 # Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
 rm -rf ~/cysic-verifier
@@ -14,6 +16,7 @@ cd ~
 mkdir cysic-verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > ~/cysic-verifier/verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
+
 # Друга секція команд: створення конфігураційного файлу
 cat <<EOF > ~/cysic-verifier/config.yaml
 # Not Change
@@ -41,3 +44,5 @@ cd ~/cysic-verifier/
 chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
+
+echo "Setup complete. Use 'cd ~/cysic-verifier && ./start.sh' to start the verifier."
