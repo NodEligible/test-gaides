@@ -36,7 +36,6 @@ curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verif
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
 
 # Друга секція команд: створення конфігураційного файлу
-echo -e "${YELLOW}Создание конфигурационных файлов${NC}"
 cat <<EOF > ~/cysic-verifier/config.yaml
 # Not Change
 chain:
@@ -57,23 +56,13 @@ server:
   # cysic_endpoint: "https://api-pre.prover.xyz"
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Конфигурация успешно создана!${NC}"
-    else
-        echo -e "${RED}Ошибка при создании конфигурации!${NC}"
-    fi
 
 # Третя секція команд: налаштування прав виконання та запуск verifier
-echo -e "${YELLOW}Настройка прав выполнения и запуск verifier${NC}"
 cd ~/cysic-verifier/
 chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Настройка завершена успешно!${NC}"
-    else
-        echo -e "${RED}Настройка не завершена!${NC}"
-    fi
+
 # Створення скрипта управління
 cat <<EOF > ~/cysic-verifier/manage_verifier.sh
 #!/bin/bash
