@@ -68,14 +68,23 @@ EOF
 # Налаштування виконуваного файлу та запуск
 cd ~/cysic-verifier/
 chmod +x ~/cysic-verifier/verifier
-echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
-chmod +x ~/cysic-verifier/start.sh
+
+# Створення скрипта start.sh з підтримкою логів
+cat <<EOF > ~/cysic-verifier/start.sh
+#!/bin/bash
 
 # Перевірка, чи існує файл logs.txt
-if [ ! -f /cysic-verifier/logs.txt ]; then
-    touch /cysic-verifier/logs.txt
-    chmod 644 /cysic-verifier/logs.txt
+if [ ! -f ~/cysic-verifier/logs.txt ]; then
+    touch ~/cysic-verifier/logs.txt
+    chmod 644 ~/cysic-verifier/logs.txt
 fi
+
+# Запуск verifier із записом логів
+LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier >> ~/cysic-verifier/logs.txt 2>&1
+EOF
+
+# Налаштування прав для виконання скрипта
+chmod +x ~/cysic-verifier/start.sh
 
 # Створення скрипта управління
 cat <<EOF > ~/cysic-verifier/manage_verifier.sh
