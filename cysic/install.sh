@@ -76,19 +76,19 @@ case \$1 in
     start)
         echo -e "${YELLOW}Старт cysic-verifier...${NC}"
         cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo -e "${YELLOW}Cysic verifier запущен..${NC}"
+        echo -e "${GREEN}Cysic verifier запущен..${NC}"
         ;;
     stop)
-        echo "Stopping cysic-verifier..."
+        echo -e "${YELLOW}Остановка cysic-verifier...${NC}"
         pkill -f "./verifier"
-        echo "Cysic verifier stopped."
+        echo -e "${GREEN}Cysic-verifier остановлен${NC}"
         ;;
     status)
-        echo "Checking status of cysic-verifier..."
+        echo -e "${YELLOW}Проверка статуса cysic-verifier...${NC}"
         ps aux | grep "./verifier" | grep -v "grep"
         ;;
     logs)
-        echo "Showing logs of cysic-verifier..."
+        echo -e "${YELLOW}Проверка логов cysic-verifier...${NC}"
         tail -f ~/cysic-verifier/logs.txt
         ;;
     *)
