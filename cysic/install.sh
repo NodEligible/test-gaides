@@ -97,6 +97,29 @@ case \$1 in
 esac
 EOF
 
+# Створення скрипта автозапуску
+sudo nano /etc/systemd/system/cysic-verifier.service > /dev/null <<EOF
+[Unit]
+Description=Cysic Verifier Node
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/cysic-verifier
+ExecStart=/bin/bash /root/cysic-verifier/start.sh
+Restart=on-failure
+RestartSec=10
+Environment=LD_LIBRARY_PATH=.
+Environment=CHAIN_ID=534352
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl enable cysic-verifier.service &>/dev/null
+sudo systemctl daemon-reload
+sudo systemctl start cysic-verifier.service
+
 # Налаштування прав для скрипта управління
 chmod +x ~/cysic-verifier/manage_verifier.sh
 
