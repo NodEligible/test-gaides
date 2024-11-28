@@ -65,8 +65,69 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# 第三段命令：设置执行权限并启动verifier
+# Налаштування виконуваного файлу та запуск
 cd ~/cysic-verifier/
 chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
+
+# Створення скрипта управління
+cat <<EOF > ~/cysic-verifier/manage_verifier.sh
+#!/bin/bash
+
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+case \$1 in
+    start)
+        echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
+        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
+        echo -e "\${GREEN}Cysic verifier запущен.\${NC}"
+        ;;
+    stop)
+        echo -e "\${YELLOW}Остановка cysic-verifier...\${NC}"
+        pkill -f "./verifier"
+        echo -e "\${GREEN}Cysic-verifier остановлен.\${NC}"
+        ;;
+    status)
+        echo -e "\${YELLOW}Проверка статуса cysic-verifier...\${NC}"
+        ps aux | grep "./verifier" | grep -v "grep"
+        ;;
+    logs)
+        echo -e "\${YELLOW}Проверка логов cysic-verifier...\${NC}"
+        tail -f ~/cysic-verifier/logs.txt
+        ;;
+    *)
+        echo "Usage: \$0 {start|stop|status|logs}"
+        ;;
+esac
+EOF
+chmod +x ~/cysic-verifier/manage_verifier.sh
+
+# Створення сервісного файлу
+cat <<EOF | sudo tee /etc/systemd/system/cysic-verifier.service > /dev/null
+[Unit]
+Description=Cysic Verifier Node
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/cysic-verifier
+ExecStart=/bin/bash /root/cysic-verifier/start.sh
+Restart=on-failure
+RestartSec=10
+Environment=LD_LIBRARY_PATH=.
+Environment=CHAIN_ID=534352
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Увімкнення сервісу
+sudo systemctl enable cysic-verifier.service &>/dev/null
+sudo systemctl daemon-reload
+sudo systemctl start cysic-verifier.service
+
+echo -e "${GREEN}Установка ноды Cysic завершена!${NC}"
