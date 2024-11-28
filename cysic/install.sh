@@ -71,6 +71,12 @@ chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
 
+# Перевірка, чи існує файл logs.txt
+if [ ! -f /cysic-verifier/logs.txt ]; then
+    touch /cysic-verifier/logs.txt
+    chmod 644 /cysic-verifier/logs.txt
+fi
+
 # Створення скрипта управління
 cat <<EOF > ~/cysic-verifier/manage_verifier.sh
 #!/bin/bash
