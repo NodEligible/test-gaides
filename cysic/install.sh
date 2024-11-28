@@ -1,10 +1,17 @@
 #!/bin/bash
 
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
+
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
 # Перевірка, чи передано параметри
 if [ "$#" -ne 1 ]; then
     read -p "Введите адрес кошелька для ревардов: " CLAIM_REWARD_ADDRESS
     if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
-        echo "Claim reward address cannot be empty. Exiting..."
+        echo -e "${RED}Адрес получения вознаграждения не может быть пустым. Выход...${NC}"
         exit 1
     fi
 else
@@ -12,18 +19,25 @@ else
 fi
 
 # Оновлення системи
+echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
+else
+    echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
+    exit 1
+fi
 
-# Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
-rm -rf ~/cysic-verifier
-cd ~
-mkdir cysic-verifier
-curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > ~/cysic-verifier/verifier
-curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
+# Видалення старих каталогів, завантаження нових файлів
+echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
+rm -rf /root/cysic-verifier
+mkdir -p /root/cysic-verifier
+curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > /root/cysic-verifier/verifier
+curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > /root/cysic-verifier/libdarwin_verifier.so
+chmod +x /root/cysic-verifier/verifier
 
-# Друга секція команд: створення конфігураційного файлу
-cat <<EOF > ~/cysic-verifier/config.yaml
-# Not Change
+# Створення конфігураційного файлу
+cat <<EOF > /root/cysic-verifier/config.yaml
 chain:
   endpoint: "grpc-testnet.prover.xyz:80"
   chain_id: "cysicmint_9001-1"
@@ -35,42 +49,86 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# Третя секція команд: налаштування прав виконання
-cd ~/cysic-verifier/
-chmod +x ~/cysic-verifier/verifier
-echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
-chmod +x ~/cysic-verifier/start.sh
+# Створення або оновлення start.sh
+cat <<EOF > /root/cysic-verifier/start.sh
+#!/bin/bash
+
+# Перевірка, чи існує файл logs.txt
+if [ ! -f /root/cysic-verifier/logs.txt ]; then
+    touch /root/cysic-verifier/logs.txt
+    chmod 644 /root/cysic-verifier/logs.txt
+fi
+
+# Запуск verifier
+LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier >> /root/cysic-verifier/logs.txt 2>&1
+EOF
+chmod +x /root/cysic-verifier/start.sh
 
 # Створення скрипта управління
-cat <<EOF > ~/cysic-verifier/manage_verifier.sh
+cat <<EOF > /root/cysic-verifier/manage_verifier.sh
 #!/bin/bash
+
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
 
 case \$1 in
     start)
-        echo "Starting cysic-verifier..."
-        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo "Cysic verifier started. Logs are being saved to ~/cysic-verifier/logs.txt"
+        echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
+        cd /root/cysic-verifier && bash start.sh
+        echo -e "\${GREEN}Cysic verifier запущен.${NC}"
         ;;
     stop)
-        echo "Stopping cysic-verifier..."
+        echo -e "\${YELLOW}Остановка cysic-verifier...\${NC}"
         pkill -f "./verifier"
-        echo "Cysic verifier stopped."
+        echo -e "\${GREEN}Cysic-verifier остановлен.${NC}"
         ;;
     status)
-        echo "Checking status of cysic-verifier..."
+        echo -e "\${YELLOW}Проверка статуса cysic-verifier...\${NC}"
         ps aux | grep "./verifier" | grep -v "grep"
         ;;
     logs)
-        echo "Showing logs of cysic-verifier..."
-        tail -f ~/cysic-verifier/logs.txt
+        echo -e "\${YELLOW}Проверка логов cysic-verifier...\${NC}"
+        tail -f /root/cysic-verifier/logs.txt
+        ;;
+    restart)
+        echo -e "\${YELLOW}Перезапуск cysic-verifier...\${NC}"
+        pkill -f "./verifier"
+        sleep 2
+        cd /root/cysic-verifier && bash start.sh > /root/cysic-verifier/logs.txt 2>&1 &
+        echo -e "\${GREEN}Cysic-verifier успешно перезапущен.${NC}"
         ;;
     *)
-        echo "Usage: \$0 {start|stop|status|logs}"
+        echo "Usage: \$0 {start|stop|status|logs|restart}"
         ;;
 esac
 EOF
+chmod +x /root/cysic-verifier/manage_verifier.sh
 
-# Налаштування прав для скрипта управління
-chmod +x ~/cysic-verifier/manage_verifier.sh
+# Створення сервісного файлу
+cat <<EOF | sudo tee /etc/systemd/system/cysic-verifier.service > /dev/null
+[Unit]
+Description=Cysic Verifier Node
+After=network.target
 
-echo "Setup complete. Use '~/cysic-verifier/manage_verifier.sh start|stop|status|logs' to manage the verifier."
+[Service]
+User=root
+WorkingDirectory=/root/cysic-verifier
+ExecStartPre=/bin/bash -c "touch /root/cysic-verifier/logs.txt && chmod 644 /root/cysic-verifier/logs.txt"
+ExecStart=/bin/bash /root/cysic-verifier/start.sh
+Restart=on-failure
+RestartSec=10
+Environment=LD_LIBRARY_PATH=.
+Environment=CHAIN_ID=534352
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Увімкнення сервісу
+sudo systemctl enable cysic-verifier.service &>/dev/null
+sudo systemctl daemon-reload
+sudo systemctl start cysic-verifier.service
+
+echo -e "${GREEN}Установка ноды Cysic завершена!${NC}"
