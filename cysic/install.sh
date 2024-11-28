@@ -80,9 +80,9 @@ cat <<EOF > ~/cysic-verifier/manage_verifier.sh
 
 case \$1 in
     start)
-        echo "Starting cysic-verifier..."
+        echo -e "${YELLOW}Старт cysic-verifier...${NC}"
         cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo "Cysic verifier started. Logs are being saved to ~/cysic-verifier/logs.txt"
+        echo -e "${YELLOW}Cysic verifier запущен..${NC}"
         ;;
     stop)
         echo "Stopping cysic-verifier..."
