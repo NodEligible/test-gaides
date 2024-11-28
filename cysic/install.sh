@@ -103,7 +103,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root/cysic-verifier
-ExecStart=/bin/bash /root/cysic-verifier/start.sh
+ExecStart=/bin/bash /root/cysic-verifier/start.sh > ~/cysic-verifier/logs.txt 2>&1 &
 Restart=on-failure
 RestartSec=10
 Environment=LD_LIBRARY_PATH=.
