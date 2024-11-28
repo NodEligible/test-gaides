@@ -29,6 +29,14 @@ else
     exit 1
 fi
 
+echo -e "${YELLOW}Установка Docker...${NC}"
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
+if [ $? -eq 0 ]; then
+     echo -e "${GREEN}Docker успешно установлено!${NC}"
+else
+     echo -e "${RED}Ошибка при установке Docker!${NC}"
+fi
+
 # Видалення старих каталогів і створення нових
 echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
 rm -rf ~/cysic-verifier
