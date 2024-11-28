@@ -106,7 +106,7 @@ NC='\033[0m'
 case \$1 in
     start)
         echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
-        cd /root/cysic-verifier && bash start.sh
+        cd /root/cysic-verifier && bash start.sh > /root/cysic-verifier/logs.txt 2>&1 &
         echo -e "\${GREEN}Cysic verifier запущен.${NC}"
         ;;
     stop)
