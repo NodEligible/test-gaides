@@ -130,4 +130,4 @@ sudo systemctl start cysic-verifier.service
 # Налаштування прав для скрипта управління
 chmod +x ~/cysic-verifier/manage_verifier.sh
 
-echo -e "${GREEN}Установка ноды Cysic завершена,проверте роботоспособность ноды командами из гайда!${NC}"
+echo -e "${GREEN}Установка ноды Cysic завершена!${NC}"
