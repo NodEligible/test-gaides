@@ -74,25 +74,32 @@ cat <<EOF > ~/cysic-verifier/manage_verifier.sh
 
 case \$1 in
     start)
-        echo -e "${YELLOW}Старт cysic-verifier...${NC}"
-        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo -e "${GREEN}Cysic verifier запущен..${NC}"
+        echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
+        cd /root/cysic-verifier && bash start.sh
+        echo -e "\${GREEN}Cysic verifier запущен.${NC}"
         ;;
     stop)
-        echo -e "${YELLOW}Остановка cysic-verifier...${NC}"
+        echo -e "\${YELLOW}Остановка cysic-verifier...\${NC}"
         pkill -f "./verifier"
-        echo -e "${GREEN}Cysic-verifier остановлен${NC}"
+        echo -e "\${GREEN}Cysic-verifier остановлен.${NC}"
         ;;
     status)
-        echo -e "${YELLOW}Проверка статуса cysic-verifier...${NC}"
+        echo -e "\${YELLOW}Проверка статуса cysic-verifier...\${NC}"
         ps aux | grep "./verifier" | grep -v "grep"
         ;;
     logs)
-        echo -e "${YELLOW}Проверка логов cysic-verifier...${NC}"
-        tail -f ~/cysic-verifier/logs.txt
+        echo -e "\${YELLOW}Проверка логов cysic-verifier...\${NC}"
+        tail -f /root/cysic-verifier/logs.txt
+        ;;
+    restart)
+        echo -e "\${YELLOW}Перезапуск cysic-verifier...\${NC}"
+        pkill -f "./verifier"
+        sleep 2
+        cd /root/cysic-verifier && bash start.sh > /root/cysic-verifier/logs.txt 2>&1 &
+        echo -e "\${GREEN}Cysic-verifier успешно перезапущен.${NC}"
         ;;
     *)
-        echo "Usage: \$0 {start|stop|status|logs}"
+        echo "Usage: \$0 {start|stop|status|logs|restart}"
         ;;
 esac
 EOF
