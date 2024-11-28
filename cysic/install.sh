@@ -28,7 +28,7 @@ else
     exit 1
 fi
 
-# Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
+# Видалення старих каталогів, завантаження нових файлів
 echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
 rm -rf ~/cysic-verifier
 mkdir ~/cysic-verifier
@@ -37,11 +37,11 @@ curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libda
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}Каталоги созданы успешно!${NC}"
 else
-    echo -e "${RED}Ошибка при удалении или создании новых каталогов!${NC}"
+    echo -e "${RED}Ошибка при создании каталогов!${NC}"
     exit 1
 fi
 
-# Друга секція команд: створення конфігураційного файлу
+# Створення конфігураційного файлу
 cat <<EOF > ~/cysic-verifier/config.yaml
 chain:
   endpoint: "grpc-testnet.prover.xyz:80"
@@ -54,21 +54,9 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# Третя секція команд: створення start.sh
-cat <<EOF > ~/cysic-verifier/start.sh
-#!/bin/bash
-
-# Перевірка, чи існує файл logs.txt
-if [ ! -f /root/cysic-verifier/logs.txt ]; then
-    touch /root/cysic-verifier/logs.txt
-    chmod 644 /root/cysic-verifier/logs.txt
-fi
-
-# Запуск verifier
-LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier >> /root/cysic-verifier/logs.txt 2>&1
-EOF
-
-# Налаштування прав виконання start.sh
+# Налаштування виконуваного файлу та запуск
+chmod +x ~/cysic-verifier/verifier
+echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
 
 # Створення скрипта управління
@@ -83,13 +71,13 @@ NC='\033[0m'
 case \$1 in
     start)
         echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
-        cd ~/cysic-verifier && bash start.sh
-        echo -e "\${GREEN}Cysic verifier запущен.${NC}"
+        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
+        echo -e "\${GREEN}Cysic verifier запущен.\${NC}"
         ;;
     stop)
         echo -e "\${YELLOW}Остановка cysic-verifier...\${NC}"
         pkill -f "./verifier"
-        echo -e "\${GREEN}Cysic-verifier остановлен.${NC}"
+        echo -e "\${GREEN}Cysic-verifier остановлен.\${NC}"
         ;;
     status)
         echo -e "\${YELLOW}Проверка статуса cysic-verifier...\${NC}"
@@ -97,22 +85,13 @@ case \$1 in
         ;;
     logs)
         echo -e "\${YELLOW}Проверка логов cysic-verifier...\${NC}"
-        tail -f /root/cysic-verifier/logs.txt
-        ;;
-    restart)
-        echo -e "\${YELLOW}Перезапуск cysic-verifier...\${NC}"
-        pkill -f "./verifier"
-        sleep 2
-        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo -e "\${GREEN}Cysic-verifier успешно перезапущен.${NC}"
+        tail -f ~/cysic-verifier/logs.txt
         ;;
     *)
-        echo "Usage: \$0 {start|stop|status|logs|restart}"
+        echo "Usage: \$0 {start|stop|status|logs}"
         ;;
 esac
 EOF
-
-# Налаштування прав для manage_verifier.sh
 chmod +x ~/cysic-verifier/manage_verifier.sh
 
 # Створення сервісного файлу
