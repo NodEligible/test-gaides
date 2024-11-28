@@ -1,17 +1,10 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
-
-YELLOW='\e[0;33m'
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
-
 # Перевірка, чи передано параметри
 if [ "$#" -ne 1 ]; then
     read -p "Введите адрес кошелька для ревардов: " CLAIM_REWARD_ADDRESS
     if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
-        echo -e "${RED}Адрес получения вознаграждения не может быть пустым. Выход...${NC}"
+        echo "Claim reward address cannot be empty. Exiting..."
         exit 1
     fi
 else
@@ -19,30 +12,18 @@ else
 fi
 
 # Оновлення системи
-echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
-else
-    echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
-    exit 1
-fi
 
-# Видалення старих каталогів, завантаження нових файлів
-echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
+# Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
 rm -rf ~/cysic-verifier
-mkdir ~/cysic-verifier
+cd ~
+mkdir cysic-verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > ~/cysic-verifier/verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Каталоги созданы успешно!${NC}"
-else
-    echo -e "${RED}Ошибка при создании каталогов!${NC}"
-    exit 1
-fi
 
-# Створення конфігураційного файлу
+# Друга секція команд: створення конфігураційного файлу
 cat <<EOF > ~/cysic-verifier/config.yaml
+# Not Change
 chain:
   endpoint: "grpc-testnet.prover.xyz:80"
   chain_id: "cysicmint_9001-1"
@@ -54,7 +35,8 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# Налаштування виконуваного файлу та запуск
+# Третя секція команд: налаштування прав виконання
+cd ~/cysic-verifier/
 chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
@@ -63,28 +45,23 @@ chmod +x ~/cysic-verifier/start.sh
 cat <<EOF > ~/cysic-verifier/manage_verifier.sh
 #!/bin/bash
 
-YELLOW='\e[0;33m'
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
-
 case \$1 in
     start)
-        echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
+        echo "Starting cysic-verifier..."
         cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo -e "\${GREEN}Cysic verifier запущен.\${NC}"
+        echo "Cysic verifier started. Logs are being saved to ~/cysic-verifier/logs.txt"
         ;;
     stop)
-        echo -e "\${YELLOW}Остановка cysic-verifier...\${NC}"
+        echo "Stopping cysic-verifier..."
         pkill -f "./verifier"
-        echo -e "\${GREEN}Cysic-verifier остановлен.\${NC}"
+        echo "Cysic verifier stopped."
         ;;
     status)
-        echo -e "\${YELLOW}Проверка статуса cysic-verifier...\${NC}"
+        echo "Checking status of cysic-verifier..."
         ps aux | grep "./verifier" | grep -v "grep"
         ;;
     logs)
-        echo -e "\${YELLOW}Проверка логов cysic-verifier...\${NC}"
+        echo "Showing logs of cysic-verifier..."
         tail -f ~/cysic-verifier/logs.txt
         ;;
     *)
@@ -92,30 +69,8 @@ case \$1 in
         ;;
 esac
 EOF
+
+# Налаштування прав для скрипта управління
 chmod +x ~/cysic-verifier/manage_verifier.sh
 
-# Створення сервісного файлу
-cat <<EOF | sudo tee /etc/systemd/system/cysic-verifier.service > /dev/null
-[Unit]
-Description=Cysic Verifier Node
-After=network.target
-
-[Service]
-User=root
-WorkingDirectory=/root/cysic-verifier
-ExecStart=/bin/bash /root/cysic-verifier/start.sh
-Restart=on-failure
-RestartSec=10
-Environment=LD_LIBRARY_PATH=.
-Environment=CHAIN_ID=534352
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Увімкнення сервісу
-sudo systemctl enable cysic-verifier.service &>/dev/null
-sudo systemctl daemon-reload
-sudo systemctl start cysic-verifier.service
-
-echo -e "${GREEN}Установка ноды Cysic завершена!${NC}"
+echo "Setup complete. Use '~/cysic-verifier/manage_verifier.sh start|stop|status|logs' to manage the verifier."
