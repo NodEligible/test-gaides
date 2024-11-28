@@ -146,7 +146,7 @@ After=network.target
 User=root
 WorkingDirectory=/root/cysic-verifier
 ExecStart=/bin/bash /root/cysic-verifier/start.sh
-Restart=on-failure
+Restart=on-abort
 RestartSec=10
 Environment=LD_LIBRARY_PATH=.
 Environment=CHAIN_ID=534352
