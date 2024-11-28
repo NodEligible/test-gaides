@@ -64,11 +64,16 @@ EOF
     fi
 
 # Третя секція команд: налаштування прав виконання та запуск verifier
+echo -e "${YELLOW}Настройка прав выполнения и запуск verifier${NC}"
 cd ~/cysic-verifier/
 chmod +x ~/cysic-verifier/verifier
 echo "LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier" > ~/cysic-verifier/start.sh
 chmod +x ~/cysic-verifier/start.sh
-
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Настройка завершена успешно!${NC}"
+    else
+        echo -e "${RED}Настройка не завершена!${NC}"
+    fi
 # Створення скрипта управління
 cat <<EOF > ~/cysic-verifier/manage_verifier.sh
 #!/bin/bash
