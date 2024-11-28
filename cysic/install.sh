@@ -34,6 +34,11 @@ cd ~
 mkdir cysic-verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > ~/cysic-verifier/verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
+if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Каталоги созданы успешно!${NC}"
+    else
+        echo -e "${RED}Ошибка при удалении или создании новых каталогов!${NC}"
+    fi
 
 # Друга секція команд: створення конфігураційного файлу
 cat <<EOF > ~/cysic-verifier/config.yaml
