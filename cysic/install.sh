@@ -68,7 +68,8 @@ fi
 LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier >> /root/cysic-verifier/logs.txt 2>&1
 EOF
 
-chmod +x ~/cysic-verifier/start.sh
+# Надання прав на виконання скрипту start.sh
+chmod +x /root/cysic-verifier/start.sh
 
 # Створення скрипта управління
 cat <<EOF > ~/cysic-verifier/manage_verifier.sh
