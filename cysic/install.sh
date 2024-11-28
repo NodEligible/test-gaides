@@ -30,19 +30,14 @@ fi
 
 # Видалення старих каталогів, завантаження нових файлів
 echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
-rm -rf ~/cysic-verifier
-mkdir ~/cysic-verifier
-curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > ~/cysic-verifier/verifier
-curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Каталоги созданы успешно!${NC}"
-else
-    echo -e "${RED}Ошибка при создании каталогов!${NC}"
-    exit 1
-fi
+rm -rf /root/cysic-verifier
+mkdir -p /root/cysic-verifier
+curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > /root/cysic-verifier/verifier
+curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > /root/cysic-verifier/libdarwin_verifier.so
+chmod +x /root/cysic-verifier/verifier
 
 # Створення конфігураційного файлу
-cat <<EOF > ~/cysic-verifier/config.yaml
+cat <<EOF > /root/cysic-verifier/config.yaml
 chain:
   endpoint: "grpc-testnet.prover.xyz:80"
   chain_id: "cysicmint_9001-1"
@@ -54,7 +49,7 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# Налаштування виконуваного файлу та запуск
+# Створення або оновлення start.sh
 cat <<EOF > /root/cysic-verifier/start.sh
 #!/bin/bash
 
@@ -67,12 +62,10 @@ fi
 # Запуск verifier
 LD_LIBRARY_PATH=. CHAIN_ID=534352 ./verifier >> /root/cysic-verifier/logs.txt 2>&1
 EOF
-
-# Надання прав на виконання скрипту start.sh
 chmod +x /root/cysic-verifier/start.sh
 
 # Створення скрипта управління
-cat <<EOF > ~/cysic-verifier/manage_verifier.sh
+cat <<EOF > /root/cysic-verifier/manage_verifier.sh
 #!/bin/bash
 
 YELLOW='\e[0;33m'
@@ -82,36 +75,36 @@ NC='\033[0m'
 
 case \$1 in
     start)
-        echo -e "${YELLOW}Старт cysic-verifier...${NC}"
-        cd ~/cysic-verifier && bash start.sh
-        echo -e "${GREEN}Cysic verifier запущен.${NC}"
+        echo -e "\${YELLOW}Старт cysic-verifier...\${NC}"
+        cd /root/cysic-verifier && bash start.sh
+        echo -e "\${GREEN}Cysic verifier запущен.${NC}"
         ;;
     stop)
-        echo -e "${YELLOW}Остановка cysic-verifier...${NC}"
+        echo -e "\${YELLOW}Остановка cysic-verifier...\${NC}"
         pkill -f "./verifier"
-        echo -e "${GREEN}Cysic-verifier остановлен.${NC}"
+        echo -e "\${GREEN}Cysic-verifier остановлен.${NC}"
         ;;
     status)
-        echo -e "${YELLOW}Проверка статуса cysic-verifier...${NC}"
+        echo -e "\${YELLOW}Проверка статуса cysic-verifier...\${NC}"
         ps aux | grep "./verifier" | grep -v "grep"
         ;;
     logs)
-        echo -e "${YELLOW}Проверка логов cysic-verifier...${NC}"
-        tail -f ~/cysic-verifier/logs.txt
+        echo -e "\${YELLOW}Проверка логов cysic-verifier...\${NC}"
+        tail -f /root/cysic-verifier/logs.txt
         ;;
     restart)
-        echo -e "${YELLOW}Перезапуск cysic-verifier...${NC}"
+        echo -e "\${YELLOW}Перезапуск cysic-verifier...\${NC}"
         pkill -f "./verifier"
         sleep 2
-        cd ~/cysic-verifier && bash start.sh > ~/cysic-verifier/logs.txt 2>&1 &
-        echo -e "${GREEN}Cysic-verifier успешно перезапущен.${NC}"
+        cd /root/cysic-verifier && bash start.sh > /root/cysic-verifier/logs.txt 2>&1 &
+        echo -e "\${GREEN}Cysic-verifier успешно перезапущен.${NC}"
         ;;
     *)
-        echo "Usage: $0 {start|stop|status|logs|restart}"
+        echo "Usage: \$0 {start|stop|status|logs|restart}"
         ;;
 esac
 EOF
-chmod +x ~/cysic-verifier/manage_verifier.sh
+chmod +x /root/cysic-verifier/manage_verifier.sh
 
 # Створення сервісного файлу
 cat <<EOF | sudo tee /etc/systemd/system/cysic-verifier.service > /dev/null
@@ -123,7 +116,7 @@ After=network.target
 User=root
 WorkingDirectory=/root/cysic-verifier
 ExecStartPre=/bin/bash -c "touch /root/cysic-verifier/logs.txt && chmod 644 /root/cysic-verifier/logs.txt"
-ExecStart=/bin/bash /root/cysic-verifier/start.sh > /root/cysic-verifier/logs.txt 2>&1
+ExecStart=/bin/bash /root/cysic-verifier/start.sh
 Restart=on-failure
 RestartSec=10
 Environment=LD_LIBRARY_PATH=.
