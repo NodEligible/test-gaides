@@ -1,10 +1,17 @@
 #!/bin/bash
 
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
+
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
 # Перевірка, чи передано параметри
 if [ "$#" -ne 1 ]; then
     read -p "Введите адрес кошелька для ревардов: " CLAIM_REWARD_ADDRESS
     if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
-        echo "Claim reward address cannot be empty. Exiting..."
+        echo -e "${RED}Адрес получения вознаграждения не может быть пустым. Выход...${NC}"
         exit 1
     fi
 else
@@ -12,9 +19,16 @@ else
 fi
 
 # Оновлення системи
+echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
+if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
+    else
+        echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
+    fi
 
 # Перша секція команд: видалення старого каталогу cysic-verifier, створення нового каталогу та завантаження необхідних файлів
+echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
 rm -rf ~/cysic-verifier
 cd ~
 mkdir cysic-verifier
@@ -22,6 +36,7 @@ curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verif
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
 
 # Друга секція команд: створення конфігураційного файлу
+echo -e "${YELLOW}Создание конфигурационных файлов${NC}"
 cat <<EOF > ~/cysic-verifier/config.yaml
 # Not Change
 chain:
@@ -42,6 +57,11 @@ server:
   # cysic_endpoint: "https://api-pre.prover.xyz"
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Конфигурация успешно создана!${NC}"
+    else
+        echo -e "${RED}Ошибка при создании конфигурации!${NC}"
+    fi
 
 # Третя секція команд: налаштування прав виконання та запуск verifier
 cd ~/cysic-verifier/
