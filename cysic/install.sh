@@ -106,4 +106,4 @@ EOF
 # Налаштування прав для скрипта управління
 chmod +x ~/cysic-verifier/manage_verifier.sh
 
-echo "Setup complete. Use 'cd ~/cysic-verifier && ./start.sh' to start the verifier."
+echo -e "${GREEN}Установка ноды Cysic завершена,проверте роботоспособность ноды командами из гайда!${NC}"
