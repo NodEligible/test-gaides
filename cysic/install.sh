@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Відображення логотипу
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
 YELLOW='\e[0;33m'
@@ -18,6 +19,12 @@ else
     CLAIM_REWARD_ADDRESS=$1
 fi
 
+# Перевірка формату адреси (EVM-адреса)
+if ! [[ $CLAIM_REWARD_ADDRESS =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+    echo -e "${RED}Ошибка: Неверный формат EVM-адреса. Убедитесь, что адрес начинается с 0x и содержит 40 символов.${NC}"
+    exit 1
+fi
+
 # Оновлення системи
 echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
@@ -28,15 +35,27 @@ else
     exit 1
 fi
 
-# Видалення старих каталогів, завантаження нових файлів
-echo -e "${YELLOW}Удаление старых каталогов и установка новых${NC}"
+# Видалення старих каталогів і створення нових
+echo -e "${YELLOW}Удаление старых каталогов и создание новых...${NC}"
 rm -rf /root/cysic-verifier
 mkdir -p /root/cysic-verifier
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Ошибка при создании каталога /root/cysic-verifier.${NC}"
+    exit 1
+fi
+
+# Завантаження необхідних файлів
+echo -e "${YELLOW}Загрузка необходимых файлов...${NC}"
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > /root/cysic-verifier/verifier
 curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > /root/cysic-verifier/libdarwin_verifier.so
+if [ ! -f /root/cysic-verifier/verifier ] || [ ! -f /root/cysic-verifier/libdarwin_verifier.so ]; then
+    echo -e "${RED}Ошибка: Не удалось загрузить необходимые файлы.${NC}"
+    exit 1
+fi
 chmod +x /root/cysic-verifier/verifier
 
 # Створення конфігураційного файлу
+echo -e "${YELLOW}Создание конфигурационного файла...${NC}"
 cat <<EOF > /root/cysic-verifier/config.yaml
 chain:
   endpoint: "grpc-testnet.prover.xyz:80"
@@ -49,7 +68,13 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
+if ! grep -q "claim_reward_address: \"$CLAIM_REWARD_ADDRESS\"" /root/cysic-verifier/config.yaml; then
+    echo -e "${RED}Ошибка: Адрес не записан в config.yaml. Проверьте скрипт.${NC}"
+    exit 1
+fi
+
 # Створення або оновлення start.sh
+echo -e "${YELLOW}Создание файла start.sh...${NC}"
 cat <<EOF > /root/cysic-verifier/start.sh
 #!/bin/bash
 
@@ -65,6 +90,7 @@ EOF
 chmod +x /root/cysic-verifier/start.sh
 
 # Створення скрипта управління
+echo -e "${YELLOW}Создание файла manage_verifier.sh...${NC}"
 cat <<EOF > /root/cysic-verifier/manage_verifier.sh
 #!/bin/bash
 
@@ -107,6 +133,7 @@ EOF
 chmod +x /root/cysic-verifier/manage_verifier.sh
 
 # Створення сервісного файлу
+echo -e "${YELLOW}Создание системного сервиса...${NC}"
 cat <<EOF | sudo tee /etc/systemd/system/cysic-verifier.service > /dev/null
 [Unit]
 Description=Cysic Verifier Node
@@ -117,7 +144,7 @@ User=root
 WorkingDirectory=/root/cysic-verifier
 ExecStartPre=/bin/bash -c "touch /root/cysic-verifier/logs.txt && chmod 644 /root/cysic-verifier/logs.txt"
 ExecStart=/bin/bash /root/cysic-verifier/start.sh
-Restart=on-failure
+Restart=always
 RestartSec=10
 Environment=LD_LIBRARY_PATH=.
 Environment=CHAIN_ID=534352
@@ -127,8 +154,9 @@ WantedBy=multi-user.target
 EOF
 
 # Увімкнення сервісу
+echo -e "${YELLOW}Запуск системного сервиса...${NC}"
 sudo systemctl enable cysic-verifier.service &>/dev/null
 sudo systemctl daemon-reload
-sudo systemctl start cysic-verifier.service
+sudo systemctl restart cysic-verifier.service
 
 echo -e "${GREEN}Установка ноды Cysic завершена!${NC}"
