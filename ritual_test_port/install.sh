@@ -105,6 +105,8 @@ sed -i 's|"batch_size": .*|"batch_size": 800,|' "$CONTAINER_JSON"
 sed -i 's|"trail_head_blocks": .*|"trail_head_blocks": 3,|' "$CONTAINER_JSON"
 sed -i 's|"sync_period": .*|"sync_period": 30|' "$CONTAINER_JSON"
 sed -i 's|"starting_sub_id": .*|"starting_sub_id": 160000,|' "$CONTAINER_JSON"
+sed -i 's|"port": "3000"|"port": "3002"|g' "$CONTAINER_JSON"
+sed -i 's|--bind=0.0.0.0:3000|--bind=0.0.0.0:3002|g' "$CONTAINER_JSON"
 
 # Конфигурация script/Deploy.s.sol
 sed -i 's|address registry = .*|address registry = 0x3B1554f346DFe5c482Bb4BA31b880c1C18412170;|' "$HOME/infernet-container-starter/projects/hello-world/contracts/script/Deploy.s.sol"
