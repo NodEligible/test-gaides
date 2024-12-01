@@ -110,6 +110,22 @@ else
     fi
 fi
 
+# Створення скрипта для виправлення конфігурації Nginx
+sed -i "s|listen 3000|listen 3002|g" /etc/nginx/sites-available/default
+nginx -s reload
+' > /usr/local/bin/fix_nginx.sh
+
+# Робимо скрипт виконуваним
+chmod +x /usr/local/bin/fix_nginx.sh
+
+# Додаємо скрипт в автозапуск через cron
+if ! grep -q "/usr/local/bin/fix_nginx.sh" /etc/crontab; then
+    echo "@reboot root /usr/local/bin/fix_nginx.sh" >> /etc/crontab
+fi
+
+# Виконуємо скрипт одразу після встановлення
+/usr/local/bin/fix_nginx.sh
+
 # Вывод информации для пользователя
 echo -e "${YELLOW}Открывайте браузер по адресу: http://${SERVER_IP}:11000/${NC}"
 echo -e "${YELLOW}Имя пользователя: $USERNAME${NC}"
