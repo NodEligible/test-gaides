@@ -93,6 +93,8 @@ sed -i 's|"batch_size": .*|"batch_size": 800,|' "$DEPLOY_JSON"
 sed -i 's|"trail_head_blocks": .*|"trail_head_blocks": 3,|' "$DEPLOY_JSON"
 sed -i 's|"sync_period": .*|"sync_period": 30|' "$DEPLOY_JSON"
 sed -i 's|"starting_sub_id": .*|"starting_sub_id": 160000,|' "$DEPLOY_JSON"
+sed -i 's|"port": "3000"|"port": "3002"|g' "$DEPLOY_JSON"
+sed -i 's|--bind=0.0.0.0:3000|--bind=0.0.0.0:3002|g' "$DEPLOY_JSON"
 
 # Конфигурация container/config.json
 CONTAINER_JSON=$HOME/infernet-container-starter/projects/hello-world/container/config.json
