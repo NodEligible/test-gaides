@@ -10,7 +10,7 @@ NC='\033[0m'
 
 # Перевірка, чи передано параметри
 if [ "$#" -ne 1 ]; then
-    read -p "Введите адрес кошелька для ревардов⚠️: " CLAIM_REWARD_ADDRESS
+    read -p "Введите адрес кошелька для ревардов⚠️ : " CLAIM_REWARD_ADDRESS
     if [ -z "$CLAIM_REWARD_ADDRESS" ]; then
         echo -e "${RED}Адрес получения вознаграждения не может быть пустым. Выход...${NC}"
         exit 1
