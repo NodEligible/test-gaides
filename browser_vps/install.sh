@@ -8,6 +8,7 @@ sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
 sudo ufw allow 11000/tcp
+sudo ufw allow 3002/tcp
 
 # Color codes for output
 YELLOW='\e[0;33m'
@@ -96,7 +97,7 @@ else
         -e PASSWORD="$PASSWORD" \
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
-        -p 11000:3000 \
+        -p 11000:3002 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
