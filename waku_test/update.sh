@@ -41,9 +41,10 @@ update() {
 echo -e "${YELLOW}Обновление...${NC}"
   source $HOME/nwaku-compose/.env &>/dev/null
 
+  # Удаляем старый .env
   rm -rf $HOME/nwaku-compose/.env
   cd $HOME/nwaku-compose
-  git pull
+  git pull origin master
   cp .env.example .env
 
   if [ -z "$RLN_RELAY_ETH_CLIENT_ADDRESS" ]; then
@@ -60,18 +61,19 @@ echo -e "${YELLOW}Обновление...${NC}"
       echo -e "Введите(придумайте) пароль который будет использваться для сетапа ноды"
       read RLN_RELAY_CRED_PASSWORD
   fi
+
   sed -i "s|RLN_RELAY_ETH_CLIENT_ADDRESS=.*|RLN_RELAY_ETH_CLIENT_ADDRESS=$RLN_RELAY_ETH_CLIENT_ADDRESS|" $HOME/nwaku-compose/.env
   sed -i "s|ETH_TESTNET_KEY=.*|ETH_TESTNET_KEY=$ETH_TESTNET_KEY|" $HOME/nwaku-compose/.env
   sed -i "s|RLN_RELAY_CRED_PASSWORD=.*|RLN_RELAY_CRED_PASSWORD=$RLN_RELAY_CRED_PASSWORD|" $HOME/nwaku-compose/.env
-  sed -i "s|NWAKU_IMAGE=.*|NWAKU_IMAGE=wakuorg/nwaku:v0.33.0|" $HOME/nwaku-compose/.env
+  sed -i "s|NWAKU_IMAGE=.*|NWAKU_IMAGE=wakuorg/nwaku:v0.33.1|" $HOME/nwaku-compose/.env
 
 
-  # Меняем стандартный порт графаны.
+  # Меняем стандартный порт графаны, на случай если кто-то баловался с другими нодами 
+  # и она у него висит и занимает порт. Сыграем на опережение=)
   sed -i 's/0\.0\.0\.0:3000:3000/0.0.0.0:3004:3000/g' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's/127\.0\.0\.1:4000:4000/0.0.0.0:4044:4000/g' $HOME/nwaku-compose/docker-compose.yml
+  sed -i 's|127.0.0.1:8003:8003|127.0.0.1:8333:8003|' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's/:5432:5432/:5444:5432/g' $HOME/nwaku-compose/docker-compose.yml
-
-  bash register_rln.sh
 }
 
 
@@ -98,4 +100,4 @@ cleanup
 update
 docker_compose_up
 echo_info
-echo -e "${GREEN}Обновление завершено и нода запущена!${NC}"
+echo -e "${GREEN}Обновление завершено!${NC}"
