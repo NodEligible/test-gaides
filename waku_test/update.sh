@@ -9,8 +9,8 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' 
 
-echo -e "${YELLOW}Очистка...${NC}"
 cleanup() {
+echo -e "${YELLOW}Очистка...${NC}"
   docker-compose -f $HOME/nwaku-compose/docker-compose.yml down
   # mkdir -p $HOME/nwaku_backups
   # if [ -d "$HOME/nwaku_backups/keystore0.30" ]; then
@@ -25,11 +25,11 @@ cleanup() {
   # rm -rf $HOME/nwaku-compose/rln_tree/ 
   cd $HOME/nwaku-compose
   git restore . &>/dev/null
+  echo -e "${GREEN}Чистка завершена!${NC}"
 }
 
-echo -e "${GREEN}Чистка завершена!${NC}"
-echo -e "${YELLOW}Обновление...${NC}"
 update() {
+echo -e "${YELLOW}Обновление...${NC}"
   # Выгружаем переменные с .env в среду выполнения
   source $HOME/nwaku-compose/.env &>/dev/null
 
