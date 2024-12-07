@@ -10,7 +10,7 @@ RED='\033[0;31m'
 NC='\033[0m' 
 
 cleanup() {
-echo -e "${YELLOW}Очистка...${NC}"
+  echo -e "${YELLOW}Очистка...${NC}"
   docker-compose -f $HOME/nwaku-compose/docker-compose.yml down
   # mkdir -p $HOME/nwaku_backups
   # if [ -d "$HOME/nwaku_backups/keystore0.30" ]; then
