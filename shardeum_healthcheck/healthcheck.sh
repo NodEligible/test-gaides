@@ -1,27 +1,27 @@
-#! /bin/bash
+#!/bin/bash
 
-function get_status() {
-    STATUS=$(docker exec -t shardeum-dashboard operator-cli status | grep state | awk '{ print $2 }')
-    echo "${STATUS}"
-}
-
-cd "$HOME" || exit
-source .profile
-
-while true
-do
-    printf "Check shardeum node status \n"
-    NODE_STATUS=$(get_status)
-    printf "Current status: ${NODE_STATUS}\n"
-    sleep 5s
-    if [[ "${NODE_STATUS}" =~ "stopped" ]]; then
-        printf "Start shardeum node and wait 3 minutes\n"
-        docker exec -t shardeum-dashboard operator-cli start
-        sleep 1m
-    else
-        date=$(date +"%H:%M")
-        echo "Last Update: ${date}"
-        printf "Sleep 2 minutes\n"
-        sleep 2m
-    fi
+while true; do
+  #run
+  date=$(date '+%Y/%m/%d %H:%M:%S')
+  container_name="shardeum-validator"
+  status=$(docker exec -it $container_name operator-cli status | awk '/state:/ {print $NF}' 2>/dev/null)
+  
+  if [[ -z "$status" ]]; then
+    echo "Error: Container $container_name not found or operator-cli is not accessible."
+    exit 1
+  fi
+  
+  echo "Node status: $status"
+  if [[ "$status" == *"top"* ]]; then
+    echo "Your node stopped and I am trying to start now: $date"
+    sleep 2
+    docker exec -it $container_name operator-cli start
+    sleep 10
+    status=$(docker exec -it $container_name operator-cli status | awk '/state:/ {print $NF}')
+    echo "Node status: $status"
+  else
+    sleep 1
+  fi
+  #wait
+  sleep 600
 done
