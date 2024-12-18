@@ -15,13 +15,13 @@ do
     printf "Current status: ${NODE_STATUS}\n"
     sleep 5s
     if [[ "${NODE_STATUS}" =~ "stopped" ]]; then
-        printf "Start shardeum node and wait 5 minutes\n"
+        printf "Start shardeum node and wait 3 minutes\n"
         docker exec -t shardeum-dashboard operator-cli start
-        sleep 5m
+        sleep 1m
     else
         date=$(date +"%H:%M")
         echo "Last Update: ${date}"
-        printf "Sleep 15 minutes\n"
-        sleep 15m
+        printf "Sleep 2 minutes\n"
+        sleep 2m
     fi
 done
