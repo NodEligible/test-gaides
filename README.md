@@ -14,7 +14,7 @@ bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/he
 ```
 Shardeum_healthcheck
 ```
-tmux new-session -d -s shardeum_healthcheck 'bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/shardeum_healthcheck/healthcheck.sh)'
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/shardeum_healthcheck/healthcheck.sh)
 ```
 Ritual_test
 ```
