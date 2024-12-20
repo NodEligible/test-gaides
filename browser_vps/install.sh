@@ -3,6 +3,7 @@
 # Display the logo (assuming it's needed)
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
+
 sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
@@ -64,29 +65,13 @@ cat <<EOL > "$CREDENTIALS_FILE"
 EOL
 chmod 600 "$CREDENTIALS_FILE"
 
-# Создание кастомного Dockerfile
-DOCKERFILE_PATH="$HOME/Dockerfile"
-cat <<EOL > "$DOCKERFILE_PATH"
-FROM lscr.io/linuxserver/chromium:latest
-
-# Зміна оголошеного порту
-EXPOSE 3002
-
-# Заміна портів у конфігурації
-RUN sed -i 's|3000|3002|g' /etc/nginx/sites-available/default
-
-# CMD для запуску
-CMD ["/init"]
-EOL
-
-# Построение кастомного образа
-echo -e "${YELLOW}Создание кастомного Docker-образа...${NC}"
-docker build -t custom-chromium "$HOME"
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Кастомный Docker-образ успешно создан.${NC}"
-else
-    echo -e "${RED}Ошибка при создании Docker-образа.${NC}"
+# Проверка и загрузка образа Docker с Chromium
+echo -e "${YELLOW}Загрузка последнего образа Docker с Chromium...${NC}"
+if ! docker pull linuxserver/chromium:latest; then
+    echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
     exit 1
+else
+    echo -e "${GREEN}Образ Docker с Chromium успешно загружен.${NC}"
 fi
 
 # Создание конфигурационной папки
@@ -95,12 +80,12 @@ mkdir -p "$HOME/chromium/config"
 # Название контейнера
 container_name="browser"
 
-# Запуск контейнера с кастомным образом
+# Запуск контейнера с Chromium
 if [ "$(docker ps -a -q -f name=$container_name)" ]; then
     echo -e "${GREEN}Контейнер $container_name уже существует. Запускаем...${NC}"
     docker start "$container_name"
 else
-    echo -e "${YELLOW}Запуск контейнера с кастомным Docker-образом...${NC}"
+    echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
     docker run -d --name "$container_name" \
         --privileged \
@@ -115,8 +100,7 @@ else
         -p 11000:3002 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        custom-chromium
-
+        lscr.io/linuxserver/chromium:latest
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
