@@ -73,8 +73,7 @@ FROM lscr.io/linuxserver/chromium:latest
 EXPOSE 3002
 
 # Заміна портів у конфігурації
-RUN sed -i 's|3000|3002|g' /etc/nginx/sites-available/default && \\
-    sed -i 's|3000|3002|g' /etc/s6-overlay/s6-rc.d/init-nginx/run
+RUN sed -i 's|3000|3002|g' /etc/nginx/sites-available/default
 
 # CMD для запуску
 CMD ["/init"]
