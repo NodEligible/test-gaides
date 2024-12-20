@@ -102,21 +102,20 @@ if [ "$(docker ps -a -q -f name=$container_name)" ]; then
 else
     echo -e "${YELLOW}Запуск контейнера с кастомным Docker-образом...${NC}"
 
-docker run -d --name "$container_name" \
-    --privileged \
-    -e TITLE=ShishkaCrypto \
-    -e DISPLAY=$DISPLAY \
-    -e PUID=1000 \
-    -e PGID=1000 \
-    -e CUSTOM_USER="$USERNAME" \
-    -e PASSWORD="$PASSWORD" \
-    -e LANGUAGE=ru_RU.UTF-8 \
-    -v "$HOME/chromium/config:/config" \
-    -v /tmp/.X11-unix:/tmp/.X11-unix \
-    -p 11000:3002 \
-    --shm-size="2gb" \
-    --restart unless-stopped \
-    custom-chromium
+    docker run -d --name "$container_name" \
+        --privileged \
+        -e TITLE=ShishkaCrypto \
+        -e DISPLAY=:1 \
+        -e PUID=1000 \
+        -e PGID=1000 \
+        -e CUSTOM_USER="$USERNAME" \
+        -e PASSWORD="$PASSWORD" \
+        -e LANGUAGE=ru_RU.UTF-8 \
+        -v "$HOME/chromium/config:/config" \
+        -p 11000:3002 \
+        --shm-size="2gb" \
+        --restart unless-stopped \
+        custom-chromium
 
 
     if [ $? -eq 0 ]; then
