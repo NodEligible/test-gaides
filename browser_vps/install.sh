@@ -2,88 +2,54 @@
 
 set -e
 
+# Перевірка прав адміністратора
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root"
-   exit 1
+    echo "Цей скрипт потрібно запускати з правами адміністратора (root)."
+    exit 1
 fi
 
-KASM_VERSION="1.7.0"
-KASM_INSTALL_BASE="/opt/kasm/${KASM_VERSION}"
-DEFAULT_PROXY_LISTENING_PORT=443
-DEFAULT_ADMIN_PASSWORD="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)"
-DEFAULT_USER_PASSWORD="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)"
-SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd -P)"
-KASM_RELEASE="$(cd "$SCRIPT_PATH" && pwd -P)"
-EULA_PATH="${KASM_RELEASE}/licenses/LICENSE.txt"
+# Змінні
+KASM_VERSION="1.16.1.98d6fa"
+KASM_DOWNLOAD_URL="https://kasm-static-content.s3.amazonaws.com/kasm_release_${KASM_VERSION}.tar.gz"
+KASM_ARCHIVE="/tmp/kasm_release_${KASM_VERSION}.tar.gz"
+KASM_INSTALL_DIR="/tmp/kasm_release"
 
-# Check if port is available
-function check_port() {
-    echo "Checking if port ${DEFAULT_PROXY_LISTENING_PORT} is available..."
-    if lsof -Pi :${DEFAULT_PROXY_LISTENING_PORT} -sTCP:LISTEN >/dev/null 2>&1; then
-        echo "Error: Port ${DEFAULT_PROXY_LISTENING_PORT} is in use."
+# Завантаження Kasm
+function download_kasm() {
+    echo "Завантаження Kasm з ${KASM_DOWNLOAD_URL}..."
+    curl -o "$KASM_ARCHIVE" "$KASM_DOWNLOAD_URL"
+    if [[ $? -ne 0 ]]; then
+        echo "Помилка під час завантаження Kasm."
         exit 1
-    else
-        echo "Port ${DEFAULT_PROXY_LISTENING_PORT} is available."
     fi
 }
 
-# Update configurations for custom port
-function set_listening_port() {
-    echo "Configuring to use port ${DEFAULT_PROXY_LISTENING_PORT}..."
-    local config_file=${KASM_INSTALL_BASE}/conf/nginx/orchestrator.conf
-    if [[ -f "$config_file" ]]; then
-        sed -i "s/listen 443 ssl;/listen ${DEFAULT_PROXY_LISTENING_PORT} ssl;/g" "$config_file"
+# Розпакування архіву
+function extract_kasm() {
+    echo "Розпакування архіву Kasm..."
+    tar -xf "$KASM_ARCHIVE" -C /tmp
+    if [[ $? -ne 0 ]]; then
+        echo "Помилка під час розпакування архіву Kasm."
+        exit 1
     fi
 }
 
-# Generate random passwords
-function generate_passwords() {
-    echo "Admin Password: ${DEFAULT_ADMIN_PASSWORD}"
-    echo "User Password: ${DEFAULT_USER_PASSWORD}"
+# Запуск інсталяції
+function install_kasm() {
+    echo "Запуск інсталяції Kasm..."
+    sudo bash "$KASM_INSTALL_DIR/install.sh"
+    if [[ $? -ne 0 ]]; then
+        echo "Помилка під час встановлення Kasm."
+        exit 1
+    fi
 }
 
-# Install dependencies
-function install_dependencies() {
-    echo "Installing dependencies..."
-    apt-get update && apt-get install -y docker.io openssl
-}
-
-# Create directories and setup environment
-function setup_directories() {
-    echo "Setting up directories..."
-    mkdir -p ${KASM_INSTALL_BASE}/{bin,certs,www,conf/nginx/services.d,conf/nginx/containers.d,conf/database/seed_data}
-    mkdir -p ${KASM_INSTALL_BASE}/log
-    chmod 777 ${KASM_INSTALL_BASE}/log
-}
-
-# Generate self-signed SSL certificates
-function generate_ssl() {
-    echo "Generating self-signed SSL certificates..."
-    openssl req -x509 -nodes -days 1825 -newkey rsa:2048 \
-        -keyout ${KASM_INSTALL_BASE}/certs/kasm_nginx.key \
-        -out ${KASM_INSTALL_BASE}/certs/kasm_nginx.crt \
-        -subj "/C=US/ST=None/L=None/O=None/OU=None/CN=$(hostname)/emailAddress=none@none.none"
-}
-
-# Start services
-function start_services() {
-    echo "Starting Kasm services..."
-    docker-compose -f ${KASM_INSTALL_BASE}/docker/docker-compose.yaml up -d
-}
-
-# Main installation process
+# Основний процес
 function main() {
-    check_port
-    install_dependencies
-    setup_directories
-    generate_ssl
-    set_listening_port
-    generate_passwords
-    start_services
-
-    echo "Installation complete."
-    echo "Admin credentials: admin@kasm.local / ${DEFAULT_ADMIN_PASSWORD}"
-    echo "User credentials: user@kasm.local / ${DEFAULT_USER_PASSWORD}"
+    download_kasm
+    extract_kasm
+    install_kasm
+    echo "Установку Kasm завершено успішно."
 }
 
 main
