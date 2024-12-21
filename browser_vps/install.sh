@@ -8,7 +8,7 @@ sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
 sudo ufw allow 11000/tcp
-sudo ufw allow 3002/tcp
+sudo ufw allow 3000/tcp
 
 # Color codes for output
 YELLOW='\e[0;33m'
