@@ -1,15 +1,14 @@
 #!/bin/bash
 
-# Display the logo (optional)
+# Display the logo (assuming it's needed)
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
-# Configure locale
+
 sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
-# Open necessary ports
 sudo ufw allow 11000/tcp
-sudo ufw allow 3000/tcp
+sudo ufw allow 3002/tcp
 
 # Color codes for output
 YELLOW='\e[0;33m'
@@ -17,46 +16,46 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# Update and install dependencies
-echo -e "${YELLOW}Updating packages...${NC}"
+# Обновление и установка зависимостей
+echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update && sudo apt upgrade -y
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Packages updated successfully!${NC}"
+    echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
 else
-    echo -e "${RED}Failed to update packages!${NC}"
+    echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}Installing Docker...${NC}"
+echo -e "${YELLOW}Установка Docker...${NC}"
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Docker installed successfully!${NC}"
+    echo -e "${GREEN}Docker успешно установлен!${NC}"
 else
-    echo -e "${RED}Failed to install Docker!${NC}"
+    echo -e "${RED}Ошибка при установке Docker!${NC}"
     exit 1
 fi
 
-# Get the server's external IP address
+# Получение внешнего IP-адреса
 SERVER_IP=$(hostname -I | awk '{print $1}')
 BROWSER_URL="http://${SERVER_IP}:11000"
 
-echo -e "${YELLOW}Automatically detected server IP address: ${SERVER_IP}${NC}"
+echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${SERVER_IP}${NC}"
 
-# Prompt for username
-read -p "Enter a username: " USERNAME
+# Запрашиваем имя пользователя
+read -p "Введите имя пользователя: " USERNAME
 
-# Prompt for password with confirmation
-read -s -p "Enter a password: " PASSWORD
+# Запрашиваем пароль с подтверждением
+read -s -p "Введите пароль: " PASSWORD
 echo
-read -s -p "Confirm your password: " PASSWORD_CONFIRM
+read -s -p "Подтвердите пароль: " PASSWORD_CONFIRM
 echo
 
 if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
-    echo -e "${RED}Passwords do not match. Please try again.${NC}"
+    echo -e "${RED}Пароли не совпадают. Попробуйте снова.${NC}"
     exit 1
 fi
 
-# Save credentials to a file
+# Сохранение учетных данных
 CREDENTIALS_FILE="$HOME/vps-browser-credentials.json"
 cat <<EOL > "$CREDENTIALS_FILE"
 {
@@ -66,52 +65,52 @@ cat <<EOL > "$CREDENTIALS_FILE"
 EOL
 chmod 600 "$CREDENTIALS_FILE"
 
-# Check and download the Kasm Firefox Docker image
-echo -e "${YELLOW}Downloading the latest Kasm Firefox Docker image...${NC}"
-if ! docker pull kasmweb/firefox:latest; then
-    echo -e "${RED}Failed to download the Kasm Firefox Docker image.${NC}"
+# Проверка и загрузка образа Docker с Chromium
+echo -e "${YELLOW}Загрузка последнего образа Docker с Chromium...${NC}"
+if ! docker pull linuxserver/chromium:latest; then
+    echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
     exit 1
 else
-    echo -e "${GREEN}Kasm Firefox Docker image downloaded successfully.${NC}"
+    echo -e "${GREEN}Образ Docker с Chromium успешно загружен.${NC}"
 fi
 
-# Create configuration directory
-mkdir -p "$HOME/kasm_firefox/config"
+# Создание конфигурационной папки
+mkdir -p "$HOME/chromium/config"
 
-# Container name
-container_name="kasm_firefox"
+# Название контейнера
+container_name="browser"
 
-# Launch the container
+# Запуск контейнера с Chromium
 if [ "$(docker ps -a -q -f name=$container_name)" ]; then
-    echo -e "${GREEN}Container $container_name already exists. Starting...${NC}"
+    echo -e "${GREEN}Контейнер $container_name уже существует. Запускаем...${NC}"
     docker start "$container_name"
 else
-    echo -e "${YELLOW}Launching the Kasm Firefox container...${NC}"
+    echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
     docker run -d --name "$container_name" \
         --privileged \
-        -e TITLE=KasmFirefox \
+        -e TITLE=ShishkaCrypto \
         -e DISPLAY=:1 \
         -e PUID=1000 \
         -e PGID=1000 \
         -e CUSTOM_USER="$USERNAME" \
         -e PASSWORD="$PASSWORD" \
         -e LANGUAGE=ru_RU.UTF-8 \
-        -v "$HOME/kasm_firefox/config:/config" \
-        -p 11000:3000 \
+        -v "$HOME/chromium/config:/config" \
+        -p 11000:3002 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        kasmweb/firefox:latest
+        lscr.io/linuxserver/chromium:latest
 
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Kasm Firefox container launched successfully.${NC}"
+        echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
     else
-        echo -e "${RED}Failed to launch the Kasm Firefox container.${NC}"
+        echo -e "${RED}Не удалось запустить контейнер с Chromium.${NC}"
         exit 1
     fi
 fi
 
-# Display information to the user
-echo -e "${YELLOW}Open the browser at: ${BROWSER_URL}${NC}"
-echo -e "${YELLOW}Username: $USERNAME${NC}"
-echo -e "${YELLOW}Use your password to log in.${NC}"
+# Вывод информации для пользователя
+echo -e "${YELLOW}Открывайте браузер по адресу: http://${SERVER_IP}:11000/${NC}"
+echo -e "${YELLOW}Имя пользователя: $USERNAME${NC}"
+echo -e "${YELLOW}Введите ваш пароль при входе.${NC}"
