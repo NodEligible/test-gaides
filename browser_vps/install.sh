@@ -7,8 +7,8 @@ curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/d
 sudo locale-gen ru_RU.UTF-8
 sudo update-locale
 
-sudo ufw allow 11000/tcp
-sudo ufw allow 12000/tcp
+sudo ufw allow 21000/tcp
+sudo ufw allow 22000/tcp
 
 # Color codes for output
 YELLOW='\e[0;33m'
@@ -97,8 +97,8 @@ else
         -e PASSWORD="$PASSWORD" \
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
-        -p 11000:3000 \
-        -p 12000:3001 \
+        -p 21000:3000 \
+        -p 22000:3001 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
@@ -112,7 +112,7 @@ else
 fi
 
 # Вывод информации для пользователя
-echo -e "${YELLOW}Открывайте браузер по адресу: http://${SERVER_IP}:11000/${NC}"
-echo -e "${YELLOW}Открывайте браузер по адресу: https://${SERVER_IP}:12000/${NC}"
+echo -e "${YELLOW}Открывайте браузер по адресу: http://${SERVER_IP}:21000/${NC}"
+echo -e "${YELLOW}Открывайте браузер по адресу: https://${SERVER_IP}:22000/${NC}"
 echo -e "${YELLOW}Имя пользователя: $USERNAME${NC}"
 echo -e "${YELLOW}Введите ваш пароль при входе.${NC}"
