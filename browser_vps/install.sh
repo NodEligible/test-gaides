@@ -48,17 +48,24 @@ BROWSER_URL="${SERVER_IP}"
 echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${SERVER_IP}${NC}"
 
 # Запрашиваем имя пользователя
-read -p "Введите имя пользователя: " USERNAME
+if [ -z "$USERNAME" ]; then
+   echo -e "Введите имя пользователя:"
+   read -r USERNAME
+fi
 
 # Запрашиваем пароль с подтверждением
-read -s -p "Введите пароль: " PASSWORD
-echo
-read -s -p "Подтвердите пароль: " PASSWORD_CONFIRM
-echo
+if [ -z "$PASSWORD" ]; then
+    echo -e "Введите пароль:"
+    read -s -r PASSWORD
+    echo
+    echo -e "Подтвердите пароль:"
+    read -s -r PASSWORD_CONFIRM
+    echo
 
-if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
-    echo -e "${RED}Пароли не совпадают. Попробуйте снова.${NC}"
-    exit 1
+    if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
+        echo -e "${RED}Пароли не совпадают. Попробуйте снова.${NC}"
+        exit 1
+    fi
 fi
 
 # Сохранение учетных данных
