@@ -98,6 +98,7 @@ else
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
         -p 11000:3000 \
+        -p 12000:3001 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
