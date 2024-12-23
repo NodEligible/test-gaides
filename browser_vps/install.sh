@@ -102,7 +102,7 @@ else
 
     docker run -d --name "$container_name" \
         --privileged \
-        -e TITLE=ShishkaCrypto \
+        -e TITLE=NodEligible \
         -e DISPLAY=:1 \
         -e PUID=1000 \
         -e PGID=1000 \
