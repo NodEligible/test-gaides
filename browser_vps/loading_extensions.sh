@@ -40,14 +40,20 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Распаковываем CRX
+# Удаляем заголовок CRX
+echo -e "${YELLOW}Удаляем заголовок CRX...${NC}"
+ZIP_FILE="$EXT_DIR/$EXT_ID.zip"
+dd if="$CRX_FILE" of="$ZIP_FILE" bs=1 skip=16 status=none
+
+# Распаковываем ZIP
 EXT_OUTPUT_DIR="$EXT_DIR/$EXT_ID"
-echo -e "${YELLOW}Распаковываем CRX в директорию: $EXT_OUTPUT_DIR${NC}"
-unzip -q "$CRX_FILE" -d "$EXT_OUTPUT_DIR"
+echo -e "${YELLOW}Распаковываем ZIP в директорию: $EXT_OUTPUT_DIR${NC}"
+unzip -q "$ZIP_FILE" -d "$EXT_OUTPUT_DIR"
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}Расширение успешно установлено в: $EXT_OUTPUT_DIR${NC}"
-    rm "$CRX_FILE"
+    rm "$CRX_FILE" "$ZIP_FILE"
 else
-    echo -e "${RED}Ошибка при распаковке CRX-файла. Проверьте содержимое.${NC}"
+    echo -e "${RED}Ошибка при распаковке ZIP-файла. Проверьте содержимое.${NC}"
+    rm "$CRX_FILE" "$ZIP_FILE"
     exit 1
 fi
