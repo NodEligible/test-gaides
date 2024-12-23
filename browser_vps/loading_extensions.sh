@@ -47,27 +47,45 @@ if [ "$MAGIC_HEADER" != "43723234" ]; then
     exit 1
 fi
 
-# Извлекаем размер заголовка (4-8 байты)
-HEADER_SIZE=$(xxd -s 8 -l 4 -ps "$CRX_FILE" | xxd -r -p | od -An -i | tr -d ' ')
-if [ -z "$HEADER_SIZE" ] || [ "$HEADER_SIZE" -le 0 ]; then
-    echo -e "${RED}Не удалось определить размер заголовка. Проверьте файл.${NC}"
-    exit 1
-fi
-echo -e "${YELLOW}Размер заголовка CRX: $HEADER_SIZE байт.${NC}"
+# Используем Node.js для обработки CRX-файла
+NODE_SCRIPT=$(cat <<EOF
+const fs = require('fs');
 
-# Удаляем заголовок CRX
-echo -e "${YELLOW}Удаляем заголовок CRX...${NC}"
-ZIP_FILE="$EXT_DIR/$EXT_ID.zip"
-dd if="$CRX_FILE" of="$ZIP_FILE" bs=1 skip="$HEADER_SIZE" status=none
+// Путь к CRX-файлу
+const crxFilePath = process.argv[2];
+const extDir = process.argv[3];
+const extId = process.argv[4];
 
-# Проверяем содержимое ZIP-файла
-if ! unzip -tq "$ZIP_FILE"; then
-    echo -e "${RED}Файл ZIP повреждён. Проверьте файл.${NC}"
-    rm "$CRX_FILE" "$ZIP_FILE"
+try {
+    const crxFile = fs.readFileSync(crxFilePath);
+    const headerSize = crxFile.readUInt32LE(8);
+
+    if (headerSize <= 0 || headerSize >= crxFile.length) {
+        console.error("Некорректный размер заголовка.");
+        process.exit(1);
+    }
+
+    // Удаляем заголовок и сохраняем ZIP-часть
+    const zipFilePath = \`\${extDir}/\${extId}.zip\`;
+    fs.writeFileSync(zipFilePath, crxFile.slice(headerSize));
+
+    console.log("ZIP-файл успешно сохранён:", zipFilePath);
+} catch (err) {
+    console.error("Ошибка обработки CRX-файла:", err.message);
+    process.exit(1);
+}
+EOF
+)
+
+# Передаём Node.js данные для обработки
+node -e "$NODE_SCRIPT" "$CRX_FILE" "$EXT_DIR" "$EXT_ID"
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Ошибка обработки CRX-файла через Node.js.${NC}"
     exit 1
 fi
 
 # Распаковываем ZIP
+ZIP_FILE="$EXT_DIR/$EXT_ID.zip"
 EXT_OUTPUT_DIR="$EXT_DIR/$EXT_ID"
 echo -e "${YELLOW}Распаковываем ZIP в директорию: $EXT_OUTPUT_DIR${NC}"
 unzip -q "$ZIP_FILE" -d "$EXT_OUTPUT_DIR"
