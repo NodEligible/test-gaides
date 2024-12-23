@@ -15,18 +15,23 @@ if [ ! -d "$EXT_DIR" ]; then
     mkdir -p "$EXT_DIR"
 fi
 
-# Запрашиваем ID или ссылку
-read -p "Введите ID расширения или прямую ссылку: " INPUT
+# Запрашиваем ссылку на расширение
+read -p "Введите ссылку на расширение из Chrome Web Store: " INPUT
 
-# Проверяем, ссылка это или ID
-if [[ "$INPUT" =~ https?:// ]]; then
-    EXT_URL="$INPUT"
+# Проверяем, это ID или полная ссылка
+if [[ "$INPUT" =~ chromewebstore.google.com ]]; then
+    # Извлекаем ID из ссылки
+    EXT_ID=$(echo "$INPUT" | grep -oP "(?<=/detail/[^/]+/)[a-z]{32}")
+elif [[ "$INPUT" =~ ^[a-z]{32}$ ]]; then
+    # Если введён ID напрямую
+    EXT_ID="$INPUT"
 else
-    EXT_URL="https://clients2.google.com/service/update2/crx?response=redirect&prodversion=91.0.4472.124&acceptformat=crx3&x=id%3D$INPUT%26installsource%3Dondemand%26uc"
+    echo -e "${RED}Некорректный ввод. Укажите ссылку или ID расширения.${NC}"
+    exit 1
 fi
 
-# Генерация уникального ID для хранения расширения
-EXT_ID=$(basename "$EXT_URL" | md5sum | cut -d' ' -f1)
+# Формируем URL для загрузки CRX
+EXT_URL="https://clients2.google.com/service/update2/crx?response=redirect&prodversion=91.0.4472.124&acceptformat=crx3&x=id%3D$EXT_ID%26installsource%3Dondemand%26uc"
 
 # Загружаем расширение
 echo -e "${YELLOW}Загружаем расширение из: $EXT_URL...${NC}"
