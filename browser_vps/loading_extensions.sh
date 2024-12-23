@@ -40,10 +40,18 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Определяем размер заголовка
+HEADER_SIZE=$(xxd -l 4 -ps "$CRX_FILE" | xxd -r -p | od -An -i)
+if [ -z "$HEADER_SIZE" ]; then
+    echo -e "${RED}Не удалось определить размер заголовка. Проверьте файл.${NC}"
+    exit 1
+fi
+echo -e "${YELLOW}Размер заголовка CRX: $HEADER_SIZE байт.${NC}"
+
 # Удаляем заголовок CRX
 echo -e "${YELLOW}Удаляем заголовок CRX...${NC}"
 ZIP_FILE="$EXT_DIR/$EXT_ID.zip"
-dd if="$CRX_FILE" of="$ZIP_FILE" bs=1 skip=16 status=none
+dd if="$CRX_FILE" of="$ZIP_FILE" bs=1 skip="$HEADER_SIZE" status=none
 
 # Распаковываем ZIP
 EXT_OUTPUT_DIR="$EXT_DIR/$EXT_ID"
