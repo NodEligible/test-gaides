@@ -37,11 +37,17 @@ if [ $? -ne 0 ]; then
 fi
 
 # Распаковываем загруженное расширение
-unzip "$EXT_DIR/$EXT_ID.zip" -d "$EXT_DIR/$EXT_ID" > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Ошибка при распаковке файла. Проверьте, корректен ли файл.${NC}"
+if unzip -tq "$EXT_DIR/$EXT_ID.zip" > /dev/null 2>&1; then
+    echo -e "${GREEN}Файл корректен. Распаковываем...${NC}"
+    unzip "$EXT_DIR/$EXT_ID.zip" -d "$EXT_DIR/$EXT_ID" > /dev/null 2>&1
+    rm "$EXT_DIR/$EXT_ID.zip"
+    echo -e "${GREEN}Расширение с ID $EXT_ID успешно установлено.${NC}"
+else
+    echo -e "${RED}Файл некорректен или повреждён. Проверьте ID или источник.${NC}"
+    rm "$EXT_DIR/$EXT_ID.zip"
     exit 1
 fi
+
 
 # Удаляем ZIP-файл
 rm "$EXT_DIR/$EXT_ID.zip"
