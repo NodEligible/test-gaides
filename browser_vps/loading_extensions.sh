@@ -47,9 +47,3 @@ else
     rm "$EXT_DIR/$EXT_ID.zip"
     exit 1
 fi
-
-
-# Удаляем ZIP-файл
-rm "$EXT_DIR/$EXT_ID.zip"
-
-echo -e "${GREEN}Расширение с ID $EXT_ID успешно установлено в $EXT_DIR/$EXT_ID.${NC}"
