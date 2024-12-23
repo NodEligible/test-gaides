@@ -15,35 +15,34 @@ if [ ! -d "$EXT_DIR" ]; then
     mkdir -p "$EXT_DIR"
 fi
 
-# Запрашиваем ID расширения
-read -p "Введите ID расширения: " EXT_ID
+# Запрашиваем ссылку на расширение
+read -p "Введите ссылку на расширение: " EXT_URL
 
-# Проверяем, ввели ли ID
-if [ -z "$EXT_ID" ]; then
-    echo -e "${RED}ID расширения не введён. Попробуйте снова.${NC}"
+# Проверяем, ввели ли ссылку
+if [ -z "$EXT_URL" ]; then
+    echo -e "${RED}Ссылка на расширение не введена. Попробуйте снова.${NC}"
     exit 1
 fi
 
-# Формируем URL для загрузки
-URL="https://clients2.google.com/service/update2/crx?response=redirect&prodversion=91.0.4472.124&acceptformat=crx3&x=id%3D$EXT_ID%26installsource%3Dondemand%26uc"
-
-echo -e "${YELLOW}Загружаем расширение с ID: $EXT_ID...${NC}"
+# Генерация уникального ID для хранения расширения
+EXT_ID=$(echo "$EXT_URL" | md5sum | cut -d' ' -f1)
 
 # Загружаем расширение
-curl -L -o "$EXT_DIR/$EXT_ID.zip" "$URL"
+echo -e "${YELLOW}Загружаем расширение из: $EXT_URL...${NC}"
+curl -L -o "$EXT_DIR/$EXT_ID.zip" "$EXT_URL"
 if [ $? -ne 0 ]; then
-    echo -e "${RED}Ошибка при загрузке расширения. Проверьте ID.${NC}"
+    echo -e "${RED}Ошибка при загрузке расширения. Проверьте ссылку.${NC}"
     exit 1
 fi
 
-# Распаковываем загруженное расширение
+# Проверяем корректность файла перед распаковкой
 if unzip -tq "$EXT_DIR/$EXT_ID.zip" > /dev/null 2>&1; then
     echo -e "${GREEN}Файл корректен. Распаковываем...${NC}"
     unzip "$EXT_DIR/$EXT_ID.zip" -d "$EXT_DIR/$EXT_ID" > /dev/null 2>&1
     rm "$EXT_DIR/$EXT_ID.zip"
-    echo -e "${GREEN}Расширение с ID $EXT_ID успешно установлено.${NC}"
+    echo -e "${GREEN}Расширение успешно установлено в $EXT_DIR/$EXT_ID.${NC}"
 else
-    echo -e "${RED}Файл некорректен или повреждён. Проверьте ID или источник.${NC}"
+    echo -e "${RED}Файл некорректен или повреждён. Проверьте ссылку.${NC}"
     rm "$EXT_DIR/$EXT_ID.zip"
     exit 1
 fi
