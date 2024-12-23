@@ -48,13 +48,24 @@ if [ "$MAGIC_HEADER" != "43723234" ]; then
 fi
 
 # Извлекаем размер заголовка (4-8 байты)
-HEADER_SIZE=$(xxd -s 8 -l 4 -ps "$CRX_FILE" | xxd -r -p | od -An -i)
+HEADER_SIZE=$(xxd -s 8 -l 4 -ps "$CRX_FILE" | xxd -r -p | od -An -i | tr -d ' ')
+if [ -z "$HEADER_SIZE" ] || [ "$HEADER_SIZE" -le 0 ]; then
+    echo -e "${RED}Не удалось определить размер заголовка. Проверьте файл.${NC}"
+    exit 1
+fi
 echo -e "${YELLOW}Размер заголовка CRX: $HEADER_SIZE байт.${NC}"
 
 # Удаляем заголовок CRX
 echo -e "${YELLOW}Удаляем заголовок CRX...${NC}"
 ZIP_FILE="$EXT_DIR/$EXT_ID.zip"
 dd if="$CRX_FILE" of="$ZIP_FILE" bs=1 skip="$HEADER_SIZE" status=none
+
+# Проверяем содержимое ZIP-файла
+if ! unzip -tq "$ZIP_FILE"; then
+    echo -e "${RED}Файл ZIP повреждён. Проверьте файл.${NC}"
+    rm "$CRX_FILE" "$ZIP_FILE"
+    exit 1
+fi
 
 # Распаковываем ZIP
 EXT_OUTPUT_DIR="$EXT_DIR/$EXT_ID"
