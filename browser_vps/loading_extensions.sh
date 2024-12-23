@@ -25,7 +25,7 @@ if [ -z "$EXT_URL" ]; then
 fi
 
 # Генерация уникального ID для хранения расширения
-EXT_ID=$(echo "$EXT_URL" | md5sum | cut -d' ' -f1)
+EXT_ID=$(basename "$EXT_URL" | cut -d'?' -f1 | md5sum | cut -d' ' -f1)
 
 # Загружаем расширение
 echo -e "${YELLOW}Загружаем расширение из: $EXT_URL...${NC}"
@@ -36,13 +36,19 @@ if [ $? -ne 0 ]; then
 fi
 
 # Проверяем корректность файла перед распаковкой
-if unzip -tq "$EXT_DIR/$EXT_ID.zip" > /dev/null 2>&1; then
+if file "$EXT_DIR/$EXT_ID.zip" | grep -q "Zip archive data"; then
     echo -e "${GREEN}Файл корректен. Распаковываем...${NC}"
     unzip "$EXT_DIR/$EXT_ID.zip" -d "$EXT_DIR/$EXT_ID" > /dev/null 2>&1
-    rm "$EXT_DIR/$EXT_ID.zip"
-    echo -e "${GREEN}Расширение успешно установлено в $EXT_DIR/$EXT_ID.${NC}"
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Расширение успешно установлено в $EXT_DIR/$EXT_ID.${NC}"
+        rm "$EXT_DIR/$EXT_ID.zip"
+    else
+        echo -e "${RED}Ошибка при распаковке. Проверьте содержимое файла.${NC}"
+        rm "$EXT_DIR/$EXT_ID.zip"
+        exit 1
+    fi
 else
-    echo -e "${RED}Файл некорректен или повреждён. Проверьте ссылку.${NC}"
+    echo -e "${RED}Файл не является корректным ZIP-архивом. Проверьте ссылку.${NC}"
     rm "$EXT_DIR/$EXT_ID.zip"
     exit 1
 fi
