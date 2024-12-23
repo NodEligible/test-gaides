@@ -40,12 +40,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Определяем размер заголовка
-HEADER_SIZE=$(xxd -l 4 -ps "$CRX_FILE" | xxd -r -p | od -An -i)
-if [ -z "$HEADER_SIZE" ]; then
-    echo -e "${RED}Не удалось определить размер заголовка. Проверьте файл.${NC}"
+# Проверяем, начинается ли файл с "Cr24"
+MAGIC_HEADER=$(xxd -l 4 -ps "$CRX_FILE")
+if [ "$MAGIC_HEADER" != "43723234" ]; then
+    echo -e "${RED}Файл не является корректным CRX.${NC}"
     exit 1
 fi
+
+# Извлекаем размер заголовка (4-8 байты)
+HEADER_SIZE=$(xxd -s 8 -l 4 -ps "$CRX_FILE" | xxd -r -p | od -An -i)
 echo -e "${YELLOW}Размер заголовка CRX: $HEADER_SIZE байт.${NC}"
 
 # Удаляем заголовок CRX
