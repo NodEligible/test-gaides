@@ -112,7 +112,7 @@ else
         -v "$HOME/chromium/config:/config" \
         -p 21000:3000 \
         -p 22000:3001 \
-        --shm-size="1gb" \
+        --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
 
