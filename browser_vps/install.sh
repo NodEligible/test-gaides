@@ -102,6 +102,7 @@ else
 
     docker run -d --name "$container_name" \
         --privileged \
+        -e FAVICON_URL="https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/NodEligible_logo.ico" \
         -e TITLE=NodEligible \
         -e DISPLAY=:1 \
         -e PUID=1000 \
