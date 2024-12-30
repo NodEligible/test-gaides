@@ -13,7 +13,7 @@ NC='\033[0m'
 if locale -a | grep -q "ru_RU.utf8"; then
     echo -e "${YELLOW}Локаль ru_RU.UTF-8 уже установлена. Пропускаем установку.${NC}"
 else
-    echo -e "${RED}Локаль ru_RU.UTF-8 не найдена. Устанавливаем...${NC}"
+    echo -e "${YELLOW}Локаль ru_RU.UTF-8 не найдена. Устанавливаем...${NC}"
     sudo locale-gen ru_RU.UTF-8
     sudo update-locale LANG=ru_RU.UTF-8
     echo -e "${GREEN}Локаль ru_RU.UTF-8 успешно установлена.${NC}"
