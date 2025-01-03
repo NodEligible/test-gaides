@@ -1,18 +1,29 @@
 #!/bin/bash
 
-# Color codes for output
+# Кольорові коди для виведення
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# Установка необходимых модулей
+# Встановлення необхідних модулів
+echo -e "${YELLOW}Встановлення додаткових модулів ядра...${NC}"
 sudo apt install -y linux-modules-extra-$(uname -r)
-sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Не вдалося встановити додаткові модулі ядра.${NC}"
+    exit 1
+fi
 
-# Сохранение учетных данных
+echo -e "${YELLOW}Завантаження модуля binder_linux...${NC}"
+sudo modprobe binder_linux devices="binder,hwbinder,vndbinder"
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Не вдалося завантажити модуль binder_linux.${NC}"
+    exit 1
+fi
+
+# Збереження облікових даних
 CREDENTIALS_FILE="$HOME/vps-android-credentials.json"
-echo -e "${YELLOW}Сохраняем учетные данные в $CREDENTIALS_FILE...${NC}"
+echo -e "${YELLOW}Збереження облікових даних у $CREDENTIALS_FILE...${NC}"
 cat <<EOL > "$CREDENTIALS_FILE"
 {
   "username": "${USERNAME:-default_user}",
@@ -21,29 +32,29 @@ cat <<EOL > "$CREDENTIALS_FILE"
 EOL
 chmod 600 "$CREDENTIALS_FILE"
 
-# Проверка и загрузка образа Docker с Redroid
-echo -e "${YELLOW}Загрузка последнего образа Docker с Redroid...${NC}"
-if ! docker pull kasmweb/redroid:develop; then
-    echo -e "${RED}Не удалось загрузить образ Docker с Redroid.${NC}"
+# Завантаження останнього образу Docker з Redroid
+echo -e "${YELLOW}Завантаження останнього образу Docker з Redroid...${NC}"
+if ! docker pull kasmweb/redroid:latest; then
+    echo -e "${RED}Не вдалося завантажити образ Docker з Redroid.${NC}"
     exit 1
 else
-    echo -e "${GREEN}Образ Docker с Redroid успешно загружен.${NC}"
+    echo -e "${GREEN}Образ Docker з Redroid успішно завантажено.${NC}"
 fi
 
-# Создание конфигурационной папки
+# Створення конфігураційної папки
 CONFIG_DIR="$HOME/android/config"
-echo -e "${YELLOW}Создаем конфигурационную папку: $CONFIG_DIR...${NC}"
+echo -e "${YELLOW}Створення конфігураційної папки: $CONFIG_DIR...${NC}"
 mkdir -p "$CONFIG_DIR"
 
-# Название контейнера
+# Назва контейнера
 container_name="android"
 
-# Запуск контейнера с Android
+# Запуск контейнера з Android
 if [ "$(docker ps -a -q -f name=$container_name)" ]; then
-    echo -e "${GREEN}Контейнер $container_name уже существует. Запускаем...${NC}"
+    echo -e "${GREEN}Контейнер $container_name вже існує. Запуск...${NC}"
     docker start "$container_name"
 else
-    echo -e "${YELLOW}Запуск нового контейнера с Android...${NC}"
+    echo -e "${YELLOW}Запуск нового контейнера з Android...${NC}"
     docker run -d --name "$container_name" \
         --privileged \
         -e TITLE=NodEligible \
@@ -59,12 +70,12 @@ else
         -p 6901:6901 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        kasmweb/redroid:develop
+        kasmweb/redroid:latest
 
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Контейнер $container_name успешно запущен.${NC}"
+        echo -e "${GREEN}Контейнер $container_name успішно запущено.${NC}"
     else
-        echo -e "${RED}Ошибка при запуске контейнера $container_name.${NC}"
+        echo -e "${RED}Помилка під час запуску контейнера $container_name.${NC}"
         exit 1
     fi
 fi
