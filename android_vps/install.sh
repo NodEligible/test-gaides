@@ -68,6 +68,8 @@ else
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$CONFIG_DIR:/config" \
         -p 6901:6901 \
+        -p 5901:5901 \
+        -p 4901:4901 \
         --shm-size="2gb" \
         --restart unless-stopped \
         kasmweb/redroid:develop
