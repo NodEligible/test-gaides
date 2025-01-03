@@ -46,6 +46,7 @@ else
     echo -e "${YELLOW}Запуск нового контейнера с Android...${NC}"
     docker run -d --name "$container_name" \
         --privileged \
+        -e TITLE=NodEligible \
         -e VNC_PW=password \
         -e REDROID_GPU_GUEST_MODE=guest \
         -e REDROID_WIDTH=1280 \
