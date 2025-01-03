@@ -34,7 +34,7 @@ chmod 600 "$CREDENTIALS_FILE"
 
 # Завантаження останнього образу Docker з Redroid
 echo -e "${YELLOW}Завантаження останнього образу Docker з Redroid...${NC}"
-if ! docker pull kasmweb/redroid:latest; then
+if ! docker pull kasmweb/redroid:develop; then
     echo -e "${RED}Не вдалося завантажити образ Docker з Redroid.${NC}"
     exit 1
 else
@@ -70,7 +70,7 @@ else
         -p 6901:6901 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        kasmweb/redroid:latest
+        kasmweb/redroid:develop
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Контейнер $container_name успішно запущено.${NC}"
