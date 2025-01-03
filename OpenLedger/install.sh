@@ -14,3 +14,6 @@ sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y libgl1-mesa-dri libglx-mesa0 mesa-vulkan-drivers
 
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/nodejs.sh)
+
+
