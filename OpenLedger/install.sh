@@ -7,3 +7,10 @@ sudo apt-get install -f -y
 
 sudo apt-get install -y libgbm1
 sudo apt-get install -y libasound2
+
+sudo apt-get install -y xvfb
+
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y libgl1-mesa-dri libglx-mesa0 mesa-vulkan-drivers
+
