@@ -46,8 +46,8 @@ if command -v ufw &> /dev/null; then
     if [ -n "$UFW_STATUS" ]; then
         echo "ufw активен. Добавляем правила для портов 5555, 8000 и 8080..."
         sudo ufw allow 5555/tcp
-        sudo ufw allow 8000/tcp
-        sudo ufw allow 8080/tcp
+        sudo ufw allow 8020/tcp
+        sudo ufw allow 8060/tcp
         echo "Правила для брандмауэра успешно добавлены."
     else
         echo "ufw установлен, но не активен. Пропускаем добавление правил."
