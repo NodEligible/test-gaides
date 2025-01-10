@@ -38,14 +38,26 @@ else
 fi
 
 # Завантаження та установка Hyperspace
-echo -e "${YELLOW}Установка Hyperspace...${NC}"
-if wget https://github.com/hyperspaceai/hyperspace-node/releases/download/v0.2.1/hyperspace_0.2.1_amd64.deb
- && sudo dpkg -i hyperspace_0.2.1_amd64.dep; then
-    echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
+echo "Завантаження Hyperspace..."
+if wget https://github.com/hyperspaceai/hyperspace-node/releases/download/v0.2.1/hyperspace_0.2.1_amd64.deb; then
+    echo "Hyperspace завантажено успішно!"
 else
-    echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
+    echo "Помилка завантаження Hyperspace!"
     exit 1
 fi
+
+# Встановлення Hyperspace
+echo "Встановлення Hyperspace..."
+if sudo dpkg -i hyperspace_0.2.1_amd64.deb; then
+    echo "Hyperspace успішно встановлено!"
+else
+    echo "Помилка встановлення Hyperspace! Спроба виправити залежності..."
+    sudo apt-get install -f -y && sudo dpkg -i hyperspace_0.2.1_amd64.deb
+fi
+
+# Видалення установчого файлу
+rm -f hyperspace_0.2.1_amd64.deb
+echo "Установчий файл видалено."
 
 # Получаем имя текущего пользователя из переменной окружения $USER
 MY_USER=$USER
