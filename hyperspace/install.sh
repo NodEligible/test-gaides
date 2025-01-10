@@ -46,21 +46,25 @@ else
     exit 1
 fi
 
-# Налаштування Docker
+# Получаем имя текущего пользователя из переменной окружения $USER
 MY_USER=$USER
+
+# Проверяем, пустое ли имя пользователя или переменная не установлена
 if [ -z "$MY_USER" ]; then
-    echo -e "${RED}Ошибка: Переменная окружения \$USER не установлена.${NC}"
+    echo "Ошибка: Переменная окружения \$USER не установлена."
     exit 1
 fi
 
-echo -e "${YELLOW}Настройка Docker для текущего пользователя...${NC}"
-if sudo usermod -aG docker "$MY_USER" && sudo chown root:docker /var/run/docker.sock && sudo chmod 660 /var/run/docker.sock; then
-    echo -e "${GREEN}Docker успешно настроен для пользователя ${MY_USER}!${NC}"
-    echo -e "${YELLOW}Перезапустите терминал или выполните ${RED}newgrp docker${YELLOW} для применения изменений.${NC}"
-else
-    echo -e "${RED}Ошибка при настройке Docker!${NC}"
-    exit 1
-fi
+# Добавляем пользователя в группу docker
+sudo usermod -aG docker "$MY_USER"
+
+# Обновляем права доступа для сокета Docker
+sudo chown root:docker /var/run/docker.sock
+sudo chmod 660 /var/run/docker.sock
+
+# Удаляем файл
+rm -f hyperspace_0.2.1-cuda_amd64.dep
+
 
 echo -e "${GREEN}Установка завершена!${NC}"
 echo "Нажмите Enter, чтобы выйти..."
