@@ -6,6 +6,13 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Установка необхідних інструментів
+echo -e "${YELLOW}Установка базових інструментів...${NC}"
+sudo apt-get update && sudo apt-get install -y wget unzip || {
+    echo -e "${RED}Ошибка при установке базовых инструментов!${NC}"
+    exit 1
+}
+
 # Установка Docker
 echo -e "${YELLOW}Установка Docker...${NC}"
 if bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh); then
@@ -28,41 +35,23 @@ else
     fi
 fi
 
-# Установка wget і unzip
-echo -e "${YELLOW}Установка дополнительных пакетов...${NC}"
-if sudo apt install -y wget unzip; then
-    echo -e "${GREEN}Дополнительные пакеты успешно установлены!${NC}"
-else
-    echo -e "${RED}Ошибка при установке пакетов!${NC}"
-    exit 1
-fi
-
-# Завантаження та установка Hyperspace
+# Установка Hyperspace
 echo -e "${YELLOW}Установка Hyperspace...${NC}"
 if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1-cuda_amd64.dep; then
-    sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Установка Hyperspace завершилась ошибкой. Попытка устранить зависимости...${NC}"
-        sudo apt-get install -f -y
-        sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep
-    fi
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
-        # Видаляємо установчий файл
-        rm -f hyperspace_0.2.1-cuda_amd64.dep
-        echo -e "${GREEN}Установочный файл удален!${NC}"
-    else
-        echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
-        # Видаляємо установчий файл, навіть якщо виникла помилка
-        rm -f hyperspace_0.2.1-cuda_amd64.dep
-        echo -e "${RED}Установочный файл удален, но возникли ошибки при установке.${NC}"
-        exit 1
-    fi
+    sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep || {
+        echo -e "${RED}Ошибка при установке Hyperspace! Попытка исправить зависимости...${NC}"
+        sudo apt-get install -f -y && sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep || {
+            echo -e "${RED}Ошибка при установке Hyperspace после исправления зависимостей!${NC}"
+            rm -f hyperspace_0.2.1-cuda_amd64.dep
+            exit 1
+        }
+    }
+    echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
+    rm -f hyperspace_0.2.1-cuda_amd64.dep
 else
     echo -e "${RED}Ошибка при загрузке файла Hyperspace!${NC}"
     exit 1
 fi
-
 
 # Налаштування Docker
 MY_USER=$USER
