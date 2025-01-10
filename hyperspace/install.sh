@@ -20,11 +20,15 @@ fi
 
 # Установка Ufw
 echo -e "${YELLOW}Установка Ufw...${NC}"
-if bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh); then
-    echo -e "${GREEN}Ufw успешно установлен!${NC}"
+if command -v ufw >/dev/null 2>&1; then
+    echo -e "${GREEN}Ufw уже установлен, пропускаем установку.${NC}"
 else
-    echo -e "${RED}Ошибка при установке Ufw!${NC}"
-    exit 1
+    if bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh); then
+        echo -e "${GREEN}Ufw успешно установлен!${NC}"
+    else
+        echo -e "${RED}Ошибка при установке Ufw!${NC}"
+        exit 1
+    fi
 fi
 
 # Установка wget і unzip
