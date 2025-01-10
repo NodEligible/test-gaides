@@ -8,10 +8,7 @@ NC='\033[0m'
 
 # Установка необходимых инструментов
 echo -e "${YELLOW}Установка базовых инструментов...${NC}"
-sudo apt-get update && sudo apt-get install -y wget unzip || {
-    echo -e "${RED}Ошибка при установке базовых инструментов!${NC}"
-    exit 1
-}
+sudo apt-get install -f
 
 # Установка Docker
 echo -e "${YELLOW}Установка Docker...${NC}"
@@ -24,32 +21,28 @@ fi
 
 # Установка Ufw
 echo -e "${YELLOW}Установка Ufw...${NC}"
-if command -v ufw >/dev/null 2>&1; then
-    echo -e "${GREEN}Ufw уже установлен, пропускаем установку.${NC}"
+if bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh); then
+    echo -e "${GREEN}Ufw успешно установлен!${NC}"
 else
-    if bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh); then
-        echo -e "${GREEN}Ufw успешно установлен!${NC}"
-    else
-        echo -e "${RED}Ошибка при установке Ufw!${NC}"
-        exit 1
-    fi
+    echo -e "${RED}Ошибка при установке Ufw!${NC}"
+    exit 1
 fi
 
-# Установка Hyperspace
-echo -e "${YELLOW}Установка Hyperspace...${NC}"
-if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1-cuda_amd64.dep; then
-    sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep || {
-        echo -e "${RED}Ошибка при установке Hyperspace! Попытка исправить зависимости...${NC}"
-        sudo apt-get install -f -y && sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep || {
-            echo -e "${RED}Ошибка при установке Hyperspace после исправления зависимостей!${NC}"
-            rm -f hyperspace_0.2.1-cuda_amd64.dep
-            exit 1
-        }
-    }
-    echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
-    rm -f hyperspace_0.2.1-cuda_amd64.dep
+# Установка wget і unzip
+echo -e "${YELLOW}Установка дополнительных пакетов...${NC}"
+if sudo apt install -y wget unzip; then
+    echo -e "${GREEN}Дополнительные пакеты успешно установлены!${NC}"
 else
-    echo -e "${RED}Ошибка при загрузке файла Hyperspace!${NC}"
+    echo -e "${RED}Ошибка при установке пакетов!${NC}"
+    exit 1
+fi
+
+# Завантаження та установка Hyperspace
+echo -e "${YELLOW}Установка Hyperspace...${NC}"
+if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1-cuda_amd64.dep && sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep; then
+    echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
+else
+    echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
     exit 1
 fi
 
