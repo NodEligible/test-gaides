@@ -1,10 +1,22 @@
 #!/bin/bash
 
-# Определение цветовых кодов
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
+
+# Color codes for output
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
-NC='\033[0m' 
+NC='\033[0m'
+
+# Проверяем, установлена ли локаль ru_RU.UTF-8
+if locale -a | grep -q "ru_RU.utf8"; then
+    echo -e "${YELLOW}Локаль ru_RU.UTF-8 уже установлена. Пропускаем установку.${NC}"
+else
+    echo -e "${YELLOW}Локаль ru_RU.UTF-8 не найдена. Устанавливаем...${NC}"
+    sudo locale-gen ru_RU.UTF-8
+    sudo update-locale LANG=ru_RU.UTF-8
+    echo -e "${GREEN}Локаль ru_RU.UTF-8 успешно установлена.${NC}"
+fi
 
 # Запрос имени пользователя и пароля
 while true; do
