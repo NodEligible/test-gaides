@@ -39,7 +39,8 @@ fi
 
 # Завантаження та установка Hyperspace
 echo -e "${YELLOW}Установка Hyperspace...${NC}"
-if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1_amd64.dep && sudo dpkg -i hyperspace_0.2.1_amd64.dep; then
+if wget https://github.com/hyperspaceai/hyperspace-node/releases/download/v0.2.1/hyperspace_0.2.1_amd64.deb
+ && sudo dpkg -i hyperspace_0.2.1_amd64.dep; then
     echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
 else
     echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
