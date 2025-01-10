@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Завантаження логотипу
-curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
-
 # Коди кольорів для виводу
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
@@ -42,12 +39,30 @@ fi
 
 # Завантаження та установка Hyperspace
 echo -e "${YELLOW}Установка Hyperspace...${NC}"
-if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1-cuda_amd64.dep && sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep; then
-    echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
+if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1-cuda_amd64.dep; then
+    sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Установка Hyperspace завершилась ошибкой. Попытка устранить зависимости...${NC}"
+        sudo apt-get install -f -y
+        sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep
+    fi
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
+        # Видаляємо установчий файл
+        rm -f hyperspace_0.2.1-cuda_amd64.dep
+        echo -e "${GREEN}Установочный файл удален!${NC}"
+    else
+        echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
+        # Видаляємо установчий файл, навіть якщо виникла помилка
+        rm -f hyperspace_0.2.1-cuda_amd64.dep
+        echo -e "${RED}Установочный файл удален, но возникли ошибки при установке.${NC}"
+        exit 1
+    fi
 else
-    echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
+    echo -e "${RED}Ошибка при загрузке файла Hyperspace!${NC}"
     exit 1
 fi
+
 
 # Налаштування Docker
 MY_USER=$USER
