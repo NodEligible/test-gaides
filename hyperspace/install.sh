@@ -39,7 +39,7 @@ fi
 
 # Завантаження та установка Hyperspace
 echo -e "${YELLOW}Установка Hyperspace...${NC}"
-if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1-cuda_amd64.dep && sudo dpkg -i hyperspace_0.2.1-cuda_amd64.dep; then
+if wget https://download.hyper.space/aios/linux -O hyperspace_0.2.1_amd64.dep && sudo dpkg -i hyperspace_0.2.1_amd64.dep; then
     echo -e "${GREEN}Hyperspace успешно установлен!${NC}"
 else
     echo -e "${RED}Ошибка при установке Hyperspace!${NC}"
@@ -63,7 +63,7 @@ sudo chown root:docker /var/run/docker.sock
 sudo chmod 660 /var/run/docker.sock
 
 # Удаляем файл
-rm -f hyperspace_0.2.1-cuda_amd64.dep
+rm -f hyperspace_0.2.1_amd64.dep
 
 
 echo -e "${GREEN}Установка завершена!${NC}"
