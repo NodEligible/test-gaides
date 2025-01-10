@@ -8,7 +8,7 @@ NC='\033[0m'
 
 # Установка необходимых инструментов
 echo -e "${YELLOW}Установка базовых инструментов...${NC}"
-sudo apt-get install -f
+sudo apt-get install -f -y
 
 # Установка Docker
 echo -e "${YELLOW}Установка Docker...${NC}"
@@ -52,7 +52,7 @@ if sudo dpkg -i hyperspace_0.2.1_amd64.deb; then
     echo "Hyperspace успішно встановлено!"
 else
     echo "Помилка встановлення Hyperspace! Спроба виправити залежності..."
-    sudo apt-get install -f -y && sudo dpkg -i hyperspace_0.2.1_amd64.deb
+    sudo dpkg -i hyperspace_0.2.1_amd64.deb
 fi
 
 # Видалення установчого файлу
