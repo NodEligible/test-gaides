@@ -39,6 +39,10 @@ sudo usermod -aG docker "$MY_USER"
 sudo chown root:docker /var/run/docker.sock
 sudo chmod 660 /var/run/docker.sock
 
+# Меняем порт
+sed -i 's/"8080:8080"/"8060:8080"/' /home/tfsi/.config/opl/docker-compose.yaml
+
+
 # Проверяем, установлен ли ufw и активен ли он
 if command -v ufw &> /dev/null; then
     echo "Проверяем статус ufw..."
