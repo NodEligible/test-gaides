@@ -16,12 +16,6 @@ else
     echo -e "${RED}Пользователь $USER не найден.${NC}"
 fi
 
-echo -e "${YELLOW}Удаление Docker...${NC}"
-sudo apt remove --purge -y docker docker-engine docker.io containerd runc
-sudo rm -rf /var/lib/docker
-sudo rm -rf /var/lib/containerd
-echo -e "${GREEN}Docker удалён.${NC}"
-
 echo -e "${YELLOW}Удаление XFCE рабочего окружения...${NC}"
 sudo apt remove --purge -y xfce4 xfce4-goodies
 sudo apt autoremove -y
@@ -37,14 +31,6 @@ sudo apt remove --purge -y google-chrome-stable
 sudo rm -rf /etc/apt/sources.list.d/google-chrome.list
 sudo apt update
 echo -e "${GREEN}Google Chrome удалён.${NC}"
-
-echo -e "${YELLOW}Очистка правил UFW для порта 3389...${NC}"
-if command -v ufw >/dev/null; then
-    sudo ufw delete allow 3389/tcp
-    echo -e "${GREEN}Правило для порта 3389 удалено.${NC}"
-else
-    echo -e "${RED}UFW не установлен. Пропуск очистки.${NC}"
-fi
 
 echo -e "${YELLOW}Удаление оставшихся пакетов и очистка системы...${NC}"
 sudo apt autoremove --purge -y
