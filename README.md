@@ -1,8 +1,8 @@
 # test-gaide
 
-VPS_Browser_install
+InitVerse
 ```
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/browser_vps/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/initverse/install.sh)
 ```
 Loading_extensions
 ```
