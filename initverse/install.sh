@@ -1,15 +1,12 @@
 #!/bin/bash
 
-# Завантаження логотипа
-curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
-
-# Змінні для кольорів
+# Змінні кольорів
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# Перевірка, чи передано параметри
+# Перевірка наявності параметра (гаманця)
 if [ "$#" -ne 1 ]; then
     read -p "Введите адрес кошелька для ревардов: " YOUR_WALLET_ADDRESS
     if [ -z "$YOUR_WALLET_ADDRESS" ]; then
@@ -20,42 +17,26 @@ else
     YOUR_WALLET_ADDRESS=$1
 fi
 
-# Створюємо директорію для програми
-sudo mkdir -p $HOME/initverse
-cd $HOME/initverse
+# Назва образу
+IMAGE_NAME="iniminer:latest"
 
-# Завантаження і підготовка файлу
-wget https://github.com/Project-InitVerse/ini-miner/releases/download/v1.0.0/iniminer-linux-x64
-chmod +x iniminer-linux-x64
+# Перевіряємо, чи існує образ, якщо ні — будуємо його
+if ! docker image inspect $IMAGE_NAME > /dev/null 2>&1; then
+    echo -e "${YELLOW}Создаем Docker образ...${NC}"
+    docker build -t $IMAGE_NAME .
+fi
 
-# Створення сервісного файлу
-sudo bash -c "cat > /etc/systemd/system/iniminer.service" <<EOL
-[Unit]
-Description=IniMiner Service
-After=network.target
+# Запускаємо Docker-контейнер
+echo -e "${GREEN}Запуск Docker-контейнера...${NC}"
+docker run -d --name iniminer \
+    --restart unless-stopped \
+    $IMAGE_NAME \
+    --pool stratum+tcp://$YOUR_WALLET_ADDRESS.Worker001@pool-core-testnet.inichain.com:32672
 
-[Service]
-Type=simple
-ExecStart=$HOME/initverse/iniminer-linux-x64 --pool stratum+tcp://$YOUR_WALLET_ADDRESS.Worker001@pool-core-testnet.inichain.com:32672
-Restart=always
-User=root
-WorkingDirectory=$HOME/initverse
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-# Перезавантаження systemd, ввімкнення та старт сервісу
-sudo systemctl daemon-reload
-sudo systemctl enable iniminer
-sudo systemctl start iniminer
-
-# Перевірка статусу сервісу
-SERVICE_STATUS=$(sudo systemctl is-active iniminer)
-
-if [ "$SERVICE_STATUS" = "active" ]; then
-    echo -e "${GREEN}Сервис успешно запущен!${NC}"
-    echo "Проверьте статус с помощью команды: sudo systemctl status iniminer"
+# Перевіряємо, чи контейнер успішно запущено
+if [ "$(docker ps -q -f name=iniminer)" ]; then
+    echo -e "${GREEN}Контейнер успешно запущен!${NC}"
+    echo "Для просмотра логов используйте: docker logs -f iniminer"
 else
-    echo -e "${RED}Ошибка запуска сервиса. Проверьте логи с помощью команды:${NC} sudo journalctl -u iniminer"
+    echo -e "${RED}Ошибка запуска контейнера. Проверьте конфигурацию.${NC}"
 fi
