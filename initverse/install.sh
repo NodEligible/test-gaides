@@ -38,7 +38,7 @@ After=network.target
 Type=simple
 ExecStart=$HOME/initverse/iniminer-linux-x64 --pool stratum+tcp://$YOUR_WALLET_ADDRESS.Worker001@pool-core-testnet.inichain.com:32672
 Restart=always
-User=$(whoami)
+User=root
 WorkingDirectory=$HOME/initverse
 
 [Install]
