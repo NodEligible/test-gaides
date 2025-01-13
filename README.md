@@ -2,7 +2,7 @@
 
 InitVerse
 ```
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/initverse/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/initverse/install.sh)
 ```
 Loading_extensions
 ```
