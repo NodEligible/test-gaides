@@ -1,8 +1,8 @@
 # test-gaide
 
-InitVerse
+Ritual
 ```
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/initverse/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/ritual_test_port/install.sh)
 ```
 Loading_extensions
 ```
