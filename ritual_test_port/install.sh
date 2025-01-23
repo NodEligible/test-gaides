@@ -7,7 +7,6 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# Функция для запроса параметра у пользователя
 request_param() {
     read -p "$1: " param
     echo $param
@@ -26,7 +25,8 @@ else
 fi
 
 REGISTRY_ADDRESS=0x3B1554f346DFe5c482Bb4BA31b880c1C18412170
-IMAGE="ritualnetwork/infernet-node:1.2.0"
+IMAGE="ritualnetwork/infernet-node:1.4.0"
+
 
 # Функции установки
 update() {
@@ -115,9 +115,9 @@ sed -i 's|sender := .*|sender := '"$PRIVATE_KEY"'|' "$MAKEFILE"
 sed -i 's|RPC_URL := .*|RPC_URL := '"$RPC_URL"'|' "$MAKEFILE"
 
 #Cтарт контейнеров для инициализации новой конфигурации
-sed -i 's|ritualnetwork/infernet-node:1.0.0|ritualnetwork/infernet-node:1.2.0|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
+sed -i 's|ritualnetwork/infernet-node:.*|ritualnetwork/infernet-node:1.4.0|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 sed -i 's|0.0.0.0:4000:4000|0.0.0.0:4321:4000|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
-sed -i 's|8545:3002|8845:3002|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
+sed -i 's|8545:3000|8845:3000|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 sed -i 's|container_name: infernet-anvil|container_name: infernet-anvil\n    restart: on-failure|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 
 docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up -d
@@ -163,7 +163,7 @@ cd $HOME/infernet-container-starter/deploy
 docker compose down
 sleep 3
 sudo rm -rf docker-compose.yaml
-wget https://raw.githubusercontent.com/DOUBLE-TOP/guides/main/ritual/docker-compose.yaml
+wget https://raw.githubusercontent.com/NodEligible/guides/refs/heads/main/ritual/docker-compose.yaml
 docker compose up -d
 
 docker rm -fv infernet-anvil  &>/dev/null
