@@ -13,20 +13,19 @@ request_param() {
 }
 
 # Запрашиваем параметры у пользователя
-echo "Пожалуйста, введите следующие параметры для настройки ноды:"
+echo -e "${YELLOW}Пожалуйста, введите следующие параметры для настройки ноды:${NC}"
 RPC_URL=$(request_param "Введите RPC URL")
 PRIVATE_KEY=$(request_param "Введите ваш приватный ключ (начинающийся с 0x)")
 
 if [[ "$PRIVATE_KEY" == 0x* ]]; then
-    echo "Вы ввели приватный ключ верно!"
+    echo -e "${GREEN}Вы ввели приватный ключ верно!${NC}"
 else
-    echo "Приватный ключ введен не верно. Приватный ключ должен начинаться с 0x"
+    echo -e "${RED}Приватный ключ введен не верно. Приватный ключ должен начинаться с 0x${NC}"
     exit 1
 fi
 
 REGISTRY_ADDRESS=0x3B1554f346DFe5c482Bb4BA31b880c1C18412170
 IMAGE="ritualnetwork/infernet-node:1.4.0"
-
 
 # Функции установки
 update() {
@@ -36,6 +35,7 @@ update() {
         echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
     else
         echo -e "${RED}Ошибка при обновлении пакетов!${NC}"
+        exit 1
     fi
 }
 
@@ -46,6 +46,7 @@ install_main() {
         echo -e "${GREEN}Main успешно установлен!${NC}"
     else
         echo -e "${RED}Ошибка при установке Main!${NC}"
+        exit 1
     fi
 }
 
@@ -53,9 +54,10 @@ install_ufw() {
     echo -e "${YELLOW}Установка Ufw...${NC}"
     bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh)
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Ufw успешно установлено!${NC}"
+        echo -e "${GREEN}Ufw успешно установлен!${NC}"
     else
         echo -e "${RED}Ошибка при установке Ufw!${NC}"
+        exit 1
     fi
 }
 
@@ -66,6 +68,7 @@ install_docker() {
         echo -e "${GREEN}Docker успешно установлен!${NC}"
     else
         echo -e "${RED}Ошибка при установке Docker!${NC}"
+        exit 1
     fi
 }
 
