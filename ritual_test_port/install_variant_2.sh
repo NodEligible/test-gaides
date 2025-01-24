@@ -1,36 +1,40 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
-
+# Кольори для виводу
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Функція для запиту параметрів у користувача
 request_param() {
     read -p "$1: " param
     echo $param
 }
 
-# Запрашиваем параметры у пользователя
+# Введення даних від користувача
 echo -e "${YELLOW}Пожалуйста, введите следующие параметры для настройки ноды:${NC}"
 RPC_URL=$(request_param "Введите RPC URL")
 PRIVATE_KEY=$(request_param "Введите ваш приватный ключ (начинающийся с 0x)")
 
+# Перевірка приватного ключа
 if [[ "$PRIVATE_KEY" == 0x* ]]; then
-    echo -e "${GREEN}Вы ввели приватный ключ верно!${NC}"
+    echo -e "${GREEN}Приватный ключ введен корректно!${NC}"
 else
-    echo -e "${RED}Приватный ключ введен не верно. Приватный ключ должен начинаться с 0x${NC}"
+    echo -e "${RED}Приватный ключ должен начинаться с 0x!${NC}"
     exit 1
 fi
 
-REGISTRY_ADDRESS=0x3B1554f346DFe5c482Bb4BA31b880c1C18412170
+# Змінні конфігурації
+REGISTRY_ADDRESS="0x3B1554f346DFe5c482Bb4BA31b880c1C18412170"
 IMAGE="ritualnetwork/infernet-node:1.4.0"
+DEPLOY_JSON="$HOME/infernet-container-starter/deploy/config.json"
+CONTAINER_JSON="$HOME/infernet-container-starter/projects/hello-world/container/config.json"
 
-# Функции установки
+# Функції установки
 update() {
     echo -e "${YELLOW}Обновление пакетов...${NC}"
-    sudo apt update -y
+    sudo apt update -y && sudo apt upgrade -y
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Пакеты успешно обновлены!${NC}"
     else
@@ -39,24 +43,15 @@ update() {
     fi
 }
 
-install_main() {
-    echo -e "${YELLOW}Установка Main...${NC}"
-    bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh)
+install_script() {
+    local url=$1
+    local name=$2
+    echo -e "${YELLOW}Установка ${name}...${NC}"
+    bash <(curl -s $url)
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Main успешно установлен!${NC}"
+        echo -e "${GREEN}${name} успешно установлен!${NC}"
     else
-        echo -e "${RED}Ошибка при установке Main!${NC}"
-        exit 1
-    fi
-}
-
-install_ufw() {
-    echo -e "${YELLOW}Установка Ufw...${NC}"
-    bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh)
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Ufw успешно установлен!${NC}"
-    else
-        echo -e "${RED}Ошибка при установке Ufw!${NC}"
+        echo -e "${RED}Ошибка при установке ${name}!${NC}"
         exit 1
     fi
 }
@@ -72,105 +67,77 @@ install_docker() {
     fi
 }
 
-# Вызовы функций
+# Встановлення необхідних компонентів
 update
-install_main
-install_ufw
+install_script "https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh" "Main"
+install_script "https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh" "UFW"
 install_docker
 
-echo -e "${GREEN}Все программы успешно установлены!${NC}"
+# Клонування репозиторію
+echo -e "${YELLOW}Клонирование репозитория...${NC}"
+git clone https://github.com/ritual-net/infernet-container-starter $HOME/infernet-container-starter
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Репозиторий успешно клонирован!${NC}"
+else
+    echo -e "${RED}Ошибка при клонировании репозитория!${NC}"
+    exit 1
+fi
 
-# Клонирование репозитория
-cd $HOME
-git clone https://github.com/ritual-net/infernet-container-starter && cd infernet-container-starter
-cp $HOME/infernet-container-starter/projects/hello-world/container/config.json $HOME/infernet-container-starter/deploy/config.json
+# Налаштування конфігурацій
+configure_json() {
+    local file=$1
+    echo -e "${YELLOW}Настройка файла $file...${NC}"
+    sed -i 's|"rpc_url": "[^"]*"|"rpc_url": "'"$RPC_URL"'"|' "$file"
+    sed -i 's|"private_key": "[^"]*"|"private_key": "'"$PRIVATE_KEY"'"|' "$file"
+    sed -i 's|"registry_address": "[^"]*"|"registry_address": "'"$REGISTRY_ADDRESS"'"|' "$file"
+    sed -i 's|"sleep": .*|"sleep": 3,|' "$file"
+    sed -i 's|"batch_size": .*|"batch_size": 800,|' "$file"
+    sed -i 's|"trail_head_blocks": .*|"trail_head_blocks": 3,|' "$file"
+    sed -i 's|"sync_period": .*|"sync_period": 30|' "$file"
+    sed -i 's|"starting_sub_id": .*|"starting_sub_id": 160000,|' "$file"
+}
 
+configure_json "$DEPLOY_JSON"
+configure_json "$CONTAINER_JSON"
 
-# Конфигурация deploy/config.json
-DEPLOY_JSON=$HOME/infernet-container-starter/deploy/config.json
-sed -i 's|"rpc_url": "[^"]*"|"rpc_url": "'"$RPC_URL"'"|' "$DEPLOY_JSON"
-sed -i 's|"private_key": "[^"]*"|"private_key": "'"$PRIVATE_KEY"'"|' "$DEPLOY_JSON"
-sed -i 's|"registry_address": "[^"]*"|"registry_address": "'"$REGISTRY_ADDRESS"'"|' "$DEPLOY_JSON"
-sed -i 's|"sleep": .*|"sleep": 3,|' "$DEPLOY_JSON"
-sed -i 's|"batch_size": .*|"batch_size": 800,|' "$DEPLOY_JSON"
-sed -i 's|"trail_head_blocks": .*|"trail_head_blocks": 3,|' "$DEPLOY_JSON"
-sed -i 's|"sync_period": .*|"sync_period": 30|' "$DEPLOY_JSON"
-sed -i 's|"starting_sub_id": .*|"starting_sub_id": 160000,|' "$DEPLOY_JSON"
-
-# Конфигурация container/config.json
-CONTAINER_JSON=$HOME/infernet-container-starter/projects/hello-world/container/config.json
-
-sed -i 's|"rpc_url": "[^"]*"|"rpc_url": "'"$RPC_URL"'"|' "$CONTAINER_JSON"
-sed -i 's|"private_key": "[^"]*"|"private_key": "'"$PRIVATE_KEY"'"|' "$CONTAINER_JSON"
-sed -i 's|"registry_address": "[^"]*"|"registry_address": "'"$REGISTRY_ADDRESS"'"|' "$CONTAINER_JSON"
-sed -i 's|"sleep": .*|"sleep": 3,|' "$CONTAINER_JSON"
-sed -i 's|"batch_size": .*|"batch_size": 800,|' "$CONTAINER_JSON"
-sed -i 's|"trail_head_blocks": .*|"trail_head_blocks": 3,|' "$CONTAINER_JSON"
-sed -i 's|"sync_period": .*|"sync_period": 30|' "$CONTAINER_JSON"
-sed -i 's|"starting_sub_id": .*|"starting_sub_id": 160000,|' "$CONTAINER_JSON"
-
-# Конфигурация script/Deploy.s.sol
-sed -i 's|address registry = .*|address registry = 0x3B1554f346DFe5c482Bb4BA31b880c1C18412170;|' "$HOME/infernet-container-starter/projects/hello-world/contracts/script/Deploy.s.sol"
-
-# Конфигурация contracts/Makefile
-MAKEFILE=$HOME/infernet-container-starter/projects/hello-world/contracts/Makefile
-sed -i 's|sender := .*|sender := '"$PRIVATE_KEY"'|' "$MAKEFILE"
-sed -i 's|RPC_URL := .*|RPC_URL := '"$RPC_URL"'|' "$MAKEFILE"
-
-#Cтарт контейнеров для инициализации новой конфигурации
+# Конфігурація Docker
+echo -e "${YELLOW}Настройка Docker Compose...${NC}"
 sed -i 's|ritualnetwork/infernet-node:.*|ritualnetwork/infernet-node:1.4.0|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 sed -i 's|0.0.0.0:4000:4000|0.0.0.0:4321:4000|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 sed -i 's|8545:3000|8845:3000|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 sed -i 's|container_name: infernet-anvil|container_name: infernet-anvil\n    restart: on-failure|' $HOME/infernet-container-starter/deploy/docker-compose.yaml
 
-
-# Установка Foundry
-cd $HOME
-mkdir -p foundry
-cd foundry
-curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
-echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
-source .profile
-
-foundryup
-
-#Cтарт контейнеров для инициализации новой конфигурации
 docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up -d
 
-# Установка зависимостей для контрактов
-cd $HOME/infernet-container-starter/projects/hello-world/contracts/lib/
-rm -r forge-std
-rm -r infernet-sdk
-forge install --no-commit foundry-rs/forge-std
-forge install --no-commit ritual-net/infernet-sdk
+# Встановлення Foundry
+echo -e "${YELLOW}Установка Foundry...${NC}"
+curl -L https://foundry.paradigm.xyz | bash
+source ~/.bashrc
+foundryup
 
-# Deploy Consumer Contract
+# Установка залежностей
+echo -e "${YELLOW}Установка зависимостей...${NC}"
+cd $HOME/infernet-container-starter/projects/hello-world/contracts/lib/
+forge install foundry-rs/forge-std
+forge install ritual-net/infernet-sdk
+
+# Деплой контракту
+echo -e "${YELLOW}Деплой контракта...${NC}"
 cd $HOME/infernet-container-starter
 project=hello-world make deploy-contracts >> logs.txt
 CONTRACT_ADDRESS=$(grep "Deployed SaysHello" logs.txt | awk '{print $NF}')
 rm -rf logs.txt
 
 if [ -z "$CONTRACT_ADDRESS" ]; then
-  echo -e "${err}Произошла ошибка: не удалось прочитать contractAddress из $CONTRACT_DATA_FILE${end}"
-  exit 1
+    echo -e "${RED}Ошибка: не удалось получить адрес контракта.${NC}"
+    exit 1
 fi
 
-echo -e "${fmt}Адрес вашего контракта: $CONTRACT_ADDRESS${end}"
-sed -i 's|0x13D69Cf7d6CE4218F646B759Dcf334D82c023d8e|'$CONTRACT_ADDRESS'|' "$HOME/infernet-container-starter/projects/hello-world/contracts/script/CallContract.s.sol"
+echo -e "${GREEN}Адрес контракта: $CONTRACT_ADDRESS${NC}"
 
-# Call Consumer Contract
-cd $HOME/infernet-container-starter
+# Виклик контракту
+echo -e "${YELLOW}Вызов контракта...${NC}"
 project=hello-world make call-contract
 
-cd $HOME/infernet-container-starter/deploy
-
-docker compose down
-sleep 3
-sudo rm -rf docker-compose.yaml
-wget https://raw.githubusercontent.com/NodEligible/guides/refs/heads/main/ritual/docker-compose.yaml
-docker compose up -d
-
-docker rm -fv infernet-anvil  &>/dev/null
-
-echo -e "${GREEN}Ritual успешно установлен!${NC}"
+# Завершення
+echo -e "${GREEN}Установка завершена успешно!${NC}"
