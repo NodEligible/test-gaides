@@ -125,6 +125,8 @@ sed -i 's|container_name: infernet-anvil|container_name: infernet-anvil\n    res
 
 docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up -d
 
+sleep 10
+
 # Установка Foundry
 cd $HOME
 mkdir -p foundry
