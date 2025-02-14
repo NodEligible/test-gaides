@@ -42,7 +42,7 @@ EXTERNALIP="auto"
 INTERNALIP="auto"
 SHMEXT=9001
 SHMINT=10001
-PASSWORD="3217191Dudar!"
+PASSWORD="11111111dd!"
 
 # Отримання зовнішнього IP
 get_external_ip() {
