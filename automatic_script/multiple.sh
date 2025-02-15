@@ -10,6 +10,7 @@ DATA_FILE="/root/data.csv"
 echo "Завантажую CSV файл з Google Drive..."
 wget -O "$DATA_FILE" "$FILE_URL"
 
+# Перевірка, чи файл завантажено
 if [[ ! -f "$DATA_FILE" ]]; then
     echo "Помилка: CSV файл не завантажено."
     exit 1
@@ -18,10 +19,6 @@ fi
 # Перевіряємо вміст файлу
 echo "Вміст файлу CSV:"
 cat "$DATA_FILE"
-
-# Функція для пошуку даних у CSV
-# Шлях до вашого CSV-файлу
-DATA_FILE="/root/server.csv"
 
 # Знаходимо дані для цього сервера
 server_ip=$(hostname -I | awk '{print $1}')
@@ -41,6 +38,7 @@ PIN=$(echo "$server_data" | cut -d',' -f3 | xargs)
 # Виводимо знайдені дані
 echo "IDENTIFIER: $IDENTIFIER"
 echo "PIN: $PIN"
+
 
 # Основний процес встановлення
 YELLOW='\e[0;33m'
