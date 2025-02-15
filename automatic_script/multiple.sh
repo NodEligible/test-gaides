@@ -82,16 +82,29 @@ sudo systemctl daemon-reload
 sudo systemctl enable multiple
 sudo systemctl start multiple
 
+# Перевіряємо службу
+echo "Перевіряю статус служби multiple..."
+systemctl status multiple || { echo "Служба multiple не запущена, перезапускаю..."; systemctl restart multiple; }
+
+# Очікування ініціалізації ноди
+echo "Очікую 10 секунд для ініціалізації ноди..."
+sleep 10
+
+# Виводимо команду для перевірки
+echo "Запускаю команду прив'язки:"
+echo "./multiple-cli bind --bandwidth-download 100 --identifier \"$IDENTIFIER\" --pin \"$PIN\" --storage 200 --bandwidth-upload 100"
+
 # Виконуємо команду
 ./multiple-cli bind --bandwidth-download 100 --identifier "$IDENTIFIER" --pin "$PIN" --storage 200 --bandwidth-upload 100
 
 # Перевірка результату
 if [[ $? -ne 0 ]]; then
-    echo -e "${RED}Ошибка: Не удалось выполнить привязку аккаунта.${NC}"
+    echo -e "${RED}❌ Помилка: Прив'язка аккаунта не вдалася.${NC}"
     exit 1
 fi
 
 # Видалення CSV
 sudo rm -f "$DATA_FILE"
 
-echo -e "${GREEN}Установка завершена!${NC}"
+echo -e "${GREEN}✅ Установка завершена!${NC}"
+
