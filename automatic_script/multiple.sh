@@ -3,7 +3,7 @@
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
 # Пряме посилання на ваш CSV-файл
-FILE_URL="https://drive.google.com/uc?export=download&id=1VBcl79bnmqsrNb4UwSH4PYpKGQrx-UH2"
+FILE_URL="https://drive.google.com/uc?export=download&id="
 DATA_FILE="/root/data.csv"
 
 # Завантаження CSV-файлу
