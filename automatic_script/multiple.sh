@@ -20,39 +20,25 @@ echo "Вміст файлу CSV:"
 cat "$DATA_FILE"
 
 # Функція для пошуку даних у CSV
-get_server_data() {
-    local server_ip="$1"
-    echo "Шукаю дані для IP: $server_ip"
-    while IFS=',' read -r ip identifier pin; do
-        ip=$(echo "$ip" | xargs)  # Видаляємо зайві пробіли
-        identifier=$(echo "$identifier" | xargs)
-        pin=$(echo "$pin" | xargs)
-        
-        echo "Читаю рядок: IP=$ip, ID=$identifier, PIN=$pin"
-
-        if [[ "$ip" == "$server_ip" ]]; then
-            echo "$identifier $pin"
-            return 0
-        fi
-    done < <(tail -n +2 "$DATA_FILE")  # Пропускаємо заголовок
-    echo ""
-    return 1
-}
-
+# Шлях до вашого CSV-файлу
+DATA_FILE="/root/server.csv"
 
 # Знаходимо дані для цього сервера
 server_ip=$(hostname -I | awk '{print $1}')
-echo "IP сервера: $server_ip"
-server_data=$(get_server_data "$server_ip")
+
+# Зчитуємо відповідні дані з CSV
+server_data=$(grep "^$server_ip," "$DATA_FILE" | head -n 1)
 
 if [[ -z "$server_data" ]]; then
-    echo -e "${RED}❌ Дані для сервера $server_ip не знайдено в CSV.${NC}"
+    echo "❌ Дані для сервера $server_ip не знайдено в CSV."
     exit 1
 fi
 
-IDENTIFIER=$(echo "$server_data" | awk '{print $1}')
-PIN=$(echo "$server_data" | awk '{print $2}')
+# Отримуємо IDENTIFIER та PIN
+IDENTIFIER=$(echo "$server_data" | cut -d',' -f2 | xargs)
+PIN=$(echo "$server_data" | cut -d',' -f3 | xargs)
 
+# Виводимо знайдені дані
 echo "IDENTIFIER: $IDENTIFIER"
 echo "PIN: $PIN"
 
