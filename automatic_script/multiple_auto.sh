@@ -3,8 +3,8 @@
 curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
 
 # Пряме посилання на ваш CSV-файл
-FILE_URL="https://drive.google.com/file/d/14DOIRJRKYLI4VKQ6L7gdfhSzgAZu4viO"
-DATA_FILE="/root/data.csv"
+FILE_URL="https://drive.google.com/uc?export=download&id=14DOIRJRKYLI4VKQ6L7gdfhSzgAZu4viO"
+DATA_FILE="/root/multiple.csv"
 
 # Завантаження CSV-файлу
 echo "Завантажую CSV файл з Google Drive..."
