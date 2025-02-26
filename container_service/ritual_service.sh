@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Створення папки для скрипта
-INSTALL_DIR="/opt/infernet-container-monitor"
-SERVICE_NAME="infernet-container"
+# Шлях для встановлення
+INSTALL_DIR="/root/ritual_service"
+SERVICE_NAME="ritual-container"
 
 echo "📁 Створення папки $INSTALL_DIR..."
 mkdir -p "$INSTALL_DIR"
 
 # Шлях до файлу docker-compose
-COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
+COMPOSE_FILE="/root/infernet-container-starter/deploy/docker-compose.yaml"
 
 # Створення скрипта моніторингу контейнерів
 echo "📝 Створення файлу моніторингу..."
@@ -46,7 +46,7 @@ chmod +x "$INSTALL_DIR/monitor.sh"
 echo "📝 Створення systemd-сервісу..."
 cat <<EOF > "/etc/systemd/system/$SERVICE_NAME.service"
 [Unit]
-Description=Моніторинг та перезапуск контейнерів Infernet
+Description=Моніторинг та перезапуск контейнерів Ritual
 After=docker.service
 Requires=docker.service
 
