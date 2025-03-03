@@ -70,14 +70,17 @@ docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up
 
 # Установка Foundry
 pkill anvil
-sleep 2
+sleep 3
 
 cd $HOME
-rm -rf ~/.foundry  # Видалення попередньої версії Foundry
+mkdir -p foundry
+cd foundry
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
+echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
+source .profile
+
 foundryup
-check_success "Установка Foundry"
 
 # Установка зависимостей для контрактов
 cd $HOME/infernet-container-starter/projects/hello-world/contracts/lib/
