@@ -56,7 +56,7 @@ while true; do
         echo -e "${GREEN}$(date):✅ Все контейнеры работают корректно.${NC}"
     fi
 
-    sleep 30
+    sleep 1m
 done
 
 EOF
