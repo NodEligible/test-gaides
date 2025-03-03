@@ -138,14 +138,17 @@ echo -e "${YELLOW}Установка Foundry${NC}"
 
 # Зупиняємо anvil, якщо він уже працює
 pkill anvil
-sleep 2
+sleep 3
 
 cd $HOME
-rm -rf ~/.foundry  # Видалення попередньої версії Foundry
+mkdir -p foundry
+cd foundry
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
+echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
+source .profile
+
 foundryup
-check_success "Установка Foundry"
 
 # Перевіряємо, що forge встановлений
 if ! command -v forge &> /dev/null; then
