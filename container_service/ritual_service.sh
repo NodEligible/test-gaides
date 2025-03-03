@@ -27,7 +27,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Массив контейнеров, которые нужно мониторить
-containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1")
+containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
 
 # Шлях до файлу docker-compose
 COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
