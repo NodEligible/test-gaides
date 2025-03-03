@@ -81,4 +81,7 @@ systemctl enable "$SERVICE_NAME.service"
 echo "🚀 Запуск сервиса..."
 systemctl start "$SERVICE_NAME.service"
 
+# Для проверки логов
+# journalctl -u ritual-container.service -f
+
 echo "✅ Успешно установлено!"
