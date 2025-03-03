@@ -136,15 +136,24 @@ docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up
 # Установка Foundry
 echo -e "${YELLOW}Установка Foundry${NC}"
 
+# Зупиняємо anvil, якщо він уже працює
+pkill anvil
+sleep 2
+
 cd $HOME
-mkdir -p foundry
-cd foundry
+rm -rf ~/.foundry  # Видалення попередньої версії Foundry
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
-echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
-source .profile
-
 foundryup
+check_success "Установка Foundry"
+
+# Перевіряємо, що forge встановлений
+if ! command -v forge &> /dev/null; then
+    echo -e "${RED}Ошибка: forge не найден!${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Forge успешно установлен!${NC}"
 
 # Установка зависимостей для контрактов
 echo -e "${YELLOW}Установка зависимостей для контрактов${NC}"
