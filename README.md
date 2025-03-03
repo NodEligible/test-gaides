@@ -4,6 +4,10 @@ Ritual_test_error
 ```
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/ritual_test_port/ritual_test_error.sh)
 ```
+Ritual_apdate_error
+```
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/ritual_test_port/ritual_apdete_error.sh)
+```
 Loading_extensions
 ```
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/refs/heads/main/browser_vps/loading_extensions.sh)
