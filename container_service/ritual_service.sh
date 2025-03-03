@@ -18,21 +18,31 @@ cat <<EOF > "$INSTALL_DIR/monitor.sh"
 # Массив контейнеров, которые нужно мониторить
 containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1")
 
+# Шлях до файлу docker-compose
+COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
+
 while true; do
     restart_needed=false
 
-    for container in "\${containers[@]}"; do
-        if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
-            echo "\$(date): Контейнер \$container не работает!"
+    for container in "${containers[@]}"; do
+        if ! docker ps --format '{{.Names}}' | grep -q "^$container\$"; then
+            echo "$(date): Контейнер $container не работает!"
             restart_needed=true
+            break
         fi
     done
 
-    if [ "\$restart_needed" = true ]; then
-        echo "\$(date): Перезапускаем все контейнеры..."
-        docker compose -f "$COMPOSE_FILE" restart
+    if [ "$restart_needed" = true ]; then
+        echo "$(date): Останавливаем все контейнеры..."
+        docker compose -f "$COMPOSE_FILE" down
+        
+        echo "$(date): Ожидание 30 секунд перед перезапуском..."
+        sleep 30
+
+        echo "$(date): Запускаем все контейнеры..."
+        docker compose -f "$COMPOSE_FILE" up -d
     else
-        echo "\$(date): Все контейнеры работают корректно."
+        echo "$(date): Все контейнеры работают корректно."
     fi
 
     sleep 30
