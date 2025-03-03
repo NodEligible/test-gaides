@@ -18,8 +18,10 @@ else
     echo -e "${RED}❌ Ошибка при остановке сервиса PIPE!${NC}"
 fi
 
+sudo sed -i '/^ExecStart=/ { /--enable-80-443/! s/$/ --enable-80-443/ }' /etc/systemd/system/pop.service
+
 echo -e "${YELLOW}📥 Загрузка новой версии POP...${NC}"
-sudo wget -O $HOME/opt/dcdn/pop "https://dl.pipecdn.app/v0.2.4/pop"
+sudo wget -O $HOME/opt/dcdn/pop "https://dl.pipecdn.app/v0.2.8/pop"
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ POP успешно загружен!${NC}"
 else
