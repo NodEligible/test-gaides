@@ -69,15 +69,15 @@ sed -i 's|container_name: infernet-anvil|container_name: infernet-anvil\n    res
 docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up -d
 
 # Установка Foundry
+pkill anvil
+sleep 2
+
 cd $HOME
-mkdir -p foundry
-cd foundry
+rm -rf ~/.foundry  # Видалення попередньої версії Foundry
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
-echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
-source .profile
-
 foundryup
+check_success "Установка Foundry"
 
 # Установка зависимостей для контрактов
 cd $HOME/infernet-container-starter/projects/hello-world/contracts/lib/
