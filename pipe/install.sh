@@ -103,6 +103,8 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=dcdn-node
 WorkingDirectory=$HOME/opt/dcdn
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 
 [Install]
 WantedBy=multi-user.target
@@ -117,5 +119,7 @@ if [ $? -eq 0 ]; then
 else
     echo -e "${RED}❌ Ошибка при запуске сервиса!${NC}"
 fi
+
+cp $HOME/opt/dcdn/node_info.json $HOME/pipe_backup/node_info.json
 
 echo -e "${GREEN}🚀 Установка PIPE завершена!${NC}"
