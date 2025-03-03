@@ -1,8 +1,8 @@
 # test-gaide
 
-Ritual
+Ritual_test_error
 ```
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/ritual_test_port/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/test-gaides/main/ritual_test_port/ritual_test_error.sh)
 ```
 Loading_extensions
 ```
