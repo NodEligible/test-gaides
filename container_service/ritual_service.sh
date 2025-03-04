@@ -55,8 +55,8 @@ while true; do
     done
     if [ "\$restart_needed" = true ]; then
         docker compose -f "$COMPOSE_FILE" down
+    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔄 ${YELLOW} Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"   
     sleep 20
-    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔄 ${YELLOW} Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"
     docker compose -f "$COMPOSE_FILE" up -d
     else
         echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
