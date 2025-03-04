@@ -64,7 +64,7 @@ while true; do
         echo "\$(date): Всі контейнери працюють коректно."
     fi
 
-    sleep 30
+    sleep 1m
 done
 EOF
 
