@@ -47,9 +47,9 @@ containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
 while true; do
     restart_needed=false
 
-    for container in "${containers[@]}"; do
+    for container in "\${containers[@]}"; do
     current_time=$(date '+%Y-%m-%d %H:%M:%S')
-        if ! docker ps --format '{{.Names}}' | grep -q "^$container\$"; then
+        if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
             echo -e "$current_time ${RED}⛔️ Контейнер $container не работает!${NC}" | tee -a "$LOG_FILE"
             restart_needed=true
         fi
