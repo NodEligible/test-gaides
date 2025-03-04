@@ -61,7 +61,7 @@ while true; do
         docker compose -f "$COMPOSE_FILE" up -d
         
     else
-        echo -e "${GREEN}$(date): ✅ Все контейнеры работают корректно.${NC} | tee -a "$LOG_FILE"
+        echo -e "${GREEN}$(date): ✅ Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
     fi
 
     sleep 1m
@@ -100,4 +100,4 @@ systemctl enable "$SERVICE_NAME.service"
 echo -e "${YELLOW}🚀 Запуск сервиса...${NC}"
 systemctl start "$SERVICE_NAME.service"
 
-echo -e "${GREEN}$✅ Установка завершена!${NC}"
+echo -e "${GREEN}✅ Установка завершена!${NC}"
