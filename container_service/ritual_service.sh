@@ -84,11 +84,11 @@ Requires=docker.service
 
 [Service]
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/bin/bash $INSTALL_DIR/monitor.sh
+ExecStart=/bin/bash /root/ritual_service/monitor.sh
 Restart=always
 User=root
-StandardOutput=append:$INSTALL_DIR/service.log
-StandardError=append:$INSTALL_DIR/service.log
+StandardOutput=append:/root/ritual_service/service.log
+StandardError=append:/root/ritual_service/service.log
 
 [Install]
 WantedBy=multi-user.target
