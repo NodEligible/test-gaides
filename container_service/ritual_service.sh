@@ -69,10 +69,10 @@ EOF
 chmod +x "$INSTALL_DIR/monitor.sh"
 
 # Створення systemd-сервісу
-echo "📝 Создание systemd-сервиса..."
+echo "📝 Створення systemd-сервісу..."
 cat <<EOF > "/etc/systemd/system/$SERVICE_NAME.service"
 [Unit]
-Description=Мониторинг и перезапуск контейнеров Ritual
+Description=Моніторинг та перезапуск контейнерів Infernet
 After=docker.service
 Requires=docker.service
 
