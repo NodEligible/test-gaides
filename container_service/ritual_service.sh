@@ -44,49 +44,28 @@ LOG_FILE="$HOME/ritual_service/monitor.log"
 # Масив контейнерів, які потрібно моніторити
 containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
 
-# Шлях до файлу docker-compose
-COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
-
-# Перевірка, чи встановлений Docker Compose
-if ! command -v docker compose &> /dev/null; then
-    echo "$(date): ❌ Docker Compose не установлен!" | tee -a "$LOG_FILE"
-    exit 1
-fi
-
-# Логування запуску моніторингу
-echo "$(date): 🚀 Запуск мониторинга контейнеров" >> "$LOG_FILE"
+# Масив контейнерів, які потрібно моніторити
+containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1")
 
 while true; do
     restart_needed=false
 
-    for container in "${containers[@]}"; do
-        if ! docker ps --format '{{.Names}}' | grep -q "^$container\$"; then
-            echo -e "${RED}$(date): ⛔️ Контейнер $container не работает!${NC}" | tee -a "$LOG_FILE"
+    for container in "\${containers[@]}"; do
+        if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
+            echo "\$(date): Контейнер \$container не працює!"
             restart_needed=true
-            break
         fi
     done
 
-    if [ "$restart_needed" = true ]; then
-        echo -e "${YELLOW}$(date): ⚠️ Останавливаем все контейнеры...${NC}" | tee -a "$LOG_FILE"
-        docker compose -f "$COMPOSE_FILE" down
-
-        echo -e "${YELLOW}$(date): ❗️ Ожидание 30 секунд перед перезапуском...${NC}" | tee -a "$LOG_FILE"
-        sleep 30
-
-        echo -e "${YELLOW}$(date): 🔄 Запускаем все контейнеры.....${NC}" | tee -a "$LOG_FILE"
-        docker compose -f "$COMPOSE_FILE" up -d
-
-        echo "$(date): ✅ Контейнеры успешно запущены!" | tee -a "$LOG_FILE"
+    if [ "\$restart_needed" = true ]; then
+        echo "\$(date): Перезапускаємо всі контейнери..."
+        docker compose -f "$COMPOSE_FILE" restart
     else
-        echo -e "${GREEN}$(date): ✅ Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
+        echo "\$(date): Всі контейнери працюють коректно."
     fi
 
-    sleep 60
+    sleep 30
 done
-
-
-
 EOF
 
 # Робимо скрипт виконуваним
