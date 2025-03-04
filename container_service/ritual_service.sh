@@ -44,34 +44,24 @@ LOG_FILE="$HOME/ritual_service/monitor.log"
 # Масив контейнерів, які потрібно моніторити
 containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
 
-# Шлях до файлу docker-compose
-COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
-
 while true; do
     restart_needed=false
 
-    for container in "${containers[@]}"; do
-        if ! docker ps --format '{{.Names}}' | grep -q "^$container\$"; then
-            echo "$(date): Контейнер $container не работает!"
+    for container in "\${containers[@]}"; do
+        if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
+            echo "\$(date): Контейнер \$container не працює!"
             restart_needed=true
-            break
         fi
     done
 
-    if [ "$restart_needed" = true ]; then
-        echo "$(date): Останавливаем все контейнеры..."
-        docker compose -f "$COMPOSE_FILE" down
-        
-        echo "$(date): Ожидание 30 секунд перед перезапуском..."
-        sleep 30
-
-        echo "$(date): Запускаем все контейнеры..."
-        docker compose -f "$COMPOSE_FILE" up -d
+    if [ "\$restart_needed" = true ]; then
+        echo "\$(date): Перезапускаємо всі контейнери..."
+        docker compose -f "$COMPOSE_FILE" restart
     else
-        echo "$(date): Все контейнеры работают корректно."
+        echo "\$(date): Всі контейнери працюють коректно."
     fi
 
-    sleep 1m
+    sleep 30
 done
 EOF
 
