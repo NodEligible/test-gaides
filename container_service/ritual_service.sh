@@ -48,23 +48,23 @@ while true; do
     restart_needed=false
 
     for container in "\${containers[@]}"; do
-    current_time=$(date '+%Y-%m-%d %H:%M:%S')
+    current_time=$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')
         if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
-            echo "$current_time ⛔️ Контейнер \$container не работает!" | tee -a "$LOG_FILE"
+            printf "%s ⛔ Контейнер %s не работает!\n" "$current_time" "$container" | tee -a "$LOG_FILE"
             restart_needed=true
         fi
     done
 
-    current_time=$(date '+%Y-%m-%d %H:%M:%S')
+    current_time=$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')
     if [ "\$restart_needed" = true ]; then
-        echo "$current_time 🔄 Перезапускаем все контейнеры..." | tee -a "$LOG_FILE"
+        printf "%s 🔄 Перезапускаем все контейнеры...\n" "$current_time" | tee -a "$LOG_FILE"
         docker compose -f "$COMPOSE_FILE" down
         sleep 20
         docker compose -f "$COMPOSE_FILE" up -d
         
     else
-    current_time=$(date '+%Y-%m-%d %H:%M:%S')
-        echo "$current_time ✅ Все контейнеры работают корректно." | tee -a "$LOG_FILE"
+    current_time=$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')
+        printf "%s ✅ Все контейнеры работают корректно.\n" "$current_time" | tee -a "$LOG_FILE"
     fi
 
     sleep 1m
