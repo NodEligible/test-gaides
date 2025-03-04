@@ -51,7 +51,6 @@ while true; do
         if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
             current_time=$(date '+%Y-%m-%d %H:%M:%S')
             echo "$current_time ⛔️ Контейнер $container не работает!" | tee -a "$LOG_FILE"
-
             restart_needed=true
         fi
     done
