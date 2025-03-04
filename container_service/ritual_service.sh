@@ -48,7 +48,7 @@ while true; do
     restart_needed=false
 
     for container in "${containers[@]}"; do
-        if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
+        if ! docker ps --format '{{.Names}}' | grep -q "^$container\$"; then
             echo -e "$(date '+%Y-%m-%d %H:%M:%S') ${RED}⛔️ Контейнер $container не работает!${NC}" | tee -a "$LOG_FILE"
             restart_needed=true
         fi
