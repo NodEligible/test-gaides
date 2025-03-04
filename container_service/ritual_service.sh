@@ -116,5 +116,8 @@ systemctl start "$SERVICE_NAME.service"
 
 # Для проверки логов
 # journalctl -u ritual-container.service -f
+# systemctl stop ritual-container.service
+# systemctl disable ritual-container.service
+# systemctl daemon-reload
 
 echo "✅ Успешно установлено!"
