@@ -25,7 +25,7 @@ touch "$LOG_FILE"
 chmod 644 "$LOG_FILE"
 
 # Шлях до файлу docker-compose
-COMPOSE_FILE="/root/infernet-container-starter/deploy/docker-compose.yaml"
+COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
 
 # Створення скрипта моніторингу контейнерів
 echo -e "${YELLOW}📝 Создание файла мониторинга...${NC}"
