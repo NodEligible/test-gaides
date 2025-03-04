@@ -41,7 +41,7 @@ NC='\033[0m'
 # Лог-файл
 LOG_FILE="$HOME/ritual_service/monitor.log"
 
-# Массив контейнеров, которые нужно мониторить
+# Масив контейнерів, які потрібно моніторити
 containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
 
 # Шлях до файлу docker-compose
@@ -49,35 +49,42 @@ COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
 
 # Перевірка, чи встановлений Docker Compose
 if ! command -v docker compose &> /dev/null; then
-    echo -e "$(date): ❌ Docker Compose не установлен!" | tee -a "$LOG_FILE"
+    echo "$(date): ❌ Docker Compose не установлен!" | tee -a "$LOG_FILE"
     exit 1
 fi
 
 # Логування запуску моніторингу
-echo -e "$(date): 🚀 Запуск мониторинга контейнеров" >> "$LOG_FILE"
+echo "$(date): 🚀 Запуск мониторинга контейнеров" >> "$LOG_FILE"
 
 while true; do
+    restart_needed=false
+
     for container in "${containers[@]}"; do
         if ! docker ps --format '{{.Names}}' | grep -q "^$container\$"; then
             echo -e "${RED}$(date): ⛔️ Контейнер $container не работает!${NC}" | tee -a "$LOG_FILE"
-            
-            echo -e "${YELLOW}$(date): ⚠️ Останавливаем все контейнеры...${NC}" | tee -a "$LOG_FILE"
-            docker compose -f "$COMPOSE_FILE" down
-            
-            echo -e "${YELLOW}$(date): ❗️ Ожидание 30 секунд перед перезапуском...${NC}" | tee -a "$LOG_FILE"
-            sleep 30
-
-            echo -e "${YELLOW}$(date): 🔄 Запускаем все контейнеры.....${NC}" | tee -a "$LOG_FILE"
-            docker compose -f "$COMPOSE_FILE" up -d
-
-            echo -e "$(date): ✅ Контейнеры успешно запущены!" | tee -a "$LOG_FILE"
+            restart_needed=true
             break
         fi
     done
 
-    echo -e "${GREEN}$(date): ✅ Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
-    sleep 1m
+    if [ "$restart_needed" = true ]; then
+        echo -e "${YELLOW}$(date): ⚠️ Останавливаем все контейнеры...${NC}" | tee -a "$LOG_FILE"
+        docker compose -f "$COMPOSE_FILE" down
+
+        echo -e "${YELLOW}$(date): ❗️ Ожидание 30 секунд перед перезапуском...${NC}" | tee -a "$LOG_FILE"
+        sleep 30
+
+        echo -e "${YELLOW}$(date): 🔄 Запускаем все контейнеры.....${NC}" | tee -a "$LOG_FILE"
+        docker compose -f "$COMPOSE_FILE" up -d
+
+        echo "$(date): ✅ Контейнеры успешно запущены!" | tee -a "$LOG_FILE"
+    else
+        echo -e "${GREEN}$(date): ✅ Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
+    fi
+
+    sleep 60
 done
+
 
 
 EOF
