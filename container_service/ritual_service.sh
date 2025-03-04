@@ -63,7 +63,7 @@ while true; do
         echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
     fi
 
-    sleep 30
+    sleep 1m
 done
 EOF
 
