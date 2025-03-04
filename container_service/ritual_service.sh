@@ -49,19 +49,19 @@ while true; do
 
     for container in "\${containers[@]}"; do
         if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
-            echo "\$(date): Контейнер \$container не працює!"
+            echo -e "${RED}$(date): ⛔️: Контейнер \$container не работает!${NC}" | tee -a "$LOG_FILE"
             restart_needed=true
         fi
     done
 
     if [ "\$restart_needed" = true ]; then
-        echo "\$(date): Перезапускаємо всі контейнери..."
+        echo -e "${YELLOW}$(date): 🔄 Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"
         docker compose -f "$COMPOSE_FILE" restart
     else
-        echo "\$(date): Всі контейнери працюють коректно."
+        echo -e "${GREEN}$(date): ✅ Все контейнеры работают корректно.${NC} | tee -a "$LOG_FILE"
     fi
 
-    sleep 30
+    sleep 40
 done
 EOF
 
@@ -72,7 +72,7 @@ chmod +x "$INSTALL_DIR/monitor.sh"
 echo "📝 Створення systemd-сервісу..."
 cat <<EOF > "/etc/systemd/system/$SERVICE_NAME.service"
 [Unit]
-Description=Моніторинг та перезапуск контейнерів Infernet
+Description=Мониторинг контейнеров Ritual
 After=docker.service
 Requires=docker.service
 
