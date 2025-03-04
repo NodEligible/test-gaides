@@ -7,7 +7,7 @@ NC='\033[0m'
 
 # Шлях для встановлення
 INSTALL_DIR="/root/ritual_service"
-SERVICE_NAME="ritual-service"
+SERVICE_NAME="ritual"
 
 echo -e "${YELLOW}📁 Создание папки $INSTALL_DIR...${NC}"
 mkdir -p "$INSTALL_DIR"
