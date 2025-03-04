@@ -59,7 +59,7 @@ while true; do
         sleep 20
         docker compose -f "$COMPOSE_FILE" up -d
     else
-    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${GREEN}✅ Всі контейнери працюють коректно.${NC}" | tee -a "$LOG_FILE"
+    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${GREEN}✅ Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
     fi
 
     sleep 1m
