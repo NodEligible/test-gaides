@@ -58,7 +58,7 @@ while true; do
         docker compose -f "$COMPOSE_FILE" down
         echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${YELLOW}❗️ Ожидание 20 секунд перед перезапуском...${NC}" | tee -a "$LOG_FILE"
         sleep 20
-        echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${YELLOW} 🔄 Запускаем все контейнеры.....${NC}" | tee -a "$LOG_FILE"
+        echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${YELLOW} ▶️ Запускаем все контейнеры.....${NC}" | tee -a "$LOG_FILE"
         docker compose -f "$COMPOSE_FILE" up -d
     else
     echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${GREEN}✅ Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
