@@ -54,18 +54,14 @@ while true; do
             restart_needed=true
         fi
     done
-
     if [ "\$restart_needed" = true ]; then
        current_time="$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')"
        echo "$current_time 🔄 Перезапускаем все контейнеры..." | tee -a "$LOG_FILE"
-
         docker compose -f "$COMPOSE_FILE" down
         sleep 20
         docker compose -f "$COMPOSE_FILE" up -d
-        
     else
-    current_time="$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')"
-    echo "$current_time ✅ Все контейнеры работают корректно." | tee -a "$LOG_FILE"
+    echo "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S'): Всі контейнери працюють коректно." | tee -a "$LOG_FILE"
     fi
 
     sleep 1m
