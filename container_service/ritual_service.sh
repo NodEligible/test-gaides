@@ -72,7 +72,7 @@ EOF
 chmod +x "$INSTALL_DIR/monitor.sh"
 
 # Створення systemd-сервісу
-echo "📝 Створення systemd-сервісу..."
+echo -e "${YELLOW}📝 Создание systemd-сервиса...${NC}"
 cat <<EOF > "/etc/systemd/system/$SERVICE_NAME.service"
 [Unit]
 Description=Мониторинг контейнеров Ritual
@@ -89,21 +89,15 @@ WantedBy=multi-user.target
 EOF
 
 # Оновлення systemd
-echo "🔄 Обновление systemd..."
+echo -e "${YELLOW}🔄 Обновление systemd...${NC}"
 systemctl daemon-reload
 
 # Додавання в автозапуск
-echo "🔧 Включение сервиса..."
+echo -e "${YELLOW}🔧 Включение сервиса...${NC}"
 systemctl enable "$SERVICE_NAME.service"
 
 # Запуск сервісу
-echo "🚀 Запуск сервиса..."
+echo -e "${YELLOW}🚀 Запуск сервиса...${NC}"
 systemctl start "$SERVICE_NAME.service"
 
-# Для проверки логов
-# journalctl -u ritual-container.service -f
-# systemctl stop ritual-container.service
-# systemctl disable ritual-container.service
-# systemctl daemon-reload
-
-echo "✅ Успешно установлено!"
+echo -e "${GREEN}$✅ Установка завершена!${NC}"
