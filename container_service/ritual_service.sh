@@ -49,19 +49,17 @@ while true; do
 
     for container in "\${containers[@]}"; do
         if ! docker ps --format '{{.Names}}' | grep -q "^\$container\$"; then
-            current_time="$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')"
-            echo "$current_time ⛔️ Контейнер $container не работает!" | tee -a "$LOG_FILE"
+            echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${RED}⛔️ Контейнер $container не работает!${NC}" | tee -a "$LOG_FILE"
             restart_needed=true
         fi
     done
     if [ "\$restart_needed" = true ]; then
-       current_time="$(/usr/bin/date '+%Y-%m-%d %H:%M:%S')"
-       echo "$current_time 🔄 Перезапускаем все контейнеры..." | tee -a "$LOG_FILE"
+       echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${YELLOW}🔄 Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"
         docker compose -f "$COMPOSE_FILE" down
         sleep 20
         docker compose -f "$COMPOSE_FILE" up -d
     else
-    echo "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S'): Всі контейнери працюють коректно." | tee -a "$LOG_FILE"
+    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ${GREEN}✅ Всі контейнери працюють коректно.${NC}" | tee -a "$LOG_FILE"
     fi
 
     sleep 1m
