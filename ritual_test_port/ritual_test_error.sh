@@ -137,8 +137,8 @@ docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up
 echo -e "${YELLOW}Установка Foundry${NC}"
 
 # Зупиняємо anvil, якщо він уже працює
-# pkill anvil
-# sleep 3
+pkill anvil
+sleep 3
 
 cd $HOME
 mkdir -p foundry
