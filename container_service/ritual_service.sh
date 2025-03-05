@@ -58,9 +58,9 @@ while true; do
     echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ⏳ ${YELLOW} Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"   
     sleep 20
     docker compose -f "$COMPOSE_FILE" up -d
-    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры подняты, следующая проверка через 60 секунд.${NC}" | tee -a "$LOG_FILE"
+    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры${NC} Ritual ${YELLOW}подняты, следующая проверка через 60 секунд.${NC}" | tee -a "$LOG_FILE"
     else
-        echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры работают корректно.${NC}" | tee -a "$LOG_FILE"
+        echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры${NC} Ritual ${GREEN}работают корректно.${NC}" | tee -a "$LOG_FILE"
     fi
     sleep 1m
 done
