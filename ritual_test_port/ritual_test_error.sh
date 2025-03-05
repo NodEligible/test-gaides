@@ -144,11 +144,11 @@ cd $HOME
 mkdir -p foundry
 cd foundry
 curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
-echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
-source .profile
-
-foundryup
+echo 'export PATH="$PATH:$HOME/.foundry/bin"' >> $HOME/.bashrc
+echo 'export PATH="$PATH:$HOME/.foundry/bin"' >> $HOME/.profile
+source $HOME/.bashrc
+source $HOME/.profile
+$HOME/.foundry/bin/foundryup
 
 # Перевіряємо, що forge встановлений
 if ! command -v forge &> /dev/null; then
