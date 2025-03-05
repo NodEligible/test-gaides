@@ -56,7 +56,7 @@ while true; do
     if [ "\$restart_needed" = true ]; then
         docker compose -f "$COMPOSE_FILE" down
     echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ⏳ ${YELLOW} Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"   
-    sleep 60
+    sleep 30
     docker compose -f "$COMPOSE_FILE" up -d
     echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры${NC} Ritual ${YELLOW}подняты, следующая проверка через 5 минут.${NC}" | tee -a "$LOG_FILE"
     else
