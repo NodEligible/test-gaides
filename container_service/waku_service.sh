@@ -6,14 +6,14 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Шлях для встановлення
-INSTALL_DIR="/root/ritual_service"
-SERVICE_NAME="ritual-container"
+INSTALL_DIR="/root/waku_service"
+SERVICE_NAME="waku-container"
 
 echo -e "${YELLOW}📁 Создание папки $INSTALL_DIR...${NC}"
 mkdir -p "$INSTALL_DIR"
 
 # Шлях до файлу логування
-LOG_FILE="$HOME/ritual_service/monitor.log"
+LOG_FILE="$HOME/waku_service/monitor.log"
 
 # Створюємо директорію, якщо її немає
 mkdir -p "$(dirname "$LOG_FILE")"
@@ -25,7 +25,7 @@ touch "$LOG_FILE"
 chmod 644 "$LOG_FILE"
 
 # Шлях до файлу docker-compose
-COMPOSE_FILE="$HOME/infernet-container-starter/deploy/docker-compose.yaml"
+COMPOSE_FILE="$HOME/nwaku-compose/docker-compose.yml"
 
 # Створення скрипта моніторингу контейнерів
 echo -e "${YELLOW}📝 Создание файла мониторинга...${NC}"
@@ -39,10 +39,10 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Лог-файл
-LOG_FILE="$HOME/ritual_service/monitor.log"
+LOG_FILE="$HOME/waku_service/monitor.log"
 
 # Масив контейнерів, які потрібно моніторити
-containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
+containers=("nwaku-compose-grafana-1" "nwaku-compose-waku-frontend-1" "nwaku-compose-prometheus-1" "nwaku-compose-nwaku-1" "nwaku-compose-postgres-exporter-1" "nwaku-compose-postgres-1")
 
 while true; do
     restart_needed=false
@@ -58,9 +58,9 @@ while true; do
     echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ⏳ ${YELLOW} Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"   
     sleep 30
     docker compose -f "$COMPOSE_FILE" up -d
-    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры${NC} Ritual ${YELLOW}подняты, следующая проверка через 5 минут.${NC}" | tee -a "$LOG_FILE"
+    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры${NC} Waku ${YELLOW}подняты, следующая проверка через 5 минут.${NC}" | tee -a "$LOG_FILE"
     else
-        echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры${NC} Ritual ${GREEN}работают корректно.${NC}" | tee -a "$LOG_FILE"
+        echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры${NC} Waku ${GREEN}работают корректно.${NC}" | tee -a "$LOG_FILE"
     fi
     sleep 5m
 done
@@ -73,17 +73,17 @@ chmod +x "$INSTALL_DIR/monitor.sh"
 echo -e "${YELLOW}📝 Создание systemd-сервиса...${NC}"
 cat <<EOF > "/etc/systemd/system/$SERVICE_NAME.service"
 [Unit]
-Description=Мониторинг контейнеров Ritual
+Description=Мониторинг контейнеров Waku
 After=docker.service
 Requires=docker.service
 
 [Service]
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/bin/bash /root/ritual_service/monitor.sh
+ExecStart=/bin/bash /root/waku_service/monitor.sh
 Restart=always
 User=root
-StandardOutput=append:/root/ritual_service/service.log
-StandardError=append:/root/ritual_service/service.log
+StandardOutput=append:/root/waku_service/service.log
+StandardError=append:/root/waku_service/service.log
 
 [Install]
 WantedBy=multi-user.target
