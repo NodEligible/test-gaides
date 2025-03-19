@@ -121,7 +121,7 @@ class GaiaBot:
             while True:
                 messages = self.generate_message()
                 await self.send_request(messages)
-                await asyncio.sleep(1)
+                await asyncio.sleep(55)
         except KeyboardInterrupt:
             logger.info("👋 Бот остановлен пользователем")
         finally:
