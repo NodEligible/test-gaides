@@ -7,6 +7,10 @@ import os
 from datetime import datetime
 from typing import List, Dict, Optional
 
+#--------------
+SLEEP_TIME = 60
+#--------------
+
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
@@ -121,7 +125,7 @@ class GaiaBot:
             while True:
                 messages = self.generate_message()
                 await self.send_request(messages)
-                await asyncio.sleep(60)
+                await asyncio.sleep(SLEEP_TIME)
         except KeyboardInterrupt:
             logger.info("👋 Бот остановлен пользователем")
         finally:
