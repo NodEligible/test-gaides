@@ -7,9 +7,9 @@ import os
 from datetime import datetime
 from typing import List, Dict, Optional
 
-#--------------
+#---------------
 SLEEP_TIME = 60
-#--------------
+#---------------
 
 # Настройка логирования
 logging.basicConfig(
