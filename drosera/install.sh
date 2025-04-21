@@ -113,12 +113,21 @@ else
     new_rpc="https://ethereum-holesky-rpc.publicnode.com"
 fi
 
+echo -e "${YELLOW}📁 Настройка конфигурации...${NC}"
+TARGET_FILE="$HOME/my-drosera-trap/drosera.toml"
+    
+    [ -f "$TARGET_FILE" ] && {
+        sed -i '/^private_trap/d' "$TARGET_FILE"
+        sed -i '/^whitelist/d' "$TARGET_FILE"
+    }
+    
+echo "private_trap = true" >> "$TARGET_FILE"
+echo "whitelist = [\"$WALLET_ADDRESS\"]" >> "$TARGET_FILE"
+
 export DROSERA_PRIVATE_KEY="$PRIV_KEY"
 drosera apply 
 
 drosera dryrun
-
-cd ~
 
 echo -e "${GREEN}Trap настроен!${NC}"
 
@@ -137,34 +146,7 @@ echo -e "${GREEN}Trap настроен!${NC}"
 read -p "➡️  Нажмите Enter, чтобы продолжить..."
 
 # -------------------------------------------------------------
-
-# Установки ноды
-echo -e "${YELLOW}Запуск установки ноды...${NC}"
-    
-echo -e "${YELLOW}📁 Настройка конфигурации...${NC}"
-TARGET_FILE="$HOME/my-drosera-trap/drosera.toml"
-    
-    [ -f "$TARGET_FILE" ] && {
-        sed -i '/^private_trap/d' "$TARGET_FILE"
-        sed -i '/^whitelist/d' "$TARGET_FILE"
-    }
-    
-echo "private_trap = true" >> "$TARGET_FILE"
-echo "whitelist = [\"$WALLET_ADDRESS\"]" >> "$TARGET_FILE"
-
-export DROSERA_PRIVATE_KEY="$PRIV_KEY"
-drosera apply
-
-echo -e "${GREEN}Нода установлена${NC}"
-
-cd
-
-# -------------------------------------------------------------
-
-read -p "➡️  Нажмите Enter, чтобы продолжить..."
-
-# -------------------------------------------------------------
-      
+     
 echo -e "${YELLOW}📥 Загрузка бинарных файлов...${NC}"
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
