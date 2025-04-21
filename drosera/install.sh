@@ -95,6 +95,8 @@ forge init -t drosera-network/trap-foundry-template
 bun install
 forge build
 
+ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
+
 # Изменяем трапу если нужно
 if [ -n "$existing_trap" ]; then
     echo -e "${YELLOW}Вписали $existing_trap в файл drosera.toml${NC}"
@@ -111,8 +113,6 @@ else
     new_rpc="https://ethereum-holesky-rpc.publicnode.com"
 fi
 
-ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
-
 export DROSERA_PRIVATE_KEY="$PRIV_KEY"
 drosera apply 
 
@@ -123,17 +123,17 @@ cd ~
 echo -e "${GREEN}Trap настроен!${NC}"
 
 # -------------------------------------------------------------
-delay_minutes=2
-total_seconds=$((delay_minutes * 60))
+#delay_minutes=2
+#total_seconds=$((delay_minutes * 60))
 
-echo -e "\n⏳ Ожидание $delay_minutes минут..."
+#echo -e "\n⏳ Ожидание $delay_minutes минут..."
 
-for ((i=total_seconds; i>0; i--)); do
-    printf "\r⏱️  Осталось: %02d:%02d " $((i/60)) $((i%60))
-    sleep 1
-done
+#for ((i=total_seconds; i>0; i--)); do
+#    printf "\r⏱️  Осталось: %02d:%02d " $((i/60)) $((i%60))
+#    sleep 1
+#done
 
-echo -e "\n✅ Время вышло!"
+#echo -e "\n✅ Время вышло!"
 read -p "➡️  Нажмите Enter, чтобы продолжить..."
 
 # -------------------------------------------------------------
