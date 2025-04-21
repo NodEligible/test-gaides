@@ -99,7 +99,7 @@ ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
 
 # Изменяем трапу если нужно
 if [ -n "$existing_trap" ]; then
-    echo -e "${YELLOW}Вписали $existing_trap в файл drosera.toml${NC}"
+    echo -e "${GREEN}Вписали $existing_trap в файл drosera.toml${NC}"
     echo "address = \"$existing_trap\"" >> drosera.toml
 else
     echo -e "${YELLOW}Созадаем новую трапу.${NC}"
