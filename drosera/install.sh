@@ -84,8 +84,8 @@ droseraup
 foundryup
     
 echo -e "${YELLOW}📂 Создание директории...${NC}"
-mkdir my-drosera-trap
-cd my-drosera-trap
+mkdir drosera
+cd drosera
     
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
@@ -114,7 +114,7 @@ else
 fi
 
 echo -e "${YELLOW}📁 Настройка конфигурации...${NC}"
-TARGET_FILE="$HOME/my-drosera-trap/drosera.toml"
+TARGET_FILE="$HOME/drosera/drosera.toml"
     
     [ -f "$TARGET_FILE" ] && {
         sed -i '/^private_trap/d' "$TARGET_FILE"
