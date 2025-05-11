@@ -126,22 +126,39 @@ sed -i 's|container_name: infernet-anvil|container_name: infernet-anvil\n    res
 docker compose -f $HOME/infernet-container-starter/deploy/docker-compose.yaml up -d
 
 # Установка Foundry
+echo -e "${YELLOW}Установка Foundry${NC}"
+
+# Зупиняємо anvil, якщо він уже працює
+pkill anvil
+sleep 3
+
 cd $HOME
 mkdir -p foundry
 cd foundry
 curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
-echo 'export PATH="$PATH:/root/.foundry/bin"' >> .profile
-source .profile
+echo 'export PATH="$PATH:$HOME/.foundry/bin"' >> $HOME/.bashrc
+echo 'export PATH="$PATH:$HOME/.foundry/bin"' >> $HOME/.profile
+source $HOME/.bashrc
+source $HOME/.profile
+$HOME/.foundry/bin/foundryup
 
-foundryup
+# Перевіряємо, що forge встановлений
+if ! command -v forge &> /dev/null; then
+    echo -e "${RED}Ошибка: forge не найден!${NC}"
+    echo -e "${YELLOW}------------------------------------------------------------------------------------${NC}"
+    echo 'Если видите эту ☝️  ошибку, то бросьте команды на удаление и заново установите ноду!'
+    echo -e "${YELLOW}------------------------------------------------------------------------------------${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Forge успешно установлен!${NC}"
 
 # Установка зависимостей для контрактов
 cd $HOME/infernet-container-starter/projects/hello-world/contracts/lib/
 rm -r forge-std
 rm -r infernet-sdk
-forge install --no-commit foundry-rs/forge-std
-forge install --no-commit ritual-net/infernet-sdk
+forge install foundry-rs/forge-std
+forge install ritual-net/infernet-sdk
 
 # Deploy Consumer Contract
 cd $HOME/infernet-container-starter
