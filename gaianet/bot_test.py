@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Dict, Optional
 
 #---------------
-SLEEP_TIME = 60
+SLEEP_TIME = 2
 #---------------
 
 # Настройка логирования
@@ -32,7 +32,7 @@ class GaiaBot:
             sys.exit(1)
 
         # Настройка URL и заголовков
-        self.url = f"https://{self.node_id}.gaia.domains/v1/chat/completions"
+        self.url = f"https://{self.node_id}.gaia.domains/v1/chat/completions/chatbot-ui/"
         self.headers = {
             "accept": "application/json",
             "Content-Type": "application/json"
