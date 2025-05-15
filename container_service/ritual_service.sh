@@ -1,5 +1,7 @@
 #!/bin/bash
 
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
+
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -42,7 +44,7 @@ NC='\033[0m'
 LOG_FILE="$HOME/ritual_service/monitor.log"
 
 # Масив контейнерів, які потрібно моніторити
-containers=("infernet-node" "deploy-fluentbit-1" "deploy-redis-1" "hello-world")
+containers=("deploy-fluentbit-1" "deploy-redis-1")
 
 while true; do
     restart_needed=false
@@ -56,13 +58,13 @@ while true; do
     if [ "\$restart_needed" = true ]; then
         docker compose -f "$COMPOSE_FILE" down
     echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ⏳ ${YELLOW} Перезапускаем все контейнеры...${NC}" | tee -a "$LOG_FILE"   
-    sleep 30
+    sleep 40
     docker compose -f "$COMPOSE_FILE" up -d
-    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры${NC} Ritual ${YELLOW}подняты, следующая проверка через 5 минут.${NC}" | tee -a "$LOG_FILE"
+    echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') 🔎 ${YELLOW} Контейнеры${NC} Ritual ${YELLOW}подняты, следующая проверка через 10 минут.${NC}" | tee -a "$LOG_FILE"
     else
         echo -e "\$(/usr/bin/date '+%Y-%m-%d %H:%M:%S') ✅ ${GREEN} Все контейнеры${NC} Ritual ${GREEN}работают корректно.${NC}" | tee -a "$LOG_FILE"
     fi
-    sleep 5m
+    sleep 10m
 done
 EOF
 
@@ -89,13 +91,13 @@ StandardError=append:/root/ritual_service/service.log
 WantedBy=multi-user.target
 EOF
 
-# Оновлення systemd
-echo -e "${YELLOW}🔄 Обновление systemd...${NC}"
-systemctl daemon-reload
-
 # Додавання в автозапуск
 echo -e "${YELLOW}🔧 Включение сервиса...${NC}"
 systemctl enable "$SERVICE_NAME.service"
+
+# Оновлення systemd
+echo -e "${YELLOW}🔄 Обновление systemd...${NC}"
+systemctl daemon-reload
 
 # Запуск сервісу
 echo -e "${YELLOW}🚀 Запуск сервиса...${NC}"
