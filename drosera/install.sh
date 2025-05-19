@@ -69,7 +69,6 @@ echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
 
 # Очистка кеша команд і перезапуск shell
 hash -r
-exec bash
 
 # Робимо глобальний symlink
 ln -sf /root/.drosera/bin/droseraup /usr/local/bin/droseraup
