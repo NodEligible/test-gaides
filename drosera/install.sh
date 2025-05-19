@@ -70,6 +70,7 @@ echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
 # Робимо глобальний symlink
 ln -sf /root/.drosera/bin/droseraup /usr/local/bin/droseraup
 ln -sf /root/.drosera/bin/drosera-operator /usr/local/bin/drosera-operator
+ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
 
 droseraup
 
@@ -81,11 +82,10 @@ curl -fsSL https://bun.sh/install | bash
   
 # Функция для деплоя Trap
 echo -e "${YELLOW}Настройка деплой Trap...${NC}"
+# Створюємо symlink-и для foundry та bun
 ln -sf /root/.foundry/bin/foundryup /usr/local/bin/foundryup
 ln -sf /root/.foundry/bin/forge /usr/local/bin/forge
-ln -sf /root/.bun/bin/bun /usr/local/bin/bun
-    
-source /root/.bashrc
+ln -sf /root/.bun/bin/bun /usr/local/bin/bun  
 
 sleep 5
 
