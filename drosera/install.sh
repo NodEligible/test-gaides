@@ -63,15 +63,21 @@ sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano
 
 sleep 5
 
+echo -e "${YELLOW}📥 Установка Drosera CLI${NC}"
+curl -s -L https://app.drosera.io/install | bash 
+echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
+source /root/.profile
+droseraup
+
+sleep 2
+
 echo -e "${YELLOW}Установка дополнительных инструментов...${NC}"   
-curl -L https://app.drosera.io/install | bash
 curl -L https://foundry.paradigm.xyz | bash
 curl -fsSL https://bun.sh/install | bash
   
 # Функция для деплоя Trap
 echo -e "${YELLOW}Настройка деплой Trap...${NC}"
 
-ln -sf /root/.drosera/bin/droseraup /usr/local/bin/droseraup
 ln -sf /root/.foundry/bin/foundryup /usr/local/bin/foundryup
 ln -sf /root/.foundry/bin/forge /usr/local/bin/forge
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun
@@ -80,7 +86,6 @@ source /root/.bashrc
 
 sleep 5
 
-droseraup
 foundryup
     
 echo -e "${YELLOW}📂 Создание директории...${NC}"
@@ -146,12 +151,7 @@ echo -e "${GREEN}Trap настроен!${NC}"
 read -p "➡️  Нажмите Enter, чтобы продолжить..."
 
 # -------------------------------------------------------------
-     
-echo -e "${YELLOW}📥 Загрузка бинарных файлов...${NC}"
-curl -s -L https://app.drosera.io/install | bash 
-echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
-source /root/.profile
-droseraup 
+      
     
 drosera-operator register --eth-rpc-url https://ethereum-holesky-rpc.publicnode.com --eth-private-key $PRIV_KEY
     
