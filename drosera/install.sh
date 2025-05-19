@@ -148,11 +148,10 @@ read -p "➡️  Нажмите Enter, чтобы продолжить..."
 # -------------------------------------------------------------
      
 echo -e "${YELLOW}📥 Загрузка бинарных файлов...${NC}"
-cd ~
-curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
-tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
-sudo cp drosera-operator /usr/bin
-rm -f $HOME/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
+curl -s -L https://app.drosera.io/install | bash 
+echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
+source /root/.profile
+droseraup 
     
 drosera-operator register --eth-rpc-url https://ethereum-holesky-rpc.publicnode.com --eth-private-key $PRIV_KEY
     
