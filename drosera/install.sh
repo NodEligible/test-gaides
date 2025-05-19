@@ -191,8 +191,3 @@ sudo systemctl start drosera
 
 echo -e "${GREEN}Установка завершена!${NC}"  
 
-# Очистка кеша команд і перезапуск shell
-hash -r
-
-
-
