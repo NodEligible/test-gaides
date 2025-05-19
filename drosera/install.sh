@@ -67,9 +67,6 @@ echo -e "${YELLOW}📥 Установка Drosera CLI${NC}"
 curl -s -L https://app.drosera.io/install | bash 
 echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
 
-# Очистка кеша команд і перезапуск shell
-hash -r
-
 # Робимо глобальний symlink
 ln -sf /root/.drosera/bin/droseraup /usr/local/bin/droseraup
 ln -sf /root/.drosera/bin/drosera-operator /usr/local/bin/drosera-operator
@@ -192,4 +189,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-echo -e "${GREEN}Установка завершена!${NC}"    
+echo -e "${GREEN}Установка завершена!${NC}"  
+
+# Очистка кеша команд і перезапуск shell
+hash -r
+
+
+
