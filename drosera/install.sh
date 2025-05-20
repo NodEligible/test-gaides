@@ -74,6 +74,8 @@ ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
 
 source /root/.bashrc
 
+sleep 2
+
 droseraup
 
 sleep 2
