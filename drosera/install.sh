@@ -72,6 +72,8 @@ ln -sf /root/.drosera/bin/droseraup /usr/local/bin/droseraup
 ln -sf /root/.drosera/bin/drosera-operator /usr/local/bin/drosera-operator
 ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
 
+source /root/.bashrc
+
 droseraup
 
 sleep 2
@@ -86,6 +88,8 @@ echo -e "${YELLOW}Настройка деплой Trap...${NC}"
 ln -sf /root/.foundry/bin/foundryup /usr/local/bin/foundryup
 ln -sf /root/.foundry/bin/forge /usr/local/bin/forge
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun  
+
+source /root/.bashrc
 
 sleep 5
 
