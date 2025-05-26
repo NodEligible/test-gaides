@@ -10,24 +10,19 @@ NC='\033[0m'
 
 echo -e "${YELLOW}⚙️ Запрос данных для регистрации узла...${NC}"
 
-echo -e "${BLUE}👤 Введите ваше имя пользователя:${NC}"
-read -p "➜ " USER
-
-echo -e "${BLUE}📝 Придумайте название сервера (узла):${NC}"
-read -p "➜ " NODE_NAME
-
-# 🔧 Укажи IP сервера, где работает Prometheus API
 PROMETHEUS_API="http://109.199.101.181:5001/register"
 NODE_PORT=9100
-
-# Получаем IP-адрес текущей машины
 IP=$(hostname -I | awk '{print $1}')
 
-echo -e "${YELLOW}📡 Отправка данных на сервер Prometheus...${NC}"
+echo -e "${BLUE}👤 Введите ваш никнейм (будет job_name):${NC}"
+read -p "➜ " USER
+
+echo -e "${BLUE}📝 Придумайте название сервера (instance):${NC}"
+read -p "➜ " SERVER_NAME
 
 RESPONSE=$(curl -s -X POST "$PROMETHEUS_API" \
   -H "Content-Type: application/json" \
-  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"hostname\": \"$NODE_NAME\"}")
+  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"server_name\": \"$SERVER_NAME\"}")
 
 if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
     echo -e "${GREEN}✅ Успешно: $RESPONSE${NC}"
