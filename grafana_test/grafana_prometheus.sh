@@ -36,23 +36,13 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:19980"]
 
-  - job_name      : "NAME"
-    scrape_interval: 15s
-    static_configs:
-      - targets:
-          - localhost:9100
-        labels:
-          instance: '1_server'
-      - targets:
-          - localhost:9100
-        labels:
-          instance: '2_server'
-      - targets:
-          - localhost:9100
-        labels:
-          instance: '3_server'
-      - targets:
-          - localhost:9100
+scrape_configs:
+  - job_name: 'node_exporters'
+    file_sd_configs:
+      - files:
+        - /opt/prometheus-autoreg/targets/node_exporters.json
+        - /opt/prometheus-autoreg/targets/*.json
+
 
 EOF
 
@@ -78,10 +68,6 @@ ExecStart=/usr/bin/prometheus \
 [Install]
 WantedBy=multi-user.target
 EOF
-
-sudo systemctl daemon-reload
-sudo systemctl enable prometheus
-sudo systemctl start prometheus
 
 if ! systemctl is-active --quiet prometheus; then
   echo -e "${RED}Ошибка при запуске Prometheus! Проверьте логи.${NC}"
@@ -129,10 +115,104 @@ EOF
 mkdir -p /etc/grafana/dashboards/
 curl -o /etc/grafana/dashboards/dashboard.json https://raw.githubusercontent.com/NodEligible/monitoring/refs/heads/main/dashboard/settings.json
 
+rm -rf grafana_6.4.3_amd64.deb
+#---------------------------------------------------------------------------------------------------------------------------------------------
+echo -e "${YELLOW}Настройка API...${NC}"
+echo -e "${YELLOW}Обновление пакетов...${NC}"
+sudo apt update
+sudo apt install python3-flask -y
+
+echo -e "${YELLOW}Создаем структуру...${NC}"
+sudo mkdir -p /opt/prometheus-autoreg/targets
+sudo touch /opt/prometheus-autoreg/targets/node_exporters.json
+echo "[]" | sudo tee /opt/prometheus-autoreg/targets/node_exporters.json
+
+echo -e "${YELLOW}Устанавливаем register_api.py...${NC}"
+sudo tee /opt/prometheus-autoreg/register_api.py > /dev/null << 'EOF'
+from flask import Flask, request, jsonify
+import json
+import os
+
+app = Flask(__name__)
+TARGETS_FILE = "/opt/prometheus-autoreg/targets/node_exporters.json"
+
+def load_targets():
+    if not os.path.exists(TARGETS_FILE):
+        return []
+    with open(TARGETS_FILE, "r") as f:
+        return json.load(f)
+
+def save_targets(targets):
+    with open(TARGETS_FILE, "w") as f:
+        json.dump(targets, f, indent=2)
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    ip = data.get("ip")
+    port = data.get("port", 9100)
+    user = data.get("user")
+    hostname = data.get("hostname")
+
+    if not ip or not user or not hostname:
+        return jsonify({"error": "Missing fields (ip, user, hostname)"}), 400
+
+    target_str = f"{ip}:{port}"
+    label = f"{user}-{hostname}"
+    updated = False
+
+    targets = load_targets()
+
+    for entry in targets:
+        if target_str in entry.get("targets", []):
+            entry["labels"]["user"] = user
+            entry["labels"]["hostname"] = hostname
+            entry["labels"]["instance"] = label
+            updated = True
+            break
+
+    if not updated:
+        targets.append({
+            "targets": [target_str],
+            "labels": {
+                "job": "node_exporter",
+                "user": user,
+                "hostname": hostname,
+                "instance": label
+            }
+        })
+
+    save_targets(targets)
+
+    if updated:
+        return jsonify({"message": f"Updated {target_str} with new labels"}), 200
+    else:
+        return jsonify({"message": f"Registered {target_str} under {label}"}), 200
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5001)
+EOF
+
+# Перевірка чи вже запущено
+if pgrep -f register_api.py > /dev/null; then
+  echo -e "${GREEN}API уже запущено.${NC}"
+else
+  echo -e "${YELLOW}Запускаем API...${NC}"
+  cd /opt/prometheus-autoreg
+  nohup python3 register_api.py > api.log 2>&1 &
+fi
+
+#---------------------------------------------------------------------------------------------------------------------------------------------
+
+sudo systemctl daemon-reload
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
+
+sleep 5
+
 sudo systemctl daemon-reload
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
-rm -rf grafana_6.4.3_amd64.deb
 
 echo -e "${GREEN}Grafana успешно установлена!${NC}"
 echo -e "${YELLOW}Grafana доступна по адресу: http://${PROMETHEUS_IP}:3000 Login:${NC}admin  ${YELLOW}Password:${NC}admin"
