@@ -130,10 +130,12 @@ from flask import Flask, request, jsonify
 import yaml
 import os
 import subprocess
+import json
 
 app = Flask(__name__)
 
 PROMETHEUS_CONFIG = "/etc/prometheus/prometheus.yml"
+ALLOWED_USERS_FILE = "/opt/prometheus-autoreg/allowed_users.json"
 DEFAULT_SCRAPE_INTERVAL = "15s"
 TARGET_PORT = 9100
 
@@ -148,23 +150,40 @@ def save_config(config):
 def restart_prometheus():
     subprocess.run(["systemctl", "restart", "prometheus"])
 
+def get_allowed_users():
+    if not os.path.exists(ALLOWED_USERS_FILE):
+        return {}
+    with open(ALLOWED_USERS_FILE, "r") as f:
+        return json.load(f)
+
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
     ip = data.get("ip")
     port = data.get("port", TARGET_PORT)
-    user = data.get("user")
+    user = data.get("user")  # job_name
     server_name = data.get("server_name")
+    discord_id = data.get("discord_id")
 
-    if not ip or not user or not server_name:
-        return jsonify({"error": "Missing 'ip', 'user', or 'server_name'"}), 400
+    if not ip or not user or not server_name or not discord_id:
+        return jsonify({"error": "Missing fields (ip, user, server_name, discord_id)"}), 400
+
+    allowed_users = get_allowed_users()
+    discord_id_str = str(discord_id)
+
+    # перевірка доступу
+    if discord_id_str not in allowed_users:
+        return jsonify({"error": f"⛔ Discord ID {discord_id} не має доступу"}), 403
+
+    allowed_name = allowed_users[discord_id_str]
+    if allowed_name != user:
+        return jsonify({"error": f"⛔ Вам дозволено реєструватися лише як '{allowed_name}', а не '{user}'"}), 403
 
     target = f"{ip}:{port}"
 
     config = load_config()
     jobs = config.get("scrape_configs", [])
 
-    # знайти або створити job
     user_job = next((job for job in jobs if job.get("job_name") == user), None)
     if not user_job:
         user_job = {
@@ -176,20 +195,21 @@ def register():
 
     static_configs = user_job.get("static_configs", [])
 
-    # перевірка: чи є така назва сервера вже в іншого IP
     for entry in static_configs:
         if entry.get("labels", {}).get("instance") == server_name and target not in entry.get("targets", []):
             return jsonify({"error": f"Server name '{server_name}' already used for another IP"}), 400
 
-    # якщо такий IP вже є — оновити назву
     for entry in static_configs:
         if target in entry.get("targets", []):
             entry["labels"]["instance"] = server_name
             save_config(config)
             restart_prometheus()
-            return jsonify({"message": f"Updated {target} with new name '{server_name}'"}), 200
+            return jsonify({
+                "message": f"Updated {target} with new name '{server_name}'",
+                "user": user,
+                "welcome": f"Ласкаво просимо, {user}!"
+            }), 200
 
-    # додати новий
     static_configs.append({
         "targets": [target],
         "labels": {
@@ -202,7 +222,11 @@ def register():
     save_config(config)
     restart_prometheus()
 
-    return jsonify({"message": f"Registered {target} under job '{user}' as '{server_name}'"}), 200
+    return jsonify({
+        "message": f"Registered {target} under job '{user}' as '{server_name}'",
+        "user": user,
+        "welcome": f"Ласкаво просимо, {user}!"
+    }), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001)
