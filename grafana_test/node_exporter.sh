@@ -20,9 +20,12 @@ read -p "➜ " USER
 echo -e "${BLUE}📝 Придумайте название сервера (instance):${NC}"
 read -p "➜ " SERVER_NAME
 
+echo -e "${BLUE}🛡️ Введите ваш Discord ID:${NC}"
+read -p "➜ " DISCORD_ID
+
 RESPONSE=$(curl -s -X POST "$PROMETHEUS_API" \
   -H "Content-Type: application/json" \
-  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"server_name\": \"$SERVER_NAME\"}")
+  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"server_name\": \"$SERVER_NAME\", \"discord_id\": \"$DISCORD_ID\"}")
 
 if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
     echo -e "${GREEN}✅ Успешно: $RESPONSE${NC}"
