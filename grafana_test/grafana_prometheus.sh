@@ -193,17 +193,26 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001)
 EOF
 
-# Перевірка чи вже запущено
-if pgrep -f register_api.py > /dev/null; then
-  echo -e "${GREEN}API уже запущено.${NC}"
-else
-  echo -e "${YELLOW}Запускаем API...${NC}"
-  cd /opt/prometheus-autoreg
-  nohup python3 register_api.py > api.log 2>&1 &
-fi
+echo -e "${YELLOW}Создаем systemd сервис...${NC}"
+sudo tee /etc/systemd/system/autoreg-api.service > /dev/null << EOF
+[Unit]
+Description=Prometheus Auto Registration API
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/prometheus-autoreg/register_api.py
+WorkingDirectory=/opt/prometheus-autoreg
+Restart=always
+RestartSec=5
+User=root
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 #---------------------------------------------------------------------------------------------------------------------------------------------
-
+echo -e "${YELLOW}Перезапуск systemd и запуск API...${NC}"
 sudo systemctl daemon-reload
 sudo systemctl enable prometheus
 sudo systemctl start prometheus
@@ -213,6 +222,13 @@ sleep 5
 sudo systemctl daemon-reload
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
+
+sleep 5
+
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable autoreg-api
+sudo systemctl restart autoreg-api
 
 echo -e "${GREEN}Grafana успешно установлена!${NC}"
 echo -e "${YELLOW}Grafana доступна по адресу: http://${PROMETHEUS_IP}:3000 Login:${NC}admin  ${YELLOW}Password:${NC}admin"
