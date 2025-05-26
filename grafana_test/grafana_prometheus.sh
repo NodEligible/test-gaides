@@ -27,24 +27,22 @@ cd prometheus-${PROMETHEUS_VERSION}.linux-amd64
 sudo mv prometheus /usr/bin/
 sudo mkdir -p /etc/prometheus/data
 
-cat <<EOF > /etc/prometheus/prometheus.yml
+cat <<EOF | sudo tee /etc/prometheus/prometheus.yml > /dev/null
 global:
   scrape_interval: 20s
-  
+
 scrape_configs:
-  - job_name      : "prometheus"
+  - job_name: "prometheus"
     static_configs:
       - targets: ["localhost:19980"]
 
-scrape_configs:
-  - job_name: 'node_exporters'
+  - job_name: "node_exporters"
     file_sd_configs:
       - files:
-        - /opt/prometheus-autoreg/targets/node_exporters.json
-        - /opt/prometheus-autoreg/targets/*.json
-
-
+          - /opt/prometheus-autoreg/targets/node_exporters.json
+          - /opt/prometheus-autoreg/targets/*.json
 EOF
+
 
 sudo useradd -rs /bin/false prometheus
 sudo chown prometheus:prometheus /usr/bin/prometheus
