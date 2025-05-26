@@ -25,7 +25,7 @@ read -p "➜ " DISCORD_ID
 
 RESPONSE=$(curl -s -X POST "$PROMETHEUS_API" \
   -H "Content-Type: application/json" \
-  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"server_name\": \"$SERVER_NAME\", \"discord_id\": \"$DISCORD_ID\"}")
+  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"server_name\": \"$SERVER_NAME\", \"discord_id\": \"${DISCORD_ID}\"}")
 
 if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
     MESSAGE=$(echo "$RESPONSE" | grep -oP '"message"\s*:\s*"\K[^"]+')
