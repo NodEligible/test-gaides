@@ -176,14 +176,13 @@ def register():
     if discord_id_str not in allowed_users:
         return jsonify({"error": f"⛔ Discord ID {discord_id} не имеет доступа"}), 403
 
-allowed_names = allowed_users.get(discord_id_str, [])
+    allowed_names = allowed_users.get(discord_id_str, [])
 
-if isinstance(allowed_names, str):
-    allowed_names = [allowed_names]  # для старої структури підтримка
+    if isinstance(allowed_names, str):
+        allowed_names = [allowed_names]  # підтримка старої структури
 
-if user not in allowed_names:
-    return jsonify({"error": f"⛔ Discord ID '{discord_id}' не имеет права регистрировать job_name '{user}'"}), 403
-
+    if user not in allowed_names:
+        return jsonify({"error": f"⛔ Discord ID '{discord_id}' не имеет права регистрировать job_name '{user}'"}), 403
 
     target = f"{ip}:{port}"
 
