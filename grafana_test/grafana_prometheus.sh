@@ -69,6 +69,10 @@ ExecStart=/usr/bin/prometheus \
 WantedBy=multi-user.target
 EOF
 
+sudo systemctl daemon-reload
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
+
 if ! systemctl is-active --quiet prometheus; then
   echo -e "${RED}Ошибка при запуске Prometheus! Проверьте логи.${NC}"
   exit 1
@@ -213,22 +217,21 @@ EOF
 
 #---------------------------------------------------------------------------------------------------------------------------------------------
 echo -e "${YELLOW}Перезапуск systemd и запуск API...${NC}"
-sudo systemctl daemon-reload
-sudo systemctl enable prometheus
-sudo systemctl start prometheus
-
-sleep 5
 
 sudo systemctl daemon-reload
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
 
-sleep 5
+sleep 4
 
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl enable autoreg-api
 sudo systemctl restart autoreg-api
+
+sleep 4
+
+sudo systemctl restart prometheus
 
 echo -e "${GREEN}Grafana успешно установлена!${NC}"
 echo -e "${YELLOW}Grafana доступна по адресу: http://${PROMETHEUS_IP}:3000 Login:${NC}admin  ${YELLOW}Password:${NC}admin"
