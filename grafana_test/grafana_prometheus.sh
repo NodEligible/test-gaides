@@ -173,11 +173,16 @@ def register():
 
     # перевірка доступу
     if discord_id_str not in allowed_users:
-        return jsonify({"error": f"⛔ Discord ID {discord_id} не має доступу"}), 403
+        return jsonify({"error": f"⛔ Discord ID {discord_id} не имеет доступа"}), 403
 
-    allowed_name = allowed_users[discord_id_str]
-    if allowed_name != user:
-        return jsonify({"error": f"⛔ Вам дозволено реєструватися лише як '{allowed_name}', а не '{user}'"}), 403
+allowed_names = allowed_users.get(discord_id_str, [])
+
+if isinstance(allowed_names, str):
+    allowed_names = [allowed_names]  # для старої структури підтримка
+
+if user not in allowed_names:
+    return jsonify({"error": f"⛔ Discord ID '{discord_id}' не имеет права регистрировать job_name '{user}'"}), 403
+
 
     target = f"{ip}:{port}"
 
@@ -207,7 +212,7 @@ def register():
             return jsonify({
                 "message": f"Updated {target} with new name '{server_name}'",
                 "user": user,
-                "welcome": f"Ласкаво просимо, {user}!"
+                "welcome": f"Добро пожаловать, {user}!"
             }), 200
 
     static_configs.append({
@@ -225,7 +230,7 @@ def register():
     return jsonify({
         "message": f"Registered {target} under job '{user}' as '{server_name}'",
         "user": user,
-        "welcome": f"Ласкаво просимо, {user}!"
+        "welcome": f"Добро пожаловать, {user}!"
     }), 200
 
 if __name__ == "__main__":
