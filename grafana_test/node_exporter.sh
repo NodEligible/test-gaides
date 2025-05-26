@@ -70,4 +70,5 @@ systemctl daemon-reload
 systemctl start node_exporter
 systemctl enable node_exporter
 systemctl status node_exporter
-node_exporter --version
+
+echo -e "${GREEN}Установка завершена!${NC}" 
