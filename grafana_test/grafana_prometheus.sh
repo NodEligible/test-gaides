@@ -132,67 +132,86 @@ echo "[]" | sudo tee /opt/prometheus-autoreg/targets/node_exporters.json
 echo -e "${YELLOW}Устанавливаем register_api.py...${NC}"
 sudo tee /opt/prometheus-autoreg/register_api.py > /dev/null << 'EOF'
 from flask import Flask, request, jsonify
-import json
+import yaml
 import os
+import subprocess
 
 app = Flask(__name__)
-TARGETS_FILE = "/opt/prometheus-autoreg/targets/node_exporters.json"
 
-def load_targets():
-    if not os.path.exists(TARGETS_FILE):
-        return []
-    with open(TARGETS_FILE, "r") as f:
-        return json.load(f)
+PROMETHEUS_CONFIG = "/etc/prometheus/prometheus.yml"
+DEFAULT_SCRAPE_INTERVAL = "15s"
+TARGET_PORT = 9100
 
-def save_targets(targets):
-    with open(TARGETS_FILE, "w") as f:
-        json.dump(targets, f, indent=2)
+def load_config():
+    with open(PROMETHEUS_CONFIG, "r") as f:
+        return yaml.safe_load(f)
+
+def save_config(config):
+    with open(PROMETHEUS_CONFIG, "w") as f:
+        yaml.dump(config, f, default_flow_style=False)
+
+def restart_prometheus():
+    subprocess.run(["systemctl", "restart", "prometheus"])
 
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
     ip = data.get("ip")
-    port = data.get("port", 9100)
+    port = data.get("port", TARGET_PORT)
     user = data.get("user")
-    hostname = data.get("hostname")
+    server_name = data.get("server_name")
 
-    if not ip or not user or not hostname:
-        return jsonify({"error": "Missing fields (ip, user, hostname)"}), 400
+    if not ip or not user or not server_name:
+        return jsonify({"error": "Missing 'ip', 'user', or 'server_name'"}), 400
 
-    target_str = f"{ip}:{port}"
-    label = f"{user}-{hostname}"
-    updated = False
+    target = f"{ip}:{port}"
 
-    targets = load_targets()
+    config = load_config()
+    jobs = config.get("scrape_configs", [])
 
-    for entry in targets:
-        if target_str in entry.get("targets", []):
-            entry["labels"]["user"] = user
-            entry["labels"]["hostname"] = hostname
-            entry["labels"]["instance"] = label
-            updated = True
-            break
+    # знайти або створити job
+    user_job = next((job for job in jobs if job.get("job_name") == user), None)
+    if not user_job:
+        user_job = {
+            "job_name": user,
+            "scrape_interval": DEFAULT_SCRAPE_INTERVAL,
+            "static_configs": []
+        }
+        jobs.append(user_job)
 
-    if not updated:
-        targets.append({
-            "targets": [target_str],
-            "labels": {
-                "job": "node_exporter",
-                "user": user,
-                "hostname": hostname,
-                "instance": label
-            }
-        })
+    static_configs = user_job.get("static_configs", [])
 
-    save_targets(targets)
+    # перевірка: чи є така назва сервера вже в іншого IP
+    for entry in static_configs:
+        if entry.get("labels", {}).get("instance") == server_name and target not in entry.get("targets", []):
+            return jsonify({"error": f"Server name '{server_name}' already used for another IP"}), 400
 
-    if updated:
-        return jsonify({"message": f"Updated {target_str} with new labels"}), 200
-    else:
-        return jsonify({"message": f"Registered {target_str} under {label}"}), 200
+    # якщо такий IP вже є — оновити назву
+    for entry in static_configs:
+        if target in entry.get("targets", []):
+            entry["labels"]["instance"] = server_name
+            save_config(config)
+            restart_prometheus()
+            return jsonify({"message": f"Updated {target} with new name '{server_name}'"}), 200
+
+    # додати новий
+    static_configs.append({
+        "targets": [target],
+        "labels": {
+            "instance": server_name
+        }
+    })
+
+    user_job["static_configs"] = static_configs
+    config["scrape_configs"] = jobs
+    save_config(config)
+    restart_prometheus()
+
+    return jsonify({"message": f"Registered {target} under job '{user}' as '{server_name}'"}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001)
+
 EOF
 
 echo -e "${YELLOW}Создаем systemd сервис...${NC}"
