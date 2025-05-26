@@ -41,6 +41,7 @@ scrape_configs:
       - files:
           - /opt/prometheus-autoreg/targets/node_exporters.json
           - /opt/prometheus-autoreg/targets/*.json
+          
 EOF
 
 
