@@ -28,11 +28,17 @@ RESPONSE=$(curl -s -X POST "$PROMETHEUS_API" \
   -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"server_name\": \"$SERVER_NAME\", \"discord_id\": \"$DISCORD_ID\"}")
 
 if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
-    echo -e "${GREEN}✅ Успешно: $RESPONSE${NC}"
+    MESSAGE=$(echo "$RESPONSE" | grep -oP '"message"\s*:\s*"\K[^"]+')
+    USERNAME=$(echo "$RESPONSE" | grep -oP '"user"\s*:\s*"\K[^"]+')
+
+    echo -e "${GREEN}✅ Регистрация прошла успешно!${NC}"
+    echo -e "👤 ${BLUE}Пользователь:${NC} ${GREEN}$USERNAME${NC}"
+    echo -e "📬 ${BLUE}Сообщение:${NC} $MESSAGE"
 else
     echo -e "${RED}❌ Ошибка при регистрации: $RESPONSE${NC}"
     exit 1
 fi
+
 
 #--------------------------------------------------------------------------------------------------------------
 NODE_EXPORTER_VERSION="1.7.0"
