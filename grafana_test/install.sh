@@ -14,7 +14,80 @@ PROMETHEUS_IP=$(hostname -I | awk '{print $1}')
 PROMETHEUS_URL="http://${PROMETHEUS_IP}:19980"
 
 echo -e "${YELLOW}Автоматически определен IP-адрес сервера: ${PROMETHEUS_IP}${NC}"
-echo -e "${YELLOW}Prometheus URL: ${PROMETHEUS_URL}${NC}"
+
+echo -e "${YELLOW}Открываем порт 19980${NC}"
+sudo ufw allow 19980/tcp
+
+echo -e "${YELLOW}Установка Prometheus...${NC}"
+cd /tmp
+wget https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz
+tar xvf prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz
+cd prometheus-${PROMETHEUS_VERSION}.linux-amd64
+
+sudo mv prometheus /usr/bin/
+sudo mkdir -p /etc/prometheus/data
+
+cat <<EOF > /etc/prometheus/prometheus.yml
+global:
+  scrape_interval: 20s
+  
+scrape_configs:
+  - job_name      : "prometheus"
+    static_configs:
+      - targets: ["localhost:19980"]
+
+  - job_name      : "NAME"
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - localhost:9100
+        labels:
+          instance: '1_server'
+      - targets:
+          - localhost:9100
+        labels:
+          instance: '2_server'
+      - targets:
+          - localhost:9100
+        labels:
+          instance: '3_server'
+      - targets:
+          - localhost:9100
+
+EOF
+
+sudo useradd -rs /bin/false prometheus
+sudo chown prometheus:prometheus /usr/bin/prometheus
+sudo chown -R prometheus:prometheus /etc/prometheus
+
+cat <<EOF > /etc/systemd/system/prometheus.service
+[Unit]
+Description=Prometheus Server
+After=network.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=on-failure
+ExecStart=/usr/bin/prometheus \
+  --config.file /etc/prometheus/prometheus.yml \
+  --storage.tsdb.path /etc/prometheus/data \
+  --web.listen-address=":19980"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable prometheus
+sudo systemctl start prometheus
+
+if ! systemctl is-active --quiet prometheus; then
+  echo -e "${RED}Ошибка при запуске Prometheus! Проверьте логи.${NC}"
+  exit 1
+fi
+echo -e "${GREEN}Prometheus установлен успешно!${NC}"
 
 echo -e "${YELLOW}Установка Grafana...${NC}"
 sudo apt-get update
