@@ -35,7 +35,7 @@ if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
     echo -e "👤 ${BLUE}Пользователь:${NC} ${GREEN}$USERNAME${NC}"
     echo -e "📬 ${BLUE}Сообщение:${NC} $MESSAGE"
 else
-    echo -e "${RED}❌ Ошибка при регистрации: $RESPONSE${NC}"
+    echo -e "${RED}❌ Ошибка: вы не в белом списке или используете недопустимое имя. Ответ: $RESPONSE${NC}"
     exit 1
 fi
 
