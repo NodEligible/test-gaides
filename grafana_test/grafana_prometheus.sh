@@ -124,11 +124,6 @@ echo -e "${YELLOW}Обновление пакетов...${NC}"
 sudo apt update
 sudo apt install python3-flask -y
 
-echo -e "${YELLOW}Создаем структуру...${NC}"
-sudo mkdir -p /opt/prometheus-autoreg/targets
-sudo touch /opt/prometheus-autoreg/targets/node_exporters.json
-echo "[]" | sudo tee /opt/prometheus-autoreg/targets/node_exporters.json
-
 echo -e "${YELLOW}Устанавливаем register_api.py...${NC}"
 sudo tee /opt/prometheus-autoreg/register_api.py > /dev/null << 'EOF'
 from flask import Flask, request, jsonify
