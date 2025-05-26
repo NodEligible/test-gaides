@@ -189,17 +189,17 @@ def register():
     config = load_config()
     jobs = config.get("scrape_configs", [])
 
-# Удалить IP:PORT из других job_name (если уже существует)
-for job in jobs:
-    if job.get("job_name") == user:
-        continue  # пропускаем текущего юзера
+    # Удалить IP:PORT из других job_name (если уже существует)
+    for job in jobs:
+        if job.get("job_name") == user:
+            continue  # пропускаем текущего юзера
 
-    for entry in job.get("static_configs", []):
-        if target in entry.get("targets", []):
-            job["static_configs"].remove(entry)
-            print(f"Удален {target} из job_name '{job.get('job_name')}'")
-            break
-
+        static_configs_other = job.get("static_configs", [])
+        for entry in static_configs_other:
+            if target in entry.get("targets", []):
+                static_configs_other.remove(entry)
+                print(f"Удален {target} из job_name '{job.get('job_name')}'")
+                break
 
     user_job = next((job for job in jobs if job.get("job_name") == user), None)
     if not user_job:
