@@ -252,6 +252,13 @@ WantedBy=multi-user.target
 EOF
 
 #---------------------------------------------------------------------------------------------------------------------------------------------
+
+echo -e "${YELLOW}Создаем список Discord ID${NC}"
+sudo mkdir -p /opt/prometheus-autoreg
+cat <<EOF | sudo tee /opt/prometheus-autoreg/allowed_users.json > /dev/null
+{}
+EOF
+
 echo -e "${YELLOW}Перезапуск systemd и запуск API...${NC}"
 
 sudo systemctl daemon-reload
