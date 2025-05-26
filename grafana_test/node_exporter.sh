@@ -31,6 +31,7 @@ if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
     echo -e "${GREEN}✅ Успешно: $RESPONSE${NC}"
 else
     echo -e "${RED}❌ Ошибка при регистрации: $RESPONSE${NC}"
+    exit 1
 fi
 
 #--------------------------------------------------------------------------------------------------------------
