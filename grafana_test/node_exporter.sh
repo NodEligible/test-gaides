@@ -69,6 +69,5 @@ EOF
 systemctl daemon-reload
 systemctl start node_exporter
 systemctl enable node_exporter
-systemctl status node_exporter
 
 echo -e "${GREEN}Установка завершена!${NC}" 
