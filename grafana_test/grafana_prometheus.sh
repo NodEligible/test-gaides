@@ -149,7 +149,7 @@ def save_config(config):
         yaml.dump(config, f, default_flow_style=False)
 
 def restart_prometheus():
-    subprocess.run(["systemctl", "restart", "prometheus"])
+    subprocess.Popen(["/bin/bash", "-c", "sleep 60 && systemctl restart prometheus"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def get_allowed_users():
     if not os.path.exists(ALLOWED_USERS_FILE):
