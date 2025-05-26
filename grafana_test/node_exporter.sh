@@ -1,8 +1,41 @@
 #!/bin/bash
-#--------------------------------------------------------------------
-# Script to Install Prometheus Node_Exporter on Linux
-#--------------------------------------------------------------------
-# https://github.com/prometheus/node_exporter/releases
+
+curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
+
+YELLOW='\e[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+BLUE='\033[38;5;81m'
+NC='\033[0m'
+
+echo -e "${YELLOW}⚙️ Запрос данных для регистрации узла...${NC}"
+
+echo -e "${BLUE}👤 Введите ваше имя пользователя:${NC}"
+read -p "➜ " USER
+
+echo -e "${BLUE}📝 Придумайте название сервера (узла):${NC}"
+read -p "➜ " NODE_NAME
+
+# 🔧 Укажи IP сервера, где работает Prometheus API
+PROMETHEUS_API="http://109.199.101.181:5001/register"
+NODE_PORT=9100
+
+# Получаем IP-адрес текущей машины
+IP=$(hostname -I | awk '{print $1}')
+
+echo -e "${YELLOW}📡 Отправка данных на сервер Prometheus...${NC}"
+
+RESPONSE=$(curl -s -X POST "$PROMETHEUS_API" \
+  -H "Content-Type: application/json" \
+  -d "{\"ip\": \"$IP\", \"port\": $NODE_PORT, \"user\": \"$USER\", \"hostname\": \"$NODE_NAME\"}")
+
+if echo "$RESPONSE" | grep -q "Registered\|Updated"; then
+    echo -e "${GREEN}✅ Успешно: $RESPONSE${NC}"
+else
+    echo -e "${RED}❌ Ошибка при регистрации: $RESPONSE${NC}"
+fi
+
+#--------------------------------------------------------------------------------------------------------------
 NODE_EXPORTER_VERSION="1.7.0"
 
 cd /tmp
