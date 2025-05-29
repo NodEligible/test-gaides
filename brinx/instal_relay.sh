@@ -33,7 +33,7 @@ else
     URL="https://raw.githubusercontent.com/admier1/BrinxAI-Relay-Nodes/main/install_brinxai_relay_arm64.sh"
 fi
 
-CONTAINER_NAME="brinxai_relay"
+CONTAINER_NAME="brinxai_relay_amd64"
 
 tmpfile=$(mktemp)
 curl -s "$URL" -o "$tmpfile"
