@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/display_logo.sh | bash
+curl -s https://raw.githubusercontent.com/NodEligible/programs/main/display_logo.sh | bash
 
 # Сменные для цветов
 YELLOW='\e[0;33m'
@@ -9,18 +9,17 @@ RED='\033[0;31m'
 BLUE='\033[38;5;81m'
 NC='\033[0m' # Сброс цвета
 
-
-  echo -e "${YELLOW}Установка Main...${NC}"
-  bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh)
-  if [ $? -eq 0 ]; then
-      echo -e "${GREEN}Main успешно установлен!${NC}"
-  else
-      echo -e "${RED}Ошибка при установке Main!${NC}"
-  fi
+echo -e "${YELLOW}Установка Main...${NC}"
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/main.sh)
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Main успешно установлен!${NC}"
+else
+    echo -e "${RED}Ошибка при установке Main!${NC}"
+fi
 
 echo -e "${YELLOW}Удаляем ноду если установлена...${NC}"
-docker stop watchtower
-docker stop brinxai_relay 
+docker stop watchtower &>/dev/null || true
+docker stop brinxai_relay &>/dev/null || true
 docker rm -f brinxai_relay &>/dev/null
 docker rmi -f admier/brinxai_nodes-relay &>/dev/null
 docker rmi -f containrrr/watchtower &>/dev/null
@@ -30,13 +29,12 @@ ARCH=$(dpkg --print-architecture)
 
 if [ "$ARCH" = "amd64" ]; then
     URL="https://raw.githubusercontent.com/admier1/BrinxAI-Relay-Nodes/main/install_brinxai_relay_amd64.sh"
-    CONTAINER_NAME="brinxai_relay_amd64"
 else
     URL="https://raw.githubusercontent.com/admier1/BrinxAI-Relay-Nodes/main/install_brinxai_relay_arm64.sh"
-    CONTAINER_NAME="brinxai_relay_arm64"
 fi
 
-# Download script to temp file
+CONTAINER_NAME="brinxai_relay"
+
 tmpfile=$(mktemp)
 curl -s "$URL" -o "$tmpfile"
 bash "$tmpfile"
@@ -55,10 +53,9 @@ if [ -z "$TA_KEY_PATH" ]; then
   exit 1
 fi
 
-DEST_PATH="/var/lib/docker/volumes/openvpn_data/_data/"
-cp "$TA_KEY_PATH" "$DEST_PATH"
+cp "$TA_KEY_PATH" "$VOLUME_PATH"
 if [ $? -eq 0 ]; then
-  echo -e "${GREEN}Файл ta.key успешно скопирован в ${DEST_PATH}${NC}"
+  echo -e "${GREEN}Файл ta.key успешно скопирован в ${VOLUME_PATH}${NC}"
 else
   echo -e "${RED}Ошибка копирования файла${NC}"
 fi
