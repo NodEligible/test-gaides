@@ -42,8 +42,9 @@ echo -e "${YELLOW}Удаление старых каталогов и устан
 rm -rf ~/cysic-verifier
 cd ~
 mkdir cysic-verifier
-curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/verifier_linux > ~/cysic-verifier/verifier
-curl -L https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/libdarwin_verifier.so > ~/cysic-verifier/libdarwin_verifier.so
+curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/verifier_linux >~/cysic-verifier/verifier
+curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/libdarwin_verifier.so >~/cysic-verifier/libdarwin_verifier.so
+curl -L https://github.com/cysic-labs/cysic-phase3/releases/download/v1.0.0/librsp.so >~/cysic-verifier/librsp.so
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}Каталоги созданы успешно!${NC}"
 else
