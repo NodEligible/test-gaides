@@ -21,7 +21,7 @@ read -p "➜ " PRIV_KEY
 echo -e "${BLUE}📝 Введите адрес вашего EVM кошелька:${NC}"
 read -p "➜ " WALLET_ADDRESS
 
-echo -e "${BLUE}📡 Введите свой RPC адрес (или нажмите Enter  https://ethereum-holesky-rpc.publicnode.com):${NC}"
+echo -e "${BLUE}📡 Введите свой RPC адрес (или нажмите Enter  https://ethereum-hoodi-rpc.publicnode.com):${NC}"
 read -p "➜ " new_rpc
 
 echo -e "${BLUE}⛓ Введите адресс вашей существующей Трапы (или нажмите Enter чтобы создать новую):${NC}"
@@ -124,7 +124,7 @@ config_file=~/drosera/drosera.toml
 if [ -n "$new_rpc" ]; then
     sed -i "s|^ethereum_rpc = \".*\"|ethereum_rpc = \"$new_rpc\"|" "$config_file"
 else
-    new_rpc="https://ethereum-holesky-rpc.publicnode.com"
+    new_rpc="https://ethereum-hoodi-rpc.publicnode.com"
 fi
 
 echo -e "${YELLOW}📁 Настройка конфигурации...${NC}"
@@ -162,7 +162,7 @@ read -p "➡️  Нажмите Enter, чтобы продолжить..."
 # -------------------------------------------------------------
       
     
-drosera-operator register --eth-rpc-url https://ethereum-holesky-rpc.publicnode.com --eth-private-key $PRIV_KEY
+drosera-operator register --eth-rpc-url https://ethereum-hoodi-rpc.publicnode.com --eth-private-key $PRIV_KEY
     
 echo -e "${YELLOW}⚙️ Создание сервиса...${NC}"
 SERVER_IP=$(curl -s https://api.ipify.org)
@@ -180,8 +180,8 @@ RestartSec=15
 LimitNOFILE=65535
 ExecStart=$(which drosera-operator) node --db-file-path \$HOME/.drosera.db --network-p2p-port 31313 --server-port 31314 \\
     --eth-rpc-url $new_rpc \\
-    --eth-backup-rpc-url https://1rpc.io/holesky \\
-    --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 \\
+    --eth-backup-rpc-url https://ethereum-hoodi-rpc.publicnode.com \\
+    --drosera-address 0x91cB447BaFc6e0EA0F4Fe056F5a9b1F14bb06e5D \\
     --eth-private-key $PRIV_KEY \\
     --listen-address 0.0.0.0 \\
     --network-external-p2p-address $SERVER_IP \\
@@ -190,10 +190,9 @@ ExecStart=$(which drosera-operator) node --db-file-path \$HOME/.drosera.db --net
 [Install]
 WantedBy=multi-user.target
 EOF"
-    
+
+sudo systemctl enable drosera   
 sudo systemctl daemon-reload
-sudo systemctl enable drosera
 sudo systemctl start drosera
 
 echo -e "${GREEN}Установка завершена!${NC}"  
-
