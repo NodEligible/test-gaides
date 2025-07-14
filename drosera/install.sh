@@ -191,8 +191,8 @@ ExecStart=$(which drosera-operator) node --db-file-path \$HOME/.drosera.db --net
 WantedBy=multi-user.target
 EOF"
 
-sudo systemctl enable drosera   
 sudo systemctl daemon-reload
+sudo systemctl enable drosera   
 sudo systemctl start drosera
 
 echo -e "${GREEN}Установка завершена!${NC}"  
