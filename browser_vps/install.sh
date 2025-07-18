@@ -80,7 +80,7 @@ chmod 600 "$CREDENTIALS_FILE"
 
 # Проверка и загрузка образа Docker с Chromium
 echo -e "${YELLOW}Загрузка последнего образа Docker с Chromium...${NC}"
-if ! docker pull linuxserver/chromium:latest; then
+if ! docker pull linuxserver/chromium:version-115.0.5790.170; then
     echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
     exit 1
 else
@@ -113,7 +113,7 @@ else
         -p 21000:3000 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        lscr.io/linuxserver/chromium:latest
+        lscr.io/linuxserver/chromium:version-115.0.5790.170
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
