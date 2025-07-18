@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Display the logo (assuming it's needed)
