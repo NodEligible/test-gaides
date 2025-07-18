@@ -183,7 +183,7 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
 
     # Node.js + NVM setup
     if ! command -v node > /dev/null 2>&1; then
-        echo "Node.js Не найдено. Установка NVM и последней версии Node.js...."
+        echo "Node.js Не найдено. Установка NVM и последней версии Node.js..."
         export NVM_DIR="$HOME/.nvm"
         if [ ! -d "$NVM_DIR" ]; then
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
