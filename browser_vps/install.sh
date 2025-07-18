@@ -100,6 +100,9 @@ else
     echo -e "${GREEN}Образ успешно импортирован в Docker.${NC}"
 fi
 
+# Добавляем правильный тег, чтобы Docker не качал новый образ
+docker tag linuxserver/chromium:latest lscr.io/linuxserver/chromium:latest
+
 # (Необязательно) удаление .tar после импорта
 rm -f chromium.tar
 
@@ -116,7 +119,7 @@ if [ "$(docker ps -a -q -f name=$container_name)" ]; then
 else
     echo -e "${YELLOW}Запуск контейнера с Chromium...${NC}"
 
-    docker run -d --name "$container_name" \
+    docker run --pull=never -d --name "$container_name" \
         --privileged \
         -e TITLE=NodEligible \
         -e DISPLAY=:1 \
