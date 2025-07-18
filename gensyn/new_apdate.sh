@@ -155,7 +155,7 @@ echo_red() {
 ROOT_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 
 errnotify() {
-    echo_red ">> An error was detected while running rl-swarm. See $ROOT/logs for full logs."
+    echo_red ">> При запуске rl-swarm обнаружена ошибка. См. $ROOT/журналы для полных журналов."
 }
 
 trap errnotify ERR
@@ -177,13 +177,13 @@ mkdir -p "$ROOT/logs"
 
 if [ "$CONNECT_TO_TESTNET" = true ]; then
     # Run modal_login server.
-    echo "Please login to create an Ethereum Server Wallet"
+    echo "Пожалуйста, войдите в систему, чтобы создать кошелек на сервере Ethereum."
     cd modal-login
     # Check if the yarn command exists; if not, install Yarn.
 
     # Node.js + NVM setup
     if ! command -v node > /dev/null 2>&1; then
-        echo "Node.js not found. Installing NVM and latest Node.js..."
+        echo "Node.js Не найдено. Установка NVM и последней версии Node.js..."
         export NVM_DIR="$HOME/.nvm"
         if [ ! -d "$NVM_DIR" ]; then
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -192,18 +192,18 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
         [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
         nvm install node &>/dev/null
     else
-        echo "Node.js is already installed: $(node -v)"
+        echo "Node.js уже установлен: $(node -v)"
     fi
 
     if ! command -v yarn > /dev/null 2>&1; then
         # Detect Ubuntu (including WSL Ubuntu) and install Yarn accordingly
         if grep -qi "ubuntu" /etc/os-release 2> /dev/null || uname -r | grep -qi "microsoft"; then
-            echo "Detected Ubuntu or WSL Ubuntu. Installing Yarn via apt..."
+            echo "Обнаружен Ubuntu или WSL Ubuntu. Установка Yarn через apt..."
             curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
             echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
             sudo apt install -y yarn > /dev/null 2>&1
         else
-            echo "Yarn not found. Installing Yarn globally with npm (no profile edits)…"
+            echo "Yarn не найден. Глобальная установка Yarn с помощью npm (без редактирования профиля)…"
             # This lands in $NVM_DIR/versions/node/<ver>/bin which is already on PATH
             npm install -g --silent yarn
         fi
@@ -243,14 +243,14 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
     echo "Your ORG_ID is set to: $ORG_ID"
 
     # Wait until the API key is activated by the client
-    echo "Waiting for API key to become activated..."
+    echo "Ожидание активации ключа API..."
     while true; do
         STATUS=$(curl -s "http://localhost:3000/api/get-api-key-status?orgId=$ORG_ID")
         if [[ "$STATUS" == "activated" ]]; then
-            echo "API key is activated! Proceeding..."
+            echo "API-ключ активирован! Продолжаем!..."
             break
         else
-            echo "Waiting for API key to be activated..."
+            echo "Ожидание активации ключа API..."
             sleep 5
         fi
     done
@@ -277,9 +277,9 @@ if [ -f "$ROOT/configs/rg-swarm.yaml" ]; then
     # Use cmp -s for a silent comparison. If different, backup and copy.
     if ! cmp -s "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"; then
         if [ -z "$GENSYN_RESET_CONFIG" ]; then
-            echo_green ">> Found differences in rg-swarm.yaml. If you would like to reset to the default, set GENSYN_RESET_CONFIG to a non-empty value."
+            echo_green ">> Найдены различия в файле rg-swarm.yaml. Если вы хотите восстановить настройки по умолчанию, задайте для параметра GENSYN_RESET_CONFIG непустое значение."
         else
-            echo_green ">> Found differences in rg-swarm.yaml. Backing up existing config."
+            echo_green ">> Найдены различия в rg-swarm.yaml. Резервное копирование существующей конфигурации."
             mv "$ROOT/configs/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml.bak"
             cp "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"
         fi
@@ -301,18 +301,18 @@ if [ -n "${HF_TOKEN}" ]; then # Check if HF_TOKEN is already set and use if so. 
     HUGGINGFACE_ACCESS_TOKEN=${HF_TOKEN}
 else
     echo -en $GREEN_TEXT
-    read -p ">> Would you like to push models you train in the RL swarm to the Hugging Face Hub? [y/N] " yn
+    read -p ">> Хотите ли вы перенести модели, которые вы обучаете в RL-рое, в Hugging Face Hub? [y/N] " yn
     echo -en $RESET_TEXT
     yn=${yn:-N} # Default to "N" if the user presses Enter
     case $yn in
-        [Yy]*) read -p "Enter your Hugging Face access token: " HUGGINGFACE_ACCESS_TOKEN ;;
+        [Yy]*) read -p "Введите свой токен доступа Hugging Face: " HUGGINGFACE_ACCESS_TOKEN ;;
         [Nn]*) HUGGINGFACE_ACCESS_TOKEN="None" ;;
-        *) echo ">>> No answer was given, so NO models will be pushed to Hugging Face Hub" && HUGGINGFACE_ACCESS_TOKEN="None" ;;
+        *) echo ">>> Ответ не был дан, поэтому НИ ОДНА модель не будет отправлена в Hugging Face Hub." && HUGGINGFACE_ACCESS_TOKEN="None" ;;
     esac
 fi
 
 echo -en $GREEN_TEXT
-read -p ">> Enter the name of the model you want to use in huggingface repo/name format, or press [Enter] to use the default model. " MODEL_NAME
+read -p ">> Введите имя модели, которую вы хотите использовать, в формате huggingface repo/name или нажмите [Enter], чтобы использовать модель по умолчанию. " MODEL_NAME
 echo -en $RESET_TEXT
 
 # Only export MODEL_NAME if user provided a non-empty value
@@ -320,10 +320,10 @@ if [ -n "$MODEL_NAME" ]; then
     export MODEL_NAME
     echo_green ">> Using model: $MODEL_NAME"
 else
-    echo_green ">> Using default model from config"
+    echo_green ">> Использование модели по умолчанию из конфигурации"
 fi
 
-echo_green ">> Good luck in the swarm!"
+echo_green ">> Удачи в рое!"
 # end official script part
 
 # делаем скрипт для будущего systemd сервиса
@@ -415,4 +415,4 @@ sleep 10
 [ -f "$ROOT/swarm.pem" ] && cp "$ROOT/swarm.pem" "/root/swarm.pem.backup"
 
 echo "systemd сервис создан и запущен."
-echo "Смотреть логи можно командой: tail -n 20 -f $ERROR_LOG_FILE"
+echo -e "${GREEN}Обновление завершено.${NC}"
