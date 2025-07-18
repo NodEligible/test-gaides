@@ -10,6 +10,9 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+echo -e "${YELLOW}Установка Gdown...${NC}"
+pip install gdown
+
 # Проверяем, установлена ли локаль ru_RU.UTF-8
 if locale -a | grep -q "ru_RU.utf8"; then
     echo -e "${YELLOW}Локаль ru_RU.UTF-8 уже установлена. Пропускаем установку.${NC}"
@@ -80,12 +83,25 @@ chmod 600 "$CREDENTIALS_FILE"
 
 # Проверка и загрузка образа Docker с Chromium
 echo -e "${YELLOW}Загрузка последнего образа Docker с Chromium...${NC}"
-if ! docker pull linuxserver/chromium:version-115.0.5790.170; then
+if ! gdown --id 1ViSTz2LuNK7OBUAQ5gvO0mK-U8IAp-iR -O chromium.tar; then
     echo -e "${RED}Не удалось загрузить образ Docker с Chromium.${NC}"
     exit 1
 else
     echo -e "${GREEN}Образ Docker с Chromium успешно загружен.${NC}"
 fi
+
+
+# Импорт Docker-образа
+echo -e "${YELLOW}Импорт Docker-образа из файла chromium.tar...${NC}"
+if ! docker load -i chromium.tar; then
+    echo -e "${RED}Не удалось импортировать Docker-образ.${NC}"
+    exit 1
+else
+    echo -e "${GREEN}Образ успешно импортирован в Docker.${NC}"
+fi
+
+# (Необязательно) удаление .tar после импорта
+rm -f chromium.tar
 
 # Создание конфигурационной папки
 mkdir -p "$HOME/chromium/config"
@@ -113,7 +129,7 @@ else
         -p 21000:3000 \
         --shm-size="2gb" \
         --restart unless-stopped \
-        lscr.io/linuxserver/chromium:version-115.0.5790.170
+        lscr.io/linuxserver/chromium:latest
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Контейнер с Chromium успешно запущен.${NC}"
