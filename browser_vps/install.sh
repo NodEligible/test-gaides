@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Display the logo (assuming it's needed)
@@ -20,7 +21,6 @@ else
 fi
 
 sudo ufw allow 21000/tcp
-sudo ufw allow 22000/tcp
 
 # Обновление и установка зависимостей
 echo -e "${YELLOW}Обновление пакетов...${NC}"
@@ -111,7 +111,6 @@ else
         -e LANGUAGE=ru_RU.UTF-8 \
         -v "$HOME/chromium/config:/config" \
         -p 21000:3000 \
-        -p 22000:3001 \
         --shm-size="2gb" \
         --restart unless-stopped \
         lscr.io/linuxserver/chromium:latest
