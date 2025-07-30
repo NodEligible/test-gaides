@@ -42,29 +42,33 @@ install_ufw() {
 
 read_sepolia_rpc() {
   if [ -z "$RPC_URL" ]; then
-  echo -e "${BLUE}Введите ваш RPC Linea Sepolia https url. Пример url'a - https://linea-sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ${NC}"
-  read RPC_URL
+    echo -e "${BLUE}Введите ваш RPC Linea Sepolia https url.${NC}"
+    read -r -p "RPC: " RPC_URL
+    export RPC_URL
   fi
 }
 
 read_public_key() {
-  if [ ! $WAKU_PUBLIC_KEY ]; then
-  echo -e "${BLUE}Введите ваш адрес ETH кошелека (начинается с 0х)${NC}"
-  read WAKU_PUBLIC_KEY
+  if [ -z "$WAKU_PUBLIC_KEY" ]; then
+    echo -e "${BLUE}Введите ваш адрес ETH (0x...)${NC}"
+    read -r -p "Адрес: " WAKU_PUBLIC_KEY
+    export WAKU_PUBLIC_KEY
   fi
 }
 
 read_private_key() {
-  if [ ! $WAKU_PRIVATE_KEY ]; then
-  echo -e "${BLUE}Введите ваш приватник от ETH кошелека (без 0х)${NC}"
-  read WAKU_PRIVATE_KEY
+  if [ -z "$WAKU_PRIVATE_KEY" ]; then
+    echo -e "${BLUE}Введите приватный ключ (0x...)${NC}"
+    read -r -p "Приватный ключ: " WAKU_PRIVATE_KEY
+    export WAKU_PRIVATE_KEY
   fi
 }
 
 read_pass() {
-  if [ ! $WAKU_PASS ]; then
-  echo -e "${BLUE}Введите пароль который вводили в п.4 гайда${NC}"
-  read WAKU_PASS
+  if [ -z "$WAKU_PASS" ]; then
+    echo -e "${BLUE}Введите пароль из пункта 4 гайда${NC}"
+    read -r -p "Пароль: " WAKU_PASS
+    export WAKU_PASS
   fi
 }
 
