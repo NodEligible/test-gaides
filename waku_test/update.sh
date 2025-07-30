@@ -7,6 +7,7 @@ curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/d
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+BLUE='\033[38;5;81m'
 NC='\033[0m' 
 
 cleanup() {
@@ -58,24 +59,24 @@ echo -e "${YELLOW}Обновление...${NC}"
 
 
   #if [ -z "$RLN_RELAY_ETH_CLIENT_ADDRESS" ]; then
-      echo -e "${GREEN}Введите ваш RPC Linea Sepolia https url. Пример url'a - https://linea-sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ${NC}"
+      echo -e "${BLUE}Введите ваш RPC Linea Sepolia https url. Пример url'a - https://linea-sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ${NC}"
       read RLN_RELAY_ETH_CLIENT_ADDRESS
   #fi
 
 
   if [ -z "$ETH_TESTNET_ACCOUNT" ]; then
-      echo -e "${GREEN}Введите ваш адрес ETH кошелька (начинается с 0х)${NC}"
+      echo -e "${BLUE}Введите ваш адрес ETH кошелька (начинается с 0х)${NC}"
       read ETH_TESTNET_ACCOUNT
   fi
 
   
   if [ -z "$ETH_TESTNET_KEY" ]; then
-      echo -e "${GREEN}Введите ваш приватник от ETH кошелька (без 0х)${NC}"
+      echo -e "${BLUE}Введите ваш приватник от ETH кошелька (без 0х)${NC}"
       read ETH_TESTNET_KEY
   fi
 
   if [ -z "$RLN_RELAY_CRED_PASSWORD" ]; then
-      echo -e "${GREEN}Введите пароль который вводили в п.4 гайда${NC}"
+      echo -e "${BLUE}Введите пароль который вводили в п.4 гайда${NC}"
       read RLN_RELAY_CRED_PASSWORD
   fi
 
