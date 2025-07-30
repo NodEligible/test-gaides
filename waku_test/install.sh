@@ -41,22 +41,29 @@ install_ufw() {
 
 read_sepolia_rpc() {
   if [ -z "$RPC_URL" ]; then
-    echo -e "Введите ваш RPC Sepolia https url. Пример url'a - https://sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ"
-    read -r RPC_URL
+  echo -e "${GREEN}Введите ваш RPC Linea Sepolia https url. Пример url'a - https://linea-sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ${NORMAL}"
+  read RPC_URL
+  fi
+}
+
+read_public_key() {
+  if [ ! $WAKU_PUBLIC_KEY ]; then
+  echo -e "${GREEN}Введите ваш адрес ETH кошелека (начинается с 0х)${NORMAL}"
+  read WAKU_PUBLIC_KEY
   fi
 }
 
 read_private_key() {
-  if [ -z "$WAKU_PRIVATE_KEY" ]; then
-    echo -e "Введите ваш приватник от ETH кошелека на котором есть как минимум 0.1 ETH в сети Sepolia"
-    read -r WAKU_PRIVATE_KEY
+  if [ ! $WAKU_PRIVATE_KEY ]; then
+  echo -e "${GREEN}Введите ваш приватник от ETH кошелека (без 0х)${NORMAL}"
+  read WAKU_PRIVATE_KEY
   fi
 }
 
 read_pass() {
-  if [ -z "$WAKU_PASS" ]; then
-    echo -e "Введите(придумайте) пароль который будет использваться для сетапа ноды"
-    read -r WAKU_PASS
+  if [ ! $WAKU_PASS ]; then
+  echo -e "${GREEN}Введите пароль который вводили в п.4 гайда${NORMAL}"
+  read WAKU_PASS
   fi
 }
 
@@ -65,23 +72,42 @@ git_clone() {
 }
 
 setup_env() {
+  # Иницифализируем
+  STORAGE_SIZE="50GB"
+  POSTGRES_SHM="5g"
+  ENV_FILE=$HOME/nwaku-compose/.env
+  KEYSTORE_PATH="$HOME/nwaku-compose/keystore/keystore.json"
+  
   cd nwaku-compose
   cp .env.example .env
 
+  if grep -q "^STORAGE_SIZE=" "$ENV_FILE"; then
+      sed -i "s/^STORAGE_SIZE=.*/STORAGE_SIZE=$STORAGE_SIZE/" "$ENV_FILE"
+  else
+      echo "STORAGE_SIZE=$STORAGE_SIZE" >> "$ENV_FILE"
+  fi
+
+  if grep -q "^POSTGRES_SHM=" "$ENV_FILE"; then
+      sed -i "s/^POSTGRES_SHM=.*/POSTGRES_SHM=$POSTGRES_SHM/" "$ENV_FILE"
+  else
+      echo "POSTGRES_SHM=$POSTGRES_SHM" >> "$ENV_FILE"
+  fi
+
   sed -i "s|RLN_RELAY_ETH_CLIENT_ADDRESS=.*|RLN_RELAY_ETH_CLIENT_ADDRESS=$RPC_URL|" $HOME/nwaku-compose/.env
+  sed -i "s|ETH_TESTNET_ACCOUNT=.*|ETH_TESTNET_ACCOUNT=$WAKU_PUBLIC_KEY|" $HOME/nwaku-compose/.env
   sed -i "s|ETH_TESTNET_KEY=.*|ETH_TESTNET_KEY=$WAKU_PRIVATE_KEY|" $HOME/nwaku-compose/.env
   sed -i "s|RLN_RELAY_CRED_PASSWORD=.*|RLN_RELAY_CRED_PASSWORD=$WAKU_PASS|" $HOME/nwaku-compose/.env
-  sed -i "s|NWAKU_IMAGE=.*|NWAKU_IMAGE=wakuorg/nwaku:v0.35.1|" $HOME/nwaku-compose/.env
+  sed -i "s|NWAKU_IMAGE=.*|NWAKU_IMAGE=wakuorg/nwaku:v0.36.0|" $HOME/nwaku-compose/.env
 
 
-  # Меняем стандартный порт графаны, на случай если кто-то баловался с другими нодами 
-  # и она у него висит и занимает порт. Сыграем на опережение=)
+  # Меняем стандартный порт графаны
+  sed -i '/^version: "3.7"$/d' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's/0\.0\.0\.0:3000:3000/0.0.0.0:3004:3000/g' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's/127\.0\.0\.1:4000:4000/0.0.0.0:4044:4000/g' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's|127.0.0.1:8003:8003|127.0.0.1:8333:8003|' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's|- 80:80|- 1989:80|' $HOME/nwaku-compose/docker-compose.yml
   sed -i 's/:5432:5432/:5444:5432/g' $HOME/nwaku-compose/docker-compose.yml
-  sed -i 's|- 80:80|- 8081:80|' $HOME/nwaku-compose/docker-compose.yml
+  sed -i 's/80:80/8081:80/g' $HOME/nwaku-compose/docker-compose.yml
 
   bash $HOME/nwaku-compose/register_rln.sh
 }
@@ -101,6 +127,7 @@ echo_info() {
   install_docker
   install_ufw
   read_sepolia_rpc
+  read_public_key
   read_private_key
   read_pass
   git_clone
