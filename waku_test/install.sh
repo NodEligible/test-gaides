@@ -76,9 +76,11 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
+read_info() {
 echo "PUBLIC: $WAKU_PUBLIC_KEY"
 echo "PRIVATE: $WAKU_PRIVATE_KEY"
 echo "PASS: $WAKU_PASS"
+}
 
 setup_env() {
   # Иницифализируем
@@ -139,6 +141,7 @@ echo_info() {
   read_private_key
   read_pass
   git_clone
+  read_info
   setup_env
   docker_compose_up
   echo_info
