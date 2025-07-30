@@ -42,28 +42,28 @@ install_ufw() {
 
 read_sepolia_rpc() {
   if [ -z "$RPC_URL" ]; then
-  echo -e "${GREEN}Введите ваш RPC Linea Sepolia https url. Пример url'a - https://linea-sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ${NC}"
+  echo -e "${BLUE}Введите ваш RPC Linea Sepolia https url. Пример url'a - https://linea-sepolia.infura.io/v3/ТУТ_ВАШ_КЛЮЧ${NC}"
   read RPC_URL
   fi
 }
 
 read_public_key() {
   if [ ! $WAKU_PUBLIC_KEY ]; then
-  echo -e "${GREEN}Введите ваш адрес ETH кошелека (начинается с 0х)${NC}"
+  echo -e "${BLUE}Введите ваш адрес ETH кошелека (начинается с 0х)${NC}"
   read WAKU_PUBLIC_KEY
   fi
 }
 
 read_private_key() {
   if [ ! $WAKU_PRIVATE_KEY ]; then
-  echo -e "${GREEN}Введите ваш приватник от ETH кошелека (без 0х)${NC}"
+  echo -e "${BLUE}Введите ваш приватник от ETH кошелека (без 0х)${NC}"
   read WAKU_PRIVATE_KEY
   fi
 }
 
 read_pass() {
   if [ ! $WAKU_PASS ]; then
-  echo -e "${GREEN}Введите пароль который вводили в п.4 гайда${NC}"
+  echo -e "${BLUE}Введите пароль который вводили в п.4 гайда${NC}"
   read WAKU_PASS
   fi
 }
