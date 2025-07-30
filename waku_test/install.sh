@@ -76,51 +76,55 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
-read_info() {
-echo "PUBLIC: $WAKU_PUBLIC_KEY"
-echo "PRIVATE: $WAKU_PRIVATE_KEY"
-echo "PASS: $WAKU_PASS"
-}
 
 setup_env() {
-  # Иницифализируем
   STORAGE_SIZE="50GB"
   POSTGRES_SHM="5g"
-  ENV_FILE=$HOME/nwaku-compose/.env
+  ENV_FILE="$HOME/nwaku-compose/.env"
   KEYSTORE_PATH="$HOME/nwaku-compose/keystore/keystore.json"
-  
-  cd nwaku-compose
-  cp .env.example .env
 
-  if grep -q "^STORAGE_SIZE=" "$ENV_FILE"; then
-      sed -i "s/^STORAGE_SIZE=.*/STORAGE_SIZE=$STORAGE_SIZE/" "$ENV_FILE"
-  else
-      echo "STORAGE_SIZE=$STORAGE_SIZE" >> "$ENV_FILE"
-  fi
+  # Створюємо порожній .env
+  echo "# Auto-generated .env" > "$ENV_FILE"
 
-  if grep -q "^POSTGRES_SHM=" "$ENV_FILE"; then
-      sed -i "s/^POSTGRES_SHM=.*/POSTGRES_SHM=$POSTGRES_SHM/" "$ENV_FILE"
-  else
-      echo "POSTGRES_SHM=$POSTGRES_SHM" >> "$ENV_FILE"
-  fi
+  # Функція оновлення або додавання змінної
+  update_env_var() {
+    local key="$1"
+    local value="$2"
+    if grep -q "^$key=" "$ENV_FILE"; then
+      sed -i "s|^$key=.*|$key=$value|" "$ENV_FILE"
+    else
+      echo "$key=$value" >> "$ENV_FILE"
+    fi
+  }
 
-  sed -i "s|RLN_RELAY_ETH_CLIENT_ADDRESS=.*|RLN_RELAY_ETH_CLIENT_ADDRESS=$RPC_URL|" $HOME/nwaku-compose/.env
-  sed -i "s|ETH_TESTNET_ACCOUNT=.*|ETH_TESTNET_ACCOUNT=$WAKU_PUBLIC_KEY|" $HOME/nwaku-compose/.env
-  sed -i "s|ETH_TESTNET_KEY=.*|ETH_TESTNET_KEY=$WAKU_PRIVATE_KEY|" $HOME/nwaku-compose/.env
-  sed -i "s|RLN_RELAY_CRED_PASSWORD=.*|RLN_RELAY_CRED_PASSWORD=$WAKU_PASS|" $HOME/nwaku-compose/.env
-  sed -i "s|NWAKU_IMAGE=.*|NWAKU_IMAGE=wakuorg/nwaku:v0.36.0|" $HOME/nwaku-compose/.env
+  # Заповнюємо значення
+  update_env_var "NWAKU_IMAGE" "wakuorg/nwaku:v0.36.0"
+  update_env_var "STORAGE_SIZE" "$STORAGE_SIZE"
+  update_env_var "POSTGRES_SHM" "$POSTGRES_SHM"
+  update_env_var "EXTRA_ARGS" ""
+  update_env_var "DOMAIN" ""
+  update_env_var "NODEKEY" ""
 
+  update_env_var "RLN_RELAY_ETH_CLIENT_ADDRESS" "$RPC_URL"
+  update_env_var "RLN_RELAY_CONTRACT_ADDRESS" "0xB9cd878C90E49F797B4431fBF4fb333108CB90e6"
+  update_env_var "TOKEN_CONTRACT_ADDRESS" "0x185A0015aC462a0aECb81beCc0497b649a64B9ea"
+  update_env_var "ETH_TESTNET_ACCOUNT" "$WAKU_PUBLIC_KEY"
+  update_env_var "ETH_TESTNET_KEY" "$WAKU_PRIVATE_KEY"
+  update_env_var "RLN_RELAY_CRED_PASSWORD" "$WAKU_PASS"
+  update_env_var "RLN_RELAY_CRED_PATH" "$KEYSTORE_PATH"
 
-  # Меняем стандартный порт графаны
-  sed -i '/^version: "3.7"$/d' $HOME/nwaku-compose/docker-compose.yml
-  sed -i 's/0\.0\.0\.0:3000:3000/0.0.0.0:3004:3000/g' $HOME/nwaku-compose/docker-compose.yml
-  sed -i 's/127\.0\.0\.1:4000:4000/0.0.0.0:4044:4000/g' $HOME/nwaku-compose/docker-compose.yml
-  sed -i 's|127.0.0.1:8003:8003|127.0.0.1:8333:8003|' $HOME/nwaku-compose/docker-compose.yml
-  sed -i 's/:5432:5432/:5444:5432/g' $HOME/nwaku-compose/docker-compose.yml
-  sed -i 's/80:80/8081:80/g' $HOME/nwaku-compose/docker-compose.yml
+  # Заміни в docker-compose.yml (абсолютні шляхи)
+  sed -i '/^version: "3.7"$/d' "$HOME/nwaku-compose/docker-compose.yml"
+  sed -i 's/0\.0\.0\.0:3000:3000/0.0.0.0:3004:3000/g' "$HOME/nwaku-compose/docker-compose.yml"
+  sed -i 's/127\.0\.0\.1:4000:4000/0.0.0.0:4044:4000/g' "$HOME/nwaku-compose/docker-compose.yml"
+  sed -i 's|127.0.0.1:8003:8003|127.0.0.1:8333:8003|' "$HOME/nwaku-compose/docker-compose.yml"
+  sed -i 's/:5432:5432/:5444:5432/g' "$HOME/nwaku-compose/docker-compose.yml"
+  sed -i 's/80:80/8081:80/g' "$HOME/nwaku-compose/docker-compose.yml"
 
-  bash $HOME/nwaku-compose/register_rln.sh
+  # Запуск реєстрації RLN
+  bash "$HOME/nwaku-compose/register_rln.sh"
 }
+
 
 docker_compose_up() {
   docker compose -f $HOME/nwaku-compose/docker-compose.yml up -d
@@ -141,7 +145,6 @@ echo_info() {
   read_private_key
   read_pass
   git_clone
-  read_info
   setup_env
   docker_compose_up
   echo_info
