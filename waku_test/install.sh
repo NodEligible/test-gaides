@@ -49,19 +49,31 @@ read_sepolia_rpc() {
 }
 
 read_public_key() {
-  if [ -z "$WAKU_PUBLIC_KEY" ]; then
-    echo -e "${BLUE}Введите ваш адрес ETH (0x...)${NC}"
+  while true; do
+    echo -e "${BLUE}Введите ваш адрес ETH (начинается с 0x)${NC}"
     read -r -p "Адрес: " WAKU_PUBLIC_KEY
-    export WAKU_PUBLIC_KEY
-  fi
+
+    if [[ "$WAKU_PUBLIC_KEY" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+      export WAKU_PUBLIC_KEY
+      break
+    else
+      echo -e "${RED}Неверный формат адреса. Он должен начинаться с 0x и быть 42 символа (включая 0x).${NC}"
+    fi
+  done
 }
 
 read_private_key() {
-  if [ -z "$WAKU_PRIVATE_KEY" ]; then
-    echo -e "${BLUE}Введите приватный ключ (0x...)${NC}"
+  while true; do
+    echo -e "${BLUE}Введите приватный ключ от ETH кошелька (без 0x)${NC}"
     read -r -p "Приватный ключ: " WAKU_PRIVATE_KEY
-    export WAKU_PRIVATE_KEY
-  fi
+
+    if [[ "$WAKU_PRIVATE_KEY" =~ ^[a-fA-F0-9]{64}$ ]]; then
+      export WAKU_PRIVATE_KEY
+      break
+    else
+      echo -e "${RED}Неверный формат приватного ключа. Он должен быть 64 символа без префикса 0x.${NC}"
+    fi
+  done
 }
 
 read_pass() {
@@ -121,8 +133,14 @@ setup_env() {
   sed -i 's/:5432:5432/:5444:5432/g' "$HOME/nwaku-compose/docker-compose.yml"
   sed -i 's/80:80/8081:80/g' "$HOME/nwaku-compose/docker-compose.yml"
 
-  # Запуск реєстрації RLN
-  bash "$HOME/nwaku-compose/register_rln.sh"
+# Запуск RLN регистрации с проверкой
+echo -e "\n🔄 Выполняется регистрация RLN..."
+if bash "$HOME/nwaku-compose/register_rln.sh"; then
+  echo -e "${GREEN}✅ Тестовый RLN токен успешно заминчен${NC}"
+else
+  echo -e "${RED}❌ Ошибка при попытке минта RLN токена. Возможно, недостаточно тестового ETH на Linea Sepolia или недоступен RPC.${NC}"
+  exit 1
+fi
 }
 
 
