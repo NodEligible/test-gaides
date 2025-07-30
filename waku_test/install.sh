@@ -76,6 +76,10 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
+echo "PUBLIC: $WAKU_PUBLIC_KEY"
+echo "PRIVATE: $WAKU_PRIVATE_KEY"
+echo "PASS: $WAKU_PASS"
+
 setup_env() {
   # Иницифализируем
   STORAGE_SIZE="50GB"
