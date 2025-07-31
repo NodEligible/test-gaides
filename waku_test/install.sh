@@ -105,17 +105,26 @@ git_clone() {
 fix_register_rln_path() {
   local file="$HOME/nwaku-compose/register_rln.sh"
   if [ -f "$file" ]; then
-    sed -i '/if test -f .env; then/,/fi/ c\
-if test -f /root/nwaku-compose/.env; then\n\
-  echo "Using .env file from absolute path"\n\
-  . "/root/nwaku-compose/.env"\n\
-fi' "$file"
+    sed -i "/if test -f .env; then/,/fi/ c\
+if test -f ${HOME}/nwaku-compose/.env; then\n\
+  echo \"Using .env file from absolute path\"\n\
+  . \"${HOME}/nwaku-compose/.env\"\n\
+fi" "$file"
     echo "✅ Путь к .env обновлен в register_rln.sh"
   else
     echo "❌ Файл register_rln.sh не найдено"
   fi
 }
 
+fix_register_rln_docker_path() {
+  local file="$HOME/nwaku-compose/register_rln.sh"
+  if [ -f "$file" ]; then
+    sed -i "s|docker run -v \"\$(pwd)/keystore\"|docker run -v \"${HOME}/nwaku-compose/keystore\"|" "$file"
+    echo "✅ Путь к keystore обновлен в register_rln.sh"
+  else
+    echo "❌ Файл register_rln.sh не найдено"
+  fi
+}
 
 setup_env() {
   STORAGE_SIZE="50GB"
@@ -193,6 +202,7 @@ echo_info() {
   read_pass
   git_clone
   fix_register_rln_path
+  fix_register_rln_docker_path
   setup_env
   docker_compose_up
   echo_info
