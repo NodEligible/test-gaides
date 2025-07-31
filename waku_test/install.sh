@@ -11,6 +11,7 @@ BLUE='\033[38;5;81m'
 NC='\033[0m' 
 
 delate_waku() {
+echo -e "${YELLOW}Удаляем Waku если есть...${NC}"
 docker compose -f $HOME/nwaku-compose/docker-compose.yml down -v
 rm -rf $HOME/nwaku-compose
 docker rm -f  nwaku-compose-nwaku-1
