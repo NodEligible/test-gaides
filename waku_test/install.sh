@@ -101,6 +101,21 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
+fix_register_rln_path() {
+  local file="$HOME/nwaku-compose/register_rln.sh"
+  if [ -f "$file" ]; then
+    sed -i '/if test -f .env; then/,/fi/ c\
+if test -f /root/nwaku-compose/.env; then\n\
+  echo "Using .env file from absolute path"\n\
+  . "/root/nwaku-compose/.env"\n\
+fi' "$file"
+    echo "✅ Путь к .env обновлен в register_rln.sh"
+  else
+    echo "❌ Файл register_rln.sh не найдено"
+  fi
+}
+
+
 setup_env() {
   STORAGE_SIZE="50GB"
   POSTGRES_SHM="5g"
@@ -176,6 +191,7 @@ echo_info() {
   read_private_key
   read_pass
   git_clone
+  fix_register_rln_path
   setup_env
   docker_compose_up
   echo_info
