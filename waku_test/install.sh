@@ -133,10 +133,6 @@ setup_env() {
   sed -i 's/:5432:5432/:5444:5432/g' "$HOME/nwaku-compose/docker-compose.yml"
   sed -i 's/80:80/8081:80/g' "$HOME/nwaku-compose/docker-compose.yml"
 
-
-# Вставляємо PATH до Foundry
-export PATH="$HOME/.foundry/bin:$PATH"
-
 # Запуск RLN регистрации с проверкой
 echo -e "\n🔄 Выполняется регистрация RLN..."
 if bash "$HOME/nwaku-compose/register_rln.sh"; then
