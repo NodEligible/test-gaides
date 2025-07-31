@@ -105,14 +105,10 @@ git_clone() {
 fix_register_rln_path() {
   local file="$HOME/nwaku-compose/register_rln.sh"
   if [ -f "$file" ]; then
-    sed -i "/if test -f .env; then/,/fi/ c\
-if test -f ${HOME}/nwaku-compose/.env; then\n\
-  echo \"Using .env file from absolute path\"\n\
-  . \"${HOME}/nwaku-compose/.env\"\n\
-fi" "$file"
+    sed -i "s|. \"\$(pwd)\"/.env|. \"$HOME/nwaku-compose/.env\"|" "$file"
     echo "✅ Путь к .env обновлен в register_rln.sh"
   else
-    echo "❌ Файл register_rln.sh не найдено"
+    echo "❌ Файл register_rln.sh не знайдено"
   fi
 }
 
