@@ -101,8 +101,15 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
-export_path() {
-export PATH="$HOME/.foundry/bin:$PATH"
+setup_foundry() {
+  if ! command -v cast >/dev/null 2>&1; then
+    echo -e "\n🔧 Foundry не знайдено. Встановлюємо..."
+    curl -L https://foundry.paradigm.xyz | bash
+    export PATH="$HOME/.foundry/bin:$PATH"
+    foundryup
+  else
+    echo -e "✅ Foundry вже встановлений"
+  fi
 }
 
 setup_env() {
@@ -185,7 +192,7 @@ echo_info() {
   read_private_key
   read_pass
   git_clone
-  export_path
+  setup_foundry
   setup_env
   docker_compose_up
   echo_info
