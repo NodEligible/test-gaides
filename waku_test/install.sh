@@ -10,6 +10,19 @@ RED='\033[0;31m'
 BLUE='\033[38;5;81m'
 NC='\033[0m' 
 
+delate_waku() {
+docker compose -f $HOME/nwaku-compose/docker-compose.yml down -v
+rm -rf $HOME/nwaku-compose
+docker rm -f  nwaku-compose-nwaku-1
+
+docker rmi -f prom/prometheus:latest
+docker rmi -f grafana/grafana:latest
+docker rmi -f wakuorg/nwaku:v0.36.0
+docker rmi -f alrevuelta/waku-frontend:aad9628
+docker rmi -f postgres:15.4-alpine3.18
+docker rmi -f quay.io/prometheuscommunity/postgres-exporter:v0.12.0
+}
+
 install_tools() {
   echo -e "${YELLOW}Установка Tools...${NC}" 
   sudo apt update && sudo apt install mc wget htop jq git -y
@@ -88,6 +101,9 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
+export_path() {
+export PATH="$HOME/.foundry/bin:$PATH"
+}
 
 setup_env() {
   STORAGE_SIZE="50GB"
@@ -133,6 +149,11 @@ setup_env() {
   sed -i 's/:5432:5432/:5444:5432/g' "$HOME/nwaku-compose/docker-compose.yml"
   sed -i 's/80:80/8081:80/g' "$HOME/nwaku-compose/docker-compose.yml"
 
+export RLN_RELAY_ETH_CLIENT_ADDRESS=$(grep '^RLN_RELAY_ETH_CLIENT_ADDRESS=' "$ENV_FILE" | cut -d '=' -f2-)
+export ETH_TESTNET_ACCOUNT=$(grep '^ETH_TESTNET_ACCOUNT=' "$ENV_FILE" | cut -d '=' -f2-)
+export ETH_TESTNET_KEY=$(grep '^ETH_TESTNET_KEY=' "$ENV_FILE" | cut -d '=' -f2-)
+export RLN_RELAY_CRED_PASSWORD=$(grep '^RLN_RELAY_CRED_PASSWORD=' "$ENV_FILE" | cut -d '=' -f2-)
+
 # Запуск RLN регистрации с проверкой
 echo -e "\n🔄 Выполняется регистрация RLN..."
 if bash "$HOME/nwaku-compose/register_rln.sh"; then
@@ -155,6 +176,7 @@ echo_info() {
 }
 
   logo
+  delate_waku
   install_tools
   install_docker
   install_ufw
@@ -163,6 +185,7 @@ echo_info() {
   read_private_key
   read_pass
   git_clone
+  export_path
   setup_env
   docker_compose_up
   echo_info
