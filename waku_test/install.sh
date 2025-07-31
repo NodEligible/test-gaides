@@ -101,17 +101,6 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
-setup_foundry() {
-  if ! command -v cast >/dev/null 2>&1; then
-    echo -e "\n🔧 Foundry не знайдено. Встановлюємо..."
-    curl -L https://foundry.paradigm.xyz | bash
-    export PATH="$HOME/.foundry/bin:$PATH"
-    foundryup
-  else
-    echo -e "✅ Foundry вже встановлений"
-  fi
-}
-
 setup_env() {
   STORAGE_SIZE="50GB"
   POSTGRES_SHM="5g"
@@ -156,11 +145,6 @@ setup_env() {
   sed -i 's/:5432:5432/:5444:5432/g' "$HOME/nwaku-compose/docker-compose.yml"
   sed -i 's/80:80/8081:80/g' "$HOME/nwaku-compose/docker-compose.yml"
 
-export RLN_RELAY_ETH_CLIENT_ADDRESS=$(grep '^RLN_RELAY_ETH_CLIENT_ADDRESS=' "$ENV_FILE" | cut -d '=' -f2-)
-export ETH_TESTNET_ACCOUNT=$(grep '^ETH_TESTNET_ACCOUNT=' "$ENV_FILE" | cut -d '=' -f2-)
-export ETH_TESTNET_KEY=$(grep '^ETH_TESTNET_KEY=' "$ENV_FILE" | cut -d '=' -f2-)
-export RLN_RELAY_CRED_PASSWORD=$(grep '^RLN_RELAY_CRED_PASSWORD=' "$ENV_FILE" | cut -d '=' -f2-)
-
 # Запуск RLN регистрации с проверкой
 echo -e "\n🔄 Выполняется регистрация RLN..."
 if bash "$HOME/nwaku-compose/register_rln.sh"; then
@@ -192,7 +176,6 @@ echo_info() {
   read_private_key
   read_pass
   git_clone
-  setup_foundry
   setup_env
   docker_compose_up
   echo_info
