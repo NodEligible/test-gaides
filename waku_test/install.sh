@@ -102,23 +102,22 @@ git_clone() {
   git clone https://github.com/waku-org/nwaku-compose
 }
 
-fix_register_rln_path() {
+fix_register_rln_paths() {
   local file="$HOME/nwaku-compose/register_rln.sh"
-  if [ -f "$file" ]; then
-    sed -i "s|. \"\$(pwd)\"/.env|. \"$HOME/nwaku-compose/.env\"|" "$file"
-    echo "✅ Путь к .env обновлен в register_rln.sh"
-  else
-    echo "❌ Файл register_rln.sh не знайдено"
-  fi
-}
 
-fix_register_rln_docker_path() {
-  local file="$HOME/nwaku-compose/register_rln.sh"
   if [ -f "$file" ]; then
-    sed -i "s|docker run -v \"\$(pwd)/keystore\"|docker run -v \"${HOME}/nwaku-compose/keystore\"|" "$file"
-    echo "✅ Путь к keystore обновлен в register_rln.sh"
+    # Заміна шляху до .env
+    sed -i "s|. \"\$(pwd)\"/.env|. \"\$HOME/nwaku-compose/.env\"|" "$file"
+
+    # Заміна шляху до docker run -v ...
+    sed -i "s|docker run -v \"\$(pwd)/keystore\"|docker run -v \"\$HOME/nwaku-compose/keystore\"|" "$file"
+
+    # Заміна перевірки існування keystore.json
+    sed -i 's|if test -f ./keystore/keystore.json; then|if test -f "$HOME/nwaku-compose/keystore/keystore.json"; then|' "$file"
+
+    echo "✅ Все пути обновлены в register_rln.sh"
   else
-    echo "❌ Файл register_rln.sh не найдено"
+    echo "❌ Файл register_rln.sh не найден"
   fi
 }
 
