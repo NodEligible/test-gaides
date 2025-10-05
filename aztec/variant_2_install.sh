@@ -15,9 +15,10 @@ read -p "➡️  Beacon URL (Sepolia): " CONSENSUS
 read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
 read -p "💰 Адрес кошелька (0x...): " WALLET
 
-echo -e "${YELLOW}⏳ Устанавливаем зависимости и Docker...${NC}"
+echo -e "${YELLOW}⏳ Устанавливаем зависимости и Docker установка скрыта...${NC}"
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/docker.sh) &>/dev/null
 
+echo -e "${YELLOW}📁 Создание рабочей директории...${NC}"
 # 📁 Создание рабочей директории
 AZTEC_DIR="/root/aztec"
 mkdir -p "$AZTEC_DIR"
@@ -26,6 +27,7 @@ cd "$AZTEC_DIR"
 # 🌐 Получаем IP
 SERVER_IP=$(curl -s https://api.ipify.org)
 
+echo -e "${YELLOW}🧾 Создание .env...${NC}"
 # 🧾 Создание .env
 cat > "$AZTEC_DIR/.env" <<EOF
 ETHEREUM_HOSTS=$RPC
@@ -36,6 +38,7 @@ COINBASE=$WALLET
 GOVERNANCE_PROPOSER_PAYLOAD_ADDRESS=0x54F7fe24E349993b363A5Fa1bccdAe2589D5E5Ef
 EOF
 
+echo -e "${YELLOW}🧩Создание docker-compose.yml...${NC}"
 # 🧩 Создание docker-compose.yml
 cat > "$AZTEC_DIR/docker-compose.yml" <<EOF
 version: '3.8'
@@ -61,6 +64,7 @@ services:
       - /root/.aztec/testnet/data/:/data
 EOF
 
+echo -e "${YELLOW}⚙️ Создаем systemd-сервис...${NC}"
 # ⚙️ Создаем systemd-сервис
 sudo tee /etc/systemd/system/aztec.service > /dev/null <<EOF
 [Unit]
