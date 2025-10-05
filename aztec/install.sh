@@ -8,8 +8,10 @@ RED='\033[0;31m'
 BLUE='\033[38;5;81m'
 NC='\033[0m' # Сброс цвета
 
-echo -e "${YELLOW}Установка дополнительных программ скрыта, просто ждите...${NC}"
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/docker.sh) &>/dev/null
+# echo -e "${YELLOW}Установка дополнительных программ скрыта, просто ждите...${NC}"
+# bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/docker.sh) &>/dev/null
+# bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh) &>/dev/null
+# bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh) &>/dev/null
 
 # Создание директории
 mkdir -p "$HOME/aztec-sequencer/data"
