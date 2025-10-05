@@ -40,8 +40,7 @@ EOF
 docker run -d \
 --name aztec-sequencer \
 --network host \
---memory=10g \
---memory-swap=12g \
+--memory=16g \
 --env-file "$HOME/aztec-sequencer/.env" \
 -v "$HOME/aztec-sequencer/data":/data \
 aztecprotocol/aztec:2.0.2 \
@@ -51,7 +50,8 @@ start --network testnet --node --archiver --sequencer \
 --l1-rpc-urls "$RPC" \
 --l1-consensus-host-urls "$CONSENSUS" \
 --sequencer.coinbase "$WALLET" \
---p2p.p2pIp "$SERVER_IP"
+--p2p.p2pIp "$SERVER_IP" \
+--rpc.port 8090
 
 echo -e "${GREEN}✅ Aztec sequencer успешно запущен!${NC}"
 
