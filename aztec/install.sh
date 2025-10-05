@@ -54,6 +54,8 @@ start --network testnet --node --archiver --sequencer \
 --p2p.p2pIp "$SERVER_IP"
 
 echo -e "${GREEN}✅ Aztec sequencer успешно запущен!${NC}"
-cd ~
+
+echo -e "${YELLOW}Команда для проверки логов:${NC}" 
+echo "docker logs --tail 100 -f aztec-sequencer"
 
 
