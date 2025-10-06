@@ -119,5 +119,6 @@ services:
       - /root/.aztec/alpha-testnet/data/:/data
 EOF
 
+echo -e "${YELLOW}🚀 Запуск контейнера...${NC}"
 docker compose -f $HOME/aztec/docker-compose.yml up -d
 
