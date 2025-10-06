@@ -68,14 +68,14 @@ services:
     container_name: prysm
     network_mode: host
     restart: unless-stopped
+    volumes:
+      - /root/ethereum/consensus:/data
+      - /root/ethereum/jwt.hex:/data/jwt.hex
     depends_on:
       - geth
     ports:
       - 4000:4000
       - 3500:3500
-    volumes:
-      - /root/ethereum/consensus:/data
-      - /root/ethereum/jwt.hex:/data/jwt.hex
     command:
       - --sepolia
       - --accept-terms-of-use
