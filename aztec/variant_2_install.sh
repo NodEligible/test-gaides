@@ -13,8 +13,9 @@ NC='\033[0m'
 echo -e "${YELLOW}🔗 Введите параметры для установки Aztec Sequencer:${NC}"
 read -p "➡️  RPC URL (Sepolia): " RPC
 read -p "➡️  Beacon URL (Sepolia): " CONSENSUS
-read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
 read -p "💰 Адрес кошелька (0x...): " WALLET
+read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
+
 
 # echo -e "${YELLOW}⏳ Устанавливаем зависимости и Docker установка скрыта...${NC}"
 # bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/docker.sh) &>/dev/null
