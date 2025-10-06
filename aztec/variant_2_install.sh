@@ -75,48 +75,5 @@ services:
       - /root/.aztec/testnet/data/:/data
 EOF
 
-echo -e "${YELLOW}⚙️ Создаем systemd-сервис...${NC}"
-# ⚙️ Создаем systemd-сервис
-sudo tee /etc/systemd/system/aztec.service > /dev/null <<EOF
-[Unit]
-Description=Aztec Sequencer Node (Docker Compose)
-Requires=docker.service
-After=docker.service network-online.target
-
-[Service]
-Type=simple
-WorkingDirectory=/root/aztec
-ExecStart=/usr/bin/docker compose up
-ExecStop=/usr/bin/docker compose down
-Restart=always
-RestartSec=10
-TimeoutStartSec=0
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# 🔄 Перезагружаем systemd и запускаем сервис
-sudo systemctl daemon-reload
-sudo systemctl enable aztec
-sudo systemctl start aztec
-
-# ⏱ Проверяем статус
-sleep 5
-if systemctl is-active --quiet aztec; then
-  echo -e "${GREEN}✅ Aztec Sequencer успешно запущен!${NC}"
-else
-  echo -e "${RED}❌ Ошибка при запуске сервиса aztec.${NC}"
-fi
-
-sleep 10 
-
-# 🧪 Проверка RPC-порта
-echo -e "${YELLOW}Проверяем RPC на порту 8090...${NC}"
-sleep 3
-if curl -s -X POST http://localhost:8090 --data '{"method":"node_getL2Tips"}' | grep -q '"result"'; then
-  echo -e "${GREEN}✅ RPC отвечает успешно (порт 8090).${NC}"
-else
-  echo -e "${RED}⚠️ RPC пока не отвечает. Возможно, нода еще инициализируется.${NC}"
-fi
+docker compose -f $HOME/aztec/docker-compose.yml up -d
 
