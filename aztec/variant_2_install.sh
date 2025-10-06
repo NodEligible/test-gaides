@@ -102,11 +102,11 @@ services:
     image: aztecprotocol/aztec:latest
     restart: unless-stopped
     environment:
-      ETHEREUM_HOSTS: ${ETHEREUM_RPC_URL}
-      L1_CONSENSUS_HOST_URLS: ${CONSENSUS_BEACON_URL}
+      ETHEREUM_HOSTS: ${RPC_URL}
+      L1_CONSENSUS_HOST_URLS: ${BEACON_URL}
       DATA_DIRECTORY: /data
-      VALIDATOR_PRIVATE_KEY: ${VALIDATOR_PRIVATE_KEY}
-      COINBASE: ${COINBASE}
+      VALIDATOR_PRIVATE_KEY: ${PRIVATE_KEY}
+      COINBASE: ${ADDRESS}
       P2P_IP: ${P2P_IP}
       LOG_LEVEL: debug
     entrypoint: >
