@@ -120,5 +120,5 @@ services:
 EOF
 
 echo -e "${YELLOW}🚀 Запуск контейнера...${NC}"
-docker compose -f $HOME/aztec/docker-compose.yml up -d
+docker compose -f $HOME/.aztec/docker-compose.yml up -d
 
