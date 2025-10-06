@@ -110,13 +110,13 @@ services:
       P2P_IP: ${P2P_IP}
       LOG_LEVEL: debug
     entrypoint: >
-      sh -c 'node --no-warnings /usr/src/yarn-project/aztec/dest/bin/index.js start --network alpha-testnet --node --archiver --sequencer'
+      sh -c 'node --no-warnings /usr/src/yarn-project/aztec/dest/bin/index.js start --network testnet --node --archiver --sequencer'
     ports:
       - 40400:40400/tcp
       - 40400:40400/udp
       - 8080:8080
     volumes:
-      - /root/.aztec/alpha-testnet/data/:/data
+      - /root/.aztec/testnet/data/:/data
 EOF
 
 echo -e "${YELLOW}🚀 Запуск контейнера...${NC}"
