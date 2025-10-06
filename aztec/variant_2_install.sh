@@ -9,14 +9,24 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+
 echo -e "${YELLOW}🔗 Введите параметры для установки Aztec Sequencer:${NC}"
 read -p "➡️  RPC URL (Sepolia): " RPC
 read -p "➡️  Beacon URL (Sepolia): " CONSENSUS
 read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
 read -p "💰 Адрес кошелька (0x...): " WALLET
 
-echo -e "${YELLOW}⏳ Устанавливаем зависимости и Docker установка скрыта...${NC}"
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/docker.sh) &>/dev/null
+# echo -e "${YELLOW}⏳ Устанавливаем зависимости и Docker установка скрыта...${NC}"
+# bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/main/docker.sh) &>/dev/null
+# bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh) &>/dev/null
+# bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh) &>/dev/null
+
+echo -e "${YELLOW} Установка Aztec Tools...${NC}"
+bash -i <(curl -s https://install.aztec.network)
+
+echo 'export PATH="$HOME/.aztec/bin:$PATH"' >> ~/.bashrc
+
+source ~/.bashrc
 
 echo -e "${YELLOW}📁 Создание рабочей директории...${NC}"
 # 📁 Создание рабочей директории
@@ -46,7 +56,7 @@ version: '3.8'
 services:
   aztec-node:
     container_name: aztec-sequencer
-    image: aztecprotocol/aztec:2.0.2
+    image: aztecprotocol/aztec:latest
     network_mode: host
     restart: unless-stopped
     env_file: .env
@@ -79,6 +89,8 @@ WorkingDirectory=$AZTEC_DIR
 ExecStart=/usr/bin/docker compose up -d
 ExecStop=/usr/bin/docker compose down
 TimeoutStartSec=10
+Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
@@ -96,6 +108,8 @@ if systemctl is-active --quiet aztec; then
 else
   echo -e "${RED}❌ Ошибка при запуске сервиса aztec.${NC}"
 fi
+
+sleep 10 
 
 # 🧪 Проверка RPC-порта
 echo -e "${YELLOW}Проверяем RPC на порту 8090...${NC}"
