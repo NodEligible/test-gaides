@@ -80,18 +80,17 @@ echo -e "${YELLOW}⚙️ Создаем systemd-сервис...${NC}"
 sudo tee /etc/systemd/system/aztec.service > /dev/null <<EOF
 [Unit]
 Description=Aztec Sequencer Node (Docker Compose)
-After=network.target docker.service
 Requires=docker.service
+After=docker.service network-online.target
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=$AZTEC_DIR
-ExecStart=/usr/bin/docker compose up -d
+Type=simple
+WorkingDirectory=/root/aztec
+ExecStart=/usr/bin/docker compose up
 ExecStop=/usr/bin/docker compose down
-TimeoutStartSec=10
 Restart=always
 RestartSec=10
+TimeoutStartSec=0
 
 [Install]
 WantedBy=multi-user.target
