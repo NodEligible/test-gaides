@@ -75,8 +75,8 @@ source ~/.bashrc
 
 echo -e "${YELLOW}📁 Создание рабочей директории...${NC}"
 # 📁 Создание рабочей директории
-AZTEC_DIR="/root/.aztec"
-# mkdir -p "$AZTEC_DIR"
+AZTEC_DIR="/root/aztec"
+mkdir -p "$AZTEC_DIR"
 cd "$AZTEC_DIR"
 
 # 🌐 Получаем IP
@@ -120,5 +120,5 @@ services:
 EOF
 
 echo -e "${YELLOW}🚀 Запуск контейнера...${NC}"
-docker compose -f $HOME/.aztec/docker-compose.yml up -d
+docker compose -f $HOME/aztec/docker-compose.yml up -d
 
