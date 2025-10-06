@@ -11,8 +11,8 @@ NC='\033[0m'
 
 
 echo -e "${YELLOW}🔗 Введите параметры для установки Aztec Sequencer:${NC}"
-read -p "➡️  RPC URL (Sepolia): " RPC
-read -p "➡️  Beacon URL (Sepolia): " CONSENSUS
+read -p "➡️ Ethereum RPC URL (Sepolia): " RPC
+read -p "➡️ Ethereum Beacon RPC URL (Sepolia): " CONSENSUS
 read -p "💰 Адрес кошелька (0x...): " WALLET
 read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
 
@@ -22,7 +22,7 @@ read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
 # bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh) &>/dev/null
 # bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh) &>/dev/null
 
-echo -e "${YELLOW} Установка Aztec Tools...${NC}"
+echo -e "${YELLOW}Установка Aztec Tools...${NC}"
 yes | bash -i <(curl -s https://install.aztec.network)
 
 echo 'export PATH="$HOME/.aztec/bin:$PATH"' >> ~/.bashrc
