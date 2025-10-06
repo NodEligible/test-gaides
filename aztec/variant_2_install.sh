@@ -23,7 +23,7 @@ read -p "🔐 Приватный ключ (0x...): " PRIVATE_KEY
 # bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh) &>/dev/null
 
 echo -e "${YELLOW} Установка Aztec Tools...${NC}"
-bash -i <(curl -s https://install.aztec.network)
+yes | bash -i <(curl -s https://install.aztec.network)
 
 echo 'export PATH="$HOME/.aztec/bin:$PATH"' >> ~/.bashrc
 
