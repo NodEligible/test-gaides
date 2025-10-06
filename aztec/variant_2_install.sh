@@ -75,7 +75,7 @@ source ~/.bashrc
 
 echo -e "${YELLOW}📁 Создание рабочей директории...${NC}"
 # 📁 Создание рабочей директории
-AZTEC_DIR="/root/aztec"
+AZTEC_DIR="/root/.aztec"
 mkdir -p "$AZTEC_DIR"
 cd "$AZTEC_DIR"
 
