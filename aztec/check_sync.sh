@@ -3,7 +3,7 @@
 # === Кольори ===
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 
-# Секунд на блок (Sepolia ≈ 12 c). Можеш змінити через env: BLOCK_TIME=12 ./check_sync.sh
+# Секунд на блок (Sepolia ≈ 12 c)
 BLOCK_TIME=${BLOCK_TIME:-12}
 
 fmt_dur() {
@@ -19,13 +19,13 @@ fmt_dur() {
 echo -e "${YELLOW}Перевірка синхронізації вузлів Ethereum (Geth + Prysm)...${NC}"
 echo "────────────────────────────────────────────"
 
-# ===== GETH (Execution Layer) =====
+# ===== GETH =====
 echo -e "${CYAN}➡️  Виконується перевірка Execution Node (Geth)...${NC}"
 GETH_JSON=$(curl -s -X POST -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' \
   http://localhost:8545)
 
-# Перевірка доступності порту AuthRPC (8551)
+# Перевірка порту 8551
 if curl -s --connect-timeout 3 http://localhost:8551 >/dev/null; then
   echo -e "🔗 AuthRPC (8551): ${GREEN}✅ Відкритий${NC}"
 else
@@ -36,19 +36,26 @@ if [[ "$GETH_JSON" == *'"result":false'* ]]; then
   echo -e "${GREEN}✅ Geth повністю синхронізовано!${NC}"
   echo -e "📉 Відставання: 0 блоків"
 else
-  # Hex значення
-  START_HEX=$(echo "$GETH_JSON"   | grep -o '"startingBlock":"0x[0-9a-fA-F]*' | cut -d'"' -f4)
-  CURR_HEX=$(echo  "$GETH_JSON"   | grep -o '"currentBlock":"0x[0-9a-fA-F]*'  | cut -d'"' -f4)
-  HIGH_HEX=$(echo  "$GETH_JSON"   | grep -o '"highestBlock":"0x[0-9a-fA-F]*'  | cut -d'"' -f4)
+  START_HEX=$(echo "$GETH_JSON" | grep -o '"startingBlock":"0x[0-9a-fA-F]*' | cut -d'"' -f4)
+  CURR_HEX=$(echo  "$GETH_JSON" | grep -o '"currentBlock":"0x[0-9a-fA-F]*'  | cut -d'"' -f4)
+  HIGH_HEX=$(echo  "$GETH_JSON" | grep -o '"highestBlock":"0x[0-9a-fA-F]*'  | cut -d'"' -f4)
 
-  # Перетворення у decimal
-  START_DEC=$((16#${START_HEX#0x})); CURR_DEC=$((16#${CURR_HEX#0x})); HIGH_DEC=$((16#${HIGH_HEX#0x}))
+  START_DEC=$((16#${START_HEX#0x}))
+  CURR_DEC=$((16#${CURR_HEX#0x}))
+  HIGH_DEC=$((16#${HIGH_HEX#0x}))
+
   LAG=$(( HIGH_DEC - CURR_DEC )); [[ $LAG -lt 0 ]] && LAG=0
-  PCT=$(( CURR_DEC * 100 / HIGH_DEC 2>/dev/null || echo 100 ))
+
+  # ✅ Виправлений розрахунок прогресу
+  if [[ $HIGH_DEC -gt 0 ]]; then
+    PCT=$(( CURR_DEC * 100 / HIGH_DEC ))
+  else
+    PCT=0
+  fi
+
   ETA_SEC=$(( LAG * BLOCK_TIME ))
   ETA_HUMAN=$(fmt_dur "$ETA_SEC")
 
-  # Нове правило толерантності
   if [[ $LAG -le 500 ]]; then
     echo -e "${GREEN}✅ Geth синхронізовано (мінімальне відставання ${LAG} блоків)${NC}"
   else
@@ -56,13 +63,13 @@ else
     echo -e "📊 Початковий блок: ${YELLOW}${START_HEX}${NC} (${START_DEC})"
     echo -e "📈 Поточний блок:  ${YELLOW}${CURR_HEX}${NC} (${CURR_DEC})"
     echo -e "🏁 Найвищий блок:  ${YELLOW}${HIGH_HEX}${NC} (${HIGH_DEC})"
-    echo -e "📉 Відставання:     ${YELLOW}${LAG}${NC} блоків  | 🔢 Прогрес: ${YELLOW}${PCT}%${NC}  | ⏱️ ETA: ${YELLOW}${ETA_HUMAN}${NC}"
+    echo -e "📉 Відставання: ${YELLOW}${LAG}${NC} блоків | 🔢 Прогрес: ${YELLOW}${PCT}%${NC} | ⏱️ ETA: ${YELLOW}${ETA_HUMAN}${NC}"
   fi
 fi
 
 echo "────────────────────────────────────────────"
 
-# ===== PRYSM (Beacon Node) =====
+# ===== PRYSM =====
 echo -e "${CYAN}➡️  Виконується перевірка Beacon Node (Prysm)...${NC}"
 PRYSM_JSON=$(curl -s http://localhost:3500/eth/v1/node/syncing)
 
@@ -81,7 +88,6 @@ else
   echo -e "🔁 is_syncing:  ${YELLOW}${IS_SYNC}${NC}"
 fi
 
-# Новий блок: перевірка підключення до Execution Layer
 if [[ "$EL_OFFLINE" == "true" ]]; then
   echo -e "🔗 Execution layer connection: ${RED}❌ Offline${NC}"
 else
