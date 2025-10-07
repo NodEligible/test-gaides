@@ -38,7 +38,7 @@ output=$(docker exec -i aztec-sequencer \
     --private-key "'"${VALIDATOR_PRIVATE_KEY}"'" \
     --attester "'"${COINBASE}"'" \
     --withdrawer "'"${COINBASE}"'" \
-    --staking-asset-handler 0xF739D03e98e23A7B65940848aBA8921fF3bAc4b2 \
+    --registry 0xF739D03e98e23A7B65940848aBA8921fF3bAc4b2 \
     --l1-chain-id 11155111 ' 2>&1) || true
 
 # === Обробка квоти або помилок ===
