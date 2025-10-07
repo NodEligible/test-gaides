@@ -39,7 +39,7 @@ output=$(docker exec -i aztec-sequencer \
     --attester "'"${COINBASE}"'" \
     --withdrawer "'"${COINBASE}"'" \
     --l1-chain-id 11155111 \
-    --rollup 0x6AE8b64c1e0C6C3C9bC65Bfce37952A7F9Cf5075' 2>&1) || true
+    --registry 0x6AE8b64c1e0C6C3C9bC65Bfce37952A7F9Cf5075' 2>&1) || true
 
 # === Обробка квоти або помилок ===
 if printf '%s\n' "$output" | grep -q 'ValidatorQuotaFilledUntil'; then
