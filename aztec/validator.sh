@@ -38,8 +38,8 @@ output=$(docker exec -i aztec-sequencer \
     --private-key "'"${VALIDATOR_PRIVATE_KEY}"'" \
     --attester "'"${COINBASE}"'" \
     --withdrawer "'"${COINBASE}"'" \
-    --l1-chain-id 11155111 \
-    --registry 0x6AE8b64c1e0C6C3C9bC65Bfce37952A7F9Cf5075' 2>&1) || true
+    --staking-asset-handler 0xF739D03e98e23A7B65940848aBA8921fF3bAc4b2 \
+    --l1-chain-id 11155111
 
 # === Обробка квоти або помилок ===
 if printf '%s\n' "$output" | grep -q 'ValidatorQuotaFilledUntil'; then
