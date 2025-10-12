@@ -156,6 +156,8 @@ fi
 echo -e "${YELLOW}🧱 Открываем порты 80 і 443...${NC}"
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
+# sudo ufw allow 8081/tcp
+# sudo ufw allow 9090/tcp
 sudo ufw reload
 # Створюємо папку для логів і надаємо права
 sudo mkdir -p /opt/pipe/logs
