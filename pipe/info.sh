@@ -1,7 +1,6 @@
 sudo apt install gawk bison build-essential manpages-dev ca-certificates -y
 
-USERNAME="popcache"
-LOGROTATE_FILE="/etc/logrotate.d/popcache"
+USERNAME="pipe"
 
 if id "$USERNAME" &>/dev/null; then
     echo -e "${YELLOW}Пользователь${NC} '$USERNAME' ${YELLOW}существует${NC}"
@@ -11,7 +10,7 @@ else
 fi
 sudo usermod -aG sudo "$USERNAME"
 
-sudo tee /etc/sysctl.d/99-popcache.conf > /dev/null << "EOL"
+sudo tee /etc/sysctl.d/99-pipe.conf > /dev/null << "EOL"
 net.ipv4.ip_local_port_range = 1024 65535
 net.core.somaxconn = 65535
 net.ipv4.tcp_low_latency = 1
@@ -26,13 +25,13 @@ EOL
 
 sudo sysctl --system &>/dev/null
 
-sudo tee /etc/security/limits.d/popcache.conf > /dev/null << "EOL"
+sudo tee /etc/security/limits.d/pipe.conf > /dev/null << "EOL"
 *    hard nofile 65535
 *    soft nofile 65535
 EOL
 
-sudo mkdir -p /opt/popcache
-cd /opt/popcache
+sudo mkdir -p /opt/pipe
+cd /opt/pipe
 
 
 
