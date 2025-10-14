@@ -219,7 +219,7 @@ exec "$LD_PATH/ld-linux-x86-64.so.2" \
 EOF
 
 sudo chmod +x /usr/local/bin/pop
-
+sudo chown -R pipe:pipe /opt/pipe
 
 # === 8. Створення systemd сервісу ===
 echo -e "${YELLOW}⚙️ Создание systemd сервиса...${NC}"
@@ -231,6 +231,9 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+Type=simple
+User=pipe
+Group=pipe
 WorkingDirectory=/opt/pipe
 EnvironmentFile=/opt/pipe/.env
 ExecStart=$pop_cmd
