@@ -156,8 +156,8 @@ fi
 echo -e "${YELLOW}🧱 Открываем порты 80 і 443...${NC}"
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
-# sudo ufw allow 8081/tcp
-# sudo ufw allow 9090/tcp
+sudo ufw allow 8081/tcp
+sudo ufw allow 9090/tcp
 sudo ufw reload
 # Створюємо папку для логів і надаємо права
 sudo mkdir -p /opt/pipe/logs
@@ -230,4 +230,4 @@ fi
 # curl -s http://localhost:8081/health || echo -e "${RED}❌ Не удалось подключиться к /health${NC}"
 
 echo -e "${GREEN}🎉 Установка завершена!${NC}"
-echo -e "${GREEN}Проверить логи:${NC} tail -f /opt/pipe/logs/stdout.log"
+echo -e "${GREEN}Проверить логи:${NC} tail -n 100 -f /opt/pipe/logs/stdout.log"
