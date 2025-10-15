@@ -197,27 +197,6 @@ sudo ufw reload
 sudo mkdir -p /opt/pipe/logs
 sudo chmod 755 /opt/pipe/logs
 
-
-# прописуємо шлях для команд так як вони не працюють по дефолту в ubuntu 22.04, а нода зроблена під 24.04
-# === Додаємо глобальний wrapper для pop ===
-echo -e "${YELLOW}🔧 Добавляем глобальную команду pop (для Ubuntu 22.04)...${NC}"
-
-sudo tee /usr/local/bin/pop > /dev/null <<'EOF'
-#!/bin/bash
-# === Pipe POP wrapper with GLIBC 2.39 support ===
-LD_PATH="/opt/glibc-build/glibc-2.39-install/lib"
-POP_BIN="/opt/pipe/pop"
-
-# Завантажуємо змінні середовища
-if [ -f /opt/pipe/.env ]; then
-  source /opt/pipe/.env
-fi
-
-exec "$LD_PATH/ld-linux-x86-64.so.2" \
-  --library-path "$LD_PATH:/usr/lib/x86_64-linux-gnu/" \
-  "$POP_BIN" "$@"
-EOF
-
 sudo chmod +x /usr/local/bin/pop
 sudo chown -R pipe:pipe /opt/pipe
 
