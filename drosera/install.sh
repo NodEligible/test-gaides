@@ -65,12 +65,13 @@ sleep 5
 
 echo -e "${YELLOW}📥 Установка Drosera CLI${NC}"
 curl -s -L https://app.drosera.io/install | bash 
+export PATH="$PATH:/root/.drosera/bin"
 echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
 
-# Робимо глобальний symlink
+# Робимо глобальні symlink-и
+ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
 ln -sf /root/.drosera/bin/droseraup /usr/local/bin/droseraup
 ln -sf /root/.drosera/bin/drosera-operator /usr/local/bin/drosera-operator
-ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
 
 source /root/.bashrc
 
@@ -92,7 +93,16 @@ ln -sf /root/.foundry/bin/forge /usr/local/bin/forge
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun  
 
 source /root/.bashrc
+# Тестр вставки
+# -------------------------------------------------
+# forge clean
 
+cd /root/drosera/node_modules
+git clone https://github.com/drosera-network/contracts.git drosera-contracts
+
+cd
+
+# -------------------------------------------------
 sleep 5
 
 foundryup
@@ -196,3 +206,5 @@ sudo systemctl enable drosera
 sudo systemctl start drosera
 
 echo -e "${GREEN}Установка завершена!${NC}"  
+echo -e "${YELLOW}Посмотреть логи${NC}"
+echo "journalctl -u drosera.service -f"
