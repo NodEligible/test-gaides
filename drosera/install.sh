@@ -93,16 +93,7 @@ ln -sf /root/.foundry/bin/forge /usr/local/bin/forge
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun  
 
 source /root/.bashrc
-# Тестр вставки
-# -------------------------------------------------
-# forge clean
 
-cd /root/drosera/node_modules
-git clone https://github.com/drosera-network/contracts.git drosera-contracts
-
-cd
-
-# -------------------------------------------------
 sleep 5
 
 foundryup
@@ -113,6 +104,17 @@ cd drosera
     
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
+
+# Тестр вставки
+# -------------------------------------------------
+# forge clean
+
+cd /root/drosera/node_modules
+git clone https://github.com/drosera-network/contracts.git drosera-contracts
+
+cd
+
+# -------------------------------------------------
     
 echo -e "${YELLOW}🛠️ Инициализация проекта...${NC}"
 forge init -t drosera-network/trap-foundry-template
