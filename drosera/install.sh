@@ -104,21 +104,21 @@ cd drosera
     
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
-
-# Тестр вставки
-# -------------------------------------------------
-# forge clean
-
-cd /root/drosera/node_modules
-git clone https://github.com/drosera-network/contracts.git drosera-contracts
-
-cd
-
-# -------------------------------------------------
     
 echo -e "${YELLOW}🛠️ Инициализация проекта...${NC}"
 forge init -t drosera-network/trap-foundry-template
 bun install
+
+# === ВСТАВКА drosera-contracts ====================================
+echo -e "${YELLOW}📦 Добавляем drosera-contracts...${NC}"
+cd /root/drosera/node_modules
+rm -rf drosera-contracts
+git clone https://github.com/drosera-network/contracts.git drosera-contracts
+echo -e "${GREEN}✅ drosera-contracts успешно добавлен${NC}"
+cd /root/drosera
+# ==================================================================
+forge clean
+# ==================================================================
 forge build
 
 ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
