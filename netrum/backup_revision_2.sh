@@ -26,11 +26,18 @@ systemctl disable netrum-mining &>/dev/null
 systemctl daemon-reload
 rm -rf /etc/systemd/system/netrum-mining.service
 
+systemctl stop netrum-task &>/dev/null
+systemctl disable netrum-task &>/dev/null
+systemctl daemon-reload
+rm -f /etc/systemd/system/netrum-task.service
+
 systemctl stop netrum-node &>/dev/null
 systemctl disable netrum-node &>/dev/null
 systemctl daemon-reload
 rm -rf /root/netrum-lite-node
 rm -rf /etc/systemd/system/netrum-node.service
+
+
 
 echo -e "${YELLOW}🛑 Удаляем старый Ookla Speedtest CLI...${NC}"
 # Видали старий python speedtest-cli
@@ -41,7 +48,7 @@ rm -f /usr/bin/speedtest &>/dev/null
 
 # === Обновление системы ===
 echo -e "${YELLOW}📦 Обновление системы...${NC}"
-apt update -y && apt upgrade -y
+apt update -y && apt upgrade -y curl
 
 # === Установка зависимостей ===
 # echo -e "${YELLOW}🔧 Установка необходимых пакетов...${NC}"
@@ -155,4 +162,5 @@ echo -e "${GREEN}✅ Установка и запуск Netrum Lite Node зав�
 echo -e "${YELLOW}──────────────────────────────────────────────${NC}"
 echo -e "${GREEN}📄 Логи синка:${NC} journalctl -fu netrum-node.service"
 echo -e "${GREEN}📄 Логи майнера:${NC} tail -n 10 /var/log/netrum_mining.log"
+echo -e "${GREEN}📄 Логи Тасков:${NC} journalctl -u netrum-task -n 50 -f"
 echo -e "${YELLOW}──────────────────────────────────────────────${NC}"
