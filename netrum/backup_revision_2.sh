@@ -40,11 +40,19 @@ rm -rf /etc/systemd/system/netrum-node.service
 
 
 echo -e "${YELLOW}🛑 Удаляем старый Ookla Speedtest CLI...${NC}"
-# Видали старий python speedtest-cli
-apt remove -y speedtest-cli
+# 1️⃣ Зупини всі процеси, які могли б використовувати speedtest
+pkill -f speedtest &>/dev/null
+
+# 2️⃣ Повністю видаляємо обидві версії
+apt purge -y speedtest speedtest-cli
+
+# 3️⃣ Очищаємо кеш apt і залишки файлів
+apt autoremove -y
 apt clean
-rm -f /var/cache/apt/archives/speedtest_*.deb &>/dev/null
-rm -f /usr/bin/speedtest &>/dev/null
+rm -f /usr/bin/speedtest
+rm -f /etc/apt/sources.list.d/ookla_speedtest-cli.list
+rm -f /etc/apt/keyrings/ookla_speedtest-cli-archive-keyring.gpg
+rm -rf /var/cache/apt/archives/speedtest*
 
 # === Обновление системы ===
 echo -e "${YELLOW}📦 Обновление системы...${NC}"
