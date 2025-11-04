@@ -32,6 +32,13 @@ systemctl daemon-reload
 rm -rf /root/netrum-lite-node
 rm -rf /etc/systemd/system/netrum-node.service
 
+echo -e "${YELLOW}🛑 Удаляем старый Ookla Speedtest CLI...${NC}"
+# Видали старий python speedtest-cli
+apt remove -y speedtest-cli
+apt clean
+rm -f /var/cache/apt/archives/speedtest_*.deb &>/dev/null
+rm -f /usr/bin/speedtest &>/dev/null
+
 # === Обновление системы ===
 echo -e "${YELLOW}📦 Обновление системы...${NC}"
 apt update -y && apt upgrade -y
@@ -50,8 +57,8 @@ curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.
 # Встанови офіційний Speedtest CLI
 apt install -y speedtest
 
-# echo -e "${YELLOW}🔍 Проверяем Скорость интернета${NC}"
-# speedtest --accept-license --accept-gdpr
+echo -e "${YELLOW}🔍 Проверяем Скорость интернета${NC}"
+speedtest --accept-license --accept-gdpr
 
 # === Клонирование репозитория ===
 cd /root
@@ -94,7 +101,7 @@ echo -e "   - После копирования проверьте права д
 read -p "➡️  Нажмите Enter, чтобы продолжить..."
 
 # === Проверка интернет скорости перед синком ===
-echo -e "${YELLOW}🌐 Проверяем скорость интернета перед запуском синхронизации...${NC}"
+echo -e "${YELLOW}🌐 Проверяем скорость интернета скриптом ноды перед запуском синхронизации...${NC}"
 node /root/netrum-lite-node/src/system/system/speedtest.js
 
 sleep 3
