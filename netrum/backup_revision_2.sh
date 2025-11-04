@@ -70,7 +70,7 @@ echo -e "${YELLOW}🔧 Установка Нового Ookla...${NC}"
 # Додай офіційне сховище Ookla
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
 # Встанови офіційний Speedtest CLI
-apt install -y speedtest
+DEBIAN_FRONTEND=noninteractive apt install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" speedtest
 
 echo -e "${YELLOW}🔍 Проверяем Скорость интернета${NC}"
 speedtest --accept-license --accept-gdpr
