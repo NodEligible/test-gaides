@@ -37,8 +37,8 @@ echo -e "${YELLOW}📦 Обновление системы...${NC}"
 apt update -y && apt upgrade -y
 
 # === Установка зависимостей ===
-echo -e "${YELLOW}🔧 Установка необходимых пакетов...${NC}"
-apt install -y curl bc jq speedtest-cli ufw git
+# echo -e "${YELLOW}🔧 Установка необходимых пакетов...${NC}"
+# apt install -y curl bc jq speedtest-cli ufw git
 
 # === Установка Node.js v20 ===
 echo -e "${YELLOW}🧩 Установка Node.js (Скрыта)...${NC}"
