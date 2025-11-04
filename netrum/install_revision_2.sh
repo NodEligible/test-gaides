@@ -35,6 +35,10 @@ systemctl daemon-reload
 rm -rf /root/netrum-lite-node
 rm -rf /etc/systemd/system/netrum-node.service
 
+echo -e "${YELLOW}🛑 Удаляем старый Ookla Speedtest CLI...${NC}"
+# Видали старий python speedtest-cli
+apt remove -y speedtest-cli
+
 # === Обновление системы ===
 echo -e "${YELLOW}📦 Обновление системы...${NC}"
 apt update -y && apt upgrade -y
@@ -46,6 +50,16 @@ apt install -y curl bc jq speedtest-cli ufw git
 # === Установка Node.js v20 ===
 echo -e "${YELLOW}🧩 Установка Node.js...${NC}"
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/nodejs.sh)
+
+echo -e "${YELLOW}🧩 Установка Нового Ookla...${NC}"
+# Додай офіційне сховище Ookla
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
+# Встанови офіційний Speedtest CLI
+apt install -y speedtest
+
+echo -e "${YELLOW}🔍 Проверяем Скорость интернета${NC}"
+speedtest --accept-license --accept-gdpr
+
 
 # === Клонирование репозитория ===
 cd /root
@@ -114,6 +128,22 @@ pause_step
 echo -e "${YELLOW}🌐 Регистрируем ноду в сети (нужно немного BASE для газа)...${NC}"
 if ! netrum-node-register; then
   echo -e "${RED}❌ Ошибка при регистрации ноды.${NC}"
+  exit 1
+fi
+pause_step
+
+# === Создание systemd сервиса для выполнения задач ===
+echo -e "${YELLOW}⚙️ Создаем systemd сервис для task...${NC}"
+if ! netrum-task; then
+  echo -e "${RED}❌ Ошибка при запуске task.${NC}"
+  exit 1
+fi
+pause_step
+
+# === Разрешаем ноде обрабатывать задачи ===
+echo -e "${YELLOW}🧠 Даём ноде разрешение на выполнение задач...${NC}"
+if ! netrum-task-allow; then
+  echo -e "${RED}❌ Ошибка при выдаче разрешения.${NC}"
   exit 1
 fi
 pause_step
