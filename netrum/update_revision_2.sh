@@ -213,7 +213,7 @@ systemctl start netrum-mining
 
 echo -e "${GREEN}✅ Обновление Netrum Lite Node завершено!${NC}"
 echo -e "${YELLOW}──────────────────────────────────────────────${NC}"
-echo -e "${GREEN}📄 Логи синка:${NC} tail -n 50 /root/netrum-lite-node/logs/netrum_node.log"
-echo -e "${GREEN}📄 Логи майнера:${NC} tail -n 50 /root/netrum-lite-node/logs/netrum_mining.log"
-echo -e "${GREEN}📄 Логи Тасков:${NC} tail -n 50 /root/netrum-lite-node/logs/netrum_task.log"
+echo -e "${GREEN}📄 Логи синка:${NC} tail -n 50 -f /root/netrum-lite-node/logs/netrum_node.log"
+echo -e "${GREEN}📄 Логи майнера:${NC} tail -n 50 -f /root/netrum-lite-node/logs/netrum_mining.log"
+echo -e "${GREEN}📄 Логи Тасков:${NC} tail -n 50 -f /root/netrum-lite-node/logs/netrum_task.log"
 echo -e "${YELLOW}──────────────────────────────────────────────${NC}"
