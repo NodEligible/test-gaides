@@ -91,28 +91,32 @@ mkdir -p /root/netrum-lite-node/logs
 chmod 755 /root/netrum-lite-node/logs
 
 # ======================================================================================================
-# === Блок який відповідає за заміну шляху для логів з системного журнала в окремі індивідуальні файли ===
+# === Обновляем пути логов в шаблонах service.txt перед созданием systemd сервисов ===
 
 LOG_DIR="/root/netrum-lite-node/logs"
-mkdir -p "$LOG_DIR"
 
-# === netrum-task.service ===
-if [ -f /etc/systemd/system/netrum-task.service ]; then
-  sed -i '/^StandardOutput=/d' /etc/systemd/system/netrum-task.service
-  sed -i '/^StandardError=/d' /etc/systemd/system/netrum-task.service
-  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_task.log\nStandardError=append:${LOG_DIR}/netrum_task_error.log" /etc/systemd/system/netrum-task.service
+TASK_SERVICE_FILE="/root/netrum-lite-node/src/task/service.txt"
+NODE_SERVICE_FILE="/root/netrum-lite-node/src/system/sync/service.txt"
+
+# === netrum-task.service.txt ===
+if [ -f "$TASK_SERVICE_FILE" ]; then
+  sed -i '/^StandardOutput=/d' "$TASK_SERVICE_FILE"
+  sed -i '/^StandardError=/d' "$TASK_SERVICE_FILE"
+  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_task.log\nStandardError=append:${LOG_DIR}/netrum_task_error.log" "$TASK_SERVICE_FILE"
+  echo -e "${GREEN}✅ Файл service.txt для task успешно обновлён с новыми путями логов.${NC}"
+else
+  echo -e "${RED}⚠️ Файл шаблона не найден: $TASK_SERVICE_FILE${NC}"
 fi
 
-# === netrum-node.service ===
-if [ -f /etc/systemd/system/netrum-node.service ]; then
-  sed -i '/^StandardOutput=/d' /etc/systemd/system/netrum-node.service
-  sed -i '/^StandardError=/d' /etc/systemd/system/netrum-node.service
-  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_node.log\nStandardError=append:${LOG_DIR}/netrum_node_error.log" /etc/systemd/system/netrum-node.service
+# === netrum-node.service.txt ===
+if [ -f "$NODE_SERVICE_FILE" ]; then
+  sed -i '/^StandardOutput=/d' "$NODE_SERVICE_FILE"
+  sed -i '/^StandardError=/d' "$NODE_SERVICE_FILE"
+  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_node.log\nStandardError=append:${LOG_DIR}/netrum_node_error.log" "$NODE_SERVICE_FILE"
+  echo -e "${GREEN}✅ Файл service.txt для node успешно обновлён с новыми путями логов.${NC}"
+else
+  echo -e "${RED}⚠️ Файл шаблона не найден: $NODE_SERVICE_FILE${NC}"
 fi
-
-# Перезапуск systemd
-systemctl daemon-reload
-echo -e "${GREEN} ✅ Лог-пути успешно обновлены.${NC}"
 
 # ======================================================================================================
 
