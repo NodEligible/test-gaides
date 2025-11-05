@@ -69,17 +69,17 @@ rm -f /etc/apt/sources.list.d/ookla_speedtest-cli.list
 rm -f /etc/apt/keyrings/ookla_speedtest-cli-archive-keyring.gpg
 rm -rf /var/cache/apt/archives/speedtest*
 
+echo -e "${YELLOW}🔧 Установка Нового Ookla...${NC}"
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
+
 # Полное удаление старых версий и зависших файлов
 dpkg --purge speedtest speedtest-cli 2>/dev/null || true
 apt remove -y speedtest speedtest-cli --allow-change-held-packages
 apt autoremove -y
 rm -f /usr/bin/speedtest
 
-echo -e "${YELLOW}🔧 Установка Нового Ookla...${NC}"
-# Додай офіційне сховище Ookla
-curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
-# Встанови офіційний Speedtest CLI
-DEBIAN_FRONTEND=noninteractive apt install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" speedtest
+# Установка новой версии с принудительной перезаписью файла
+DEBIAN_FRONTEND=noninteractive apt install -y --reinstall -o Dpkg::Options::="--force-overwrite" speedtest
 
 echo -e "${YELLOW}🔍 Проверяем Скорость интернета${NC}"
 speedtest --accept-license --accept-gdpr
