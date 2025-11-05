@@ -168,7 +168,7 @@ drosera-operator register --eth-rpc-url https://ethereum-hoodi-rpc.publicnode.co
     
 echo -e "${YELLOW}⚙️ Создание сервиса...${NC}"
 SERVER_IP=$(curl -s https://api.ipify.org)
-    
+
 sudo bash -c "cat <<EOF > /etc/systemd/system/drosera.service
 [Unit]
 Description=drosera node service
@@ -180,7 +180,7 @@ User=$USER
 Restart=always
 RestartSec=15
 LimitNOFILE=65535
-ExecStart=$(which drosera-operator) node --db-file-path \$HOME/.drosera.db --network-p2p-port 31313 --server-port 31314 \\
+ExecStart=$(which drosera-operator) node --network-p2p-port 31313 --server-port 31314 \\
     --eth-rpc-url $new_rpc \\
     --eth-backup-rpc-url https://ethereum-hoodi-rpc.publicnode.com \\
     --drosera-address 0x91cB447BaFc6e0EA0F4Fe056F5a9b1F14bb06e5D \\
