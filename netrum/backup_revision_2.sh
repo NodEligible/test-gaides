@@ -102,7 +102,7 @@ NODE_SERVICE_FILE="/root/netrum-lite-node/src/system/sync/service.txt"
 if [ -f "$TASK_SERVICE_FILE" ]; then
   sed -i '/^StandardOutput=/d' "$TASK_SERVICE_FILE"
   sed -i '/^StandardError=/d' "$TASK_SERVICE_FILE"
-  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_task.log\nStandardError=append:${LOG_DIR}/netrum_task_error.log" "$TASK_SERVICE_FILE"
+  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_task.log\nStandardError=append:${LOG_DIR}/netrum_task.log" "$TASK_SERVICE_FILE"
   echo -e "${GREEN}✅ Файл service.txt для task успешно обновлён с новыми путями логов.${NC}"
 else
   echo -e "${RED}⚠️ Файл шаблона не найден: $TASK_SERVICE_FILE${NC}"
@@ -112,7 +112,7 @@ fi
 if [ -f "$NODE_SERVICE_FILE" ]; then
   sed -i '/^StandardOutput=/d' "$NODE_SERVICE_FILE"
   sed -i '/^StandardError=/d' "$NODE_SERVICE_FILE"
-  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_node.log\nStandardError=append:${LOG_DIR}/netrum_node_error.log" "$NODE_SERVICE_FILE"
+  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_node.log\nStandardError=append:${LOG_DIR}/netrum_node.log" "$NODE_SERVICE_FILE"
   echo -e "${GREEN}✅ Файл service.txt для node успешно обновлён с новыми путями логов.${NC}"
 else
   echo -e "${RED}⚠️ Файл шаблона не найден: $NODE_SERVICE_FILE${NC}"
