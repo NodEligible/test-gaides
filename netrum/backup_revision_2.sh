@@ -206,7 +206,7 @@ systemctl start netrum-mining
 
 echo -e "${GREEN}✅ Установка и запуск Netrum Lite Node завершены!${NC}"
 echo -e "${YELLOW}──────────────────────────────────────────────${NC}"
-echo -e "${GREEN}📄 Логи синка:${NC} journalctl -fu netrum-node.service"
-echo -e "${GREEN}📄 Логи майнера:${NC} tail -n 10 /var/log/netrum_mining.log"
-echo -e "${GREEN}📄 Логи Тасков:${NC} journalctl -u netrum-task -n 50 -f"
+echo -e "${GREEN}📄 Логи синка:${NC} tail -n 50 /root/netrum-lite-node/logs/netrum_node.log"
+echo -e "${GREEN}📄 Логи майнера:${NC} tail -n 50 /root/netrum-lite-node/logs/netrum_mining.log"
+echo -e "${GREEN}📄 Логи Тасков:${NC} tail -n 50 /root/netrum-lite-node/logs/netrum_task.log"
 echo -e "${YELLOW}──────────────────────────────────────────────${NC}"
