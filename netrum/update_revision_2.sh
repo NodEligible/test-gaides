@@ -94,6 +94,33 @@ fi
 mkdir -p /root/netrum-lite-node/logs
 chmod 755 /root/netrum-lite-node/logs
 
+# ======================================================================================================
+# === Блок який відповідає за заміну шляху для логів з системного журнала в окремі індивідуальні файли ===
+#!/bin/bash
+
+LOG_DIR="/root/netrum-lite-node/logs"
+mkdir -p "$LOG_DIR"
+
+# === netrum-task.service ===
+if [ -f /etc/systemd/system/netrum-task.service ]; then
+  sed -i '/^StandardOutput=/d' /etc/systemd/system/netrum-task.service
+  sed -i '/^StandardError=/d' /etc/systemd/system/netrum-task.service
+  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_task.log\nStandardError=append:${LOG_DIR}/netrum_task_error.log" /etc/systemd/system/netrum-task.service
+fi
+
+# === netrum-node.service ===
+if [ -f /etc/systemd/system/netrum-node.service ]; then
+  sed -i '/^StandardOutput=/d' /etc/systemd/system/netrum-node.service
+  sed -i '/^StandardError=/d' /etc/systemd/system/netrum-node.service
+  sed -i "/^RestartSec=/a StandardOutput=append:${LOG_DIR}/netrum_node.log\nStandardError=append:${LOG_DIR}/netrum_node_error.log" /etc/systemd/system/netrum-node.service
+fi
+
+# Перезапуск systemd
+systemctl daemon-reload
+echo -e "${GREEN} ✅ Лог-пути успешно обновлены.${NC}"
+
+# ======================================================================================================
+
 # === Установка npm-зависимостей ===
 echo -e "${YELLOW}📦 Устанавливаем npm пакеты...${NC}"
 npm install
