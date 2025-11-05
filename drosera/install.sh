@@ -109,16 +109,6 @@ echo -e "${YELLOW}🛠️ Инициализация проекта...${NC}"
 forge init -t drosera-network/trap-foundry-template
 bun install
 
-# === ВСТАВКА drosera-contracts ====================================
-echo -e "${YELLOW}📦 Добавляем drosera-contracts...${NC}"
-cd /root/drosera/node_modules
-rm -rf drosera-contracts
-git clone https://github.com/drosera-network/contracts.git drosera-contracts
-echo -e "${GREEN}✅ drosera-contracts успешно добавлен${NC}"
-cd /root/drosera
-# ==================================================================
-forge clean
-# ==================================================================
 forge build
 
 ln -sf /root/.drosera/bin/drosera /usr/local/bin/drosera
