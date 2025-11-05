@@ -255,8 +255,8 @@ WorkingDirectory=/root/netrum-lite-node
 ExecStart=/usr/bin/node /root/netrum-lite-node/src/system/mining/live-log.js
 Restart=always
 RestartSec=10
-StandardOutput=append:/root/netrum-lite-node/logs/netrum_mining.log
-StandardError=append:/root/netrum-lite-node/logs/netrum_mining.log
+StandardOutput=append:/var/log/netrum_mining.log
+StandardError=append:/var/log/netrum_mining.log
 LimitNOFILE=65535
 
 [Install]
