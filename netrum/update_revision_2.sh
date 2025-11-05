@@ -90,6 +90,10 @@ else
   cd netrum-lite-node
 fi
 
+# === Створюємо папку для логів і надаємо права ===
+mkdir -p /root/netrum-lite-node/logs
+chmod 755 /root/netrum-lite-node/logs
+
 # === Установка npm-зависимостей ===
 echo -e "${YELLOW}📦 Устанавливаем npm пакеты...${NC}"
 npm install
