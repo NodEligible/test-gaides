@@ -54,6 +54,12 @@ rm -f /etc/apt/sources.list.d/ookla_speedtest-cli.list
 rm -f /etc/apt/keyrings/ookla_speedtest-cli-archive-keyring.gpg
 rm -rf /var/cache/apt/archives/speedtest*
 
+# Полное удаление старых версий и зависших файлов
+dpkg --purge speedtest speedtest-cli 2>/dev/null || true
+apt remove -y speedtest speedtest-cli --allow-change-held-packages
+apt autoremove -y
+rm -f /usr/bin/speedtest
+
 # === Обновление системы ===
 echo -e "${YELLOW}📦 Обновление системы...${NC}"
 apt update -y && apt upgrade -y curl
