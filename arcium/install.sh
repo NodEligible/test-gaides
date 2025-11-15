@@ -4,12 +4,13 @@ YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 BLUE='\033[38;5;81m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
-echo -e "${YELLOW}⚙️ Оновлення системи...${NC}"
+echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
 sudo apt update && sudo apt upgrade -y
 
-echo -e "${YELLOW}📦 Установка необхідних пакетів...${NC}"
+echo -e "${YELLOW}📦 Установка необходимых пакетов...${NC}"
 sudo apt install -y \
   curl wget git tmux htop unzip build-essential pkg-config \
   libssl-dev clang make jq
@@ -25,10 +26,420 @@ echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
 curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
 export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
-echo -e "${GREEN}✅ Перевірка версій...${NC}"
+echo -e "${GREEN}✅ Проверка версий...${NC}"
 solana --version
 rustc --version
 cargo --version
 docker --version
 
-echo -e "${GREEN}🎉 Підготовка завершена! Можна переходити до встановлення Arcium.${NC}"
+echo -e "${GREEN}🎉 Подготовка завершена! Можно перейти к установке Arcium.${NC}"
+
+# ---------- Общие переменные ----------
+WORKDIR="$HOME/arcium-node-setup"
+ENV_FILE="$WORKDIR/.env"
+CFG_FILE="$WORKDIR/node-config.toml"
+LOGS_DIR="$WORKDIR/arx-node-logs"
+NODE_KP="$WORKDIR/node-keypair.json"
+CALLBACK_KP="$WORKDIR/callback-kp.json"
+IDENTITY_PEM="$WORKDIR/identity.pem"
+NODE_PUB_FILE="$WORKDIR/node-pubkey.txt"
+CALLBACK_PUB_FILE="$WORKDIR/callback-pubkey.txt"
+
+DEFAULT_RPC="https://api.devnet.solana.com"
+DEFAULT_WSS="wss://api.devnet.solana.com"
+
+# ---------- Хелперы ----------
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo -e "${RED}❌ Не найдена команда: $1. Установи её перед запуском этого скрипта.${NC}"
+    exit 1
+  fi
+}
+
+pause() {
+  read -r -p "$(echo -e "${YELLOW}⏯ Нажми Enter для продолжения...${NC}")" _
+}
+
+print_header() {
+  echo -e "${BLUE}"
+  echo "======================================="
+  echo "      Arcium Testnet Node Setup"
+  echo "======================================="
+  echo -e "${NC}"
+}
+
+# ---------- Проверка инструментов ----------
+print_header
+
+echo -e "${YELLOW}🔍 Проверка необходимых инструментов...${NC}"
+for cmd in solana docker arcium curl openssl; do
+  require_cmd "$cmd"
+done
+echo -e "${GREEN}✅ Все необходимые инструменты найдены.${NC}"
+
+# ---------- Шаг 2: рабочая директория ----------
+echo -e "${YELLOW}📁 Создаю рабочую директорию ноды...${NC}"
+mkdir -p "$WORKDIR"
+cd "$WORKDIR" || { echo -e "${RED}❌ Не удалось перейти в $WORKDIR${NC}"; exit 1; }
+echo -e "${GREEN}✅ Рабочая папка: ${CYAN}$WORKDIR${NC}"
+
+# ---------- Загрузка/выбор RPC ----------
+echo -e "${YELLOW}🌐 Настройка RPC для Solana Devnet...${NC}"
+RPC_URL="$DEFAULT_RPC"
+WSS_URL="$DEFAULT_WSS"
+
+echo -e "${YELLOW}По умолчанию будет использован публичный RPC:${NC}"
+echo -e "  ${CYAN}$DEFAULT_RPC${NC}"
+echo -e "${YELLOW}Ты хочешь указать свой кастомный RPC (Helius / QuickNode)?${NC}"
+read -r -p "$(echo -e "${YELLOW}[1] Оставить по умолчанию  |  [2] Ввести свой RPC: ${NC}")" rpc_choice
+
+if [ "$rpc_choice" = "2" ]; then
+  read -r -p "$(echo -e "${YELLOW}➡ Введи HTTP RPC URL (например, https://...): ${NC}")" custom_rpc
+  read -r -p "$(echo -e "${YELLOW}➡ Введи WebSocket WSS URL (например, wss://...): ${NC}")" custom_wss
+  if [ -n "$custom_rpc" ] && [ -n "$custom_wss" ]; then
+    RPC_URL="$custom_rpc"
+    WSS_URL="$custom_wss"
+  else
+    echo -e "${RED}⚠ Пустой ввод. Оставляю дефолтные RPC/WSS.${NC}"
+  fi
+fi
+
+echo -e "${GREEN}✅ RPC:  ${CYAN}$RPC_URL${NC}"
+echo -e "${GREEN}✅ WSS:  ${CYAN}$WSS_URL${NC}"
+
+# ---------- Шаг 3: генерация ключей ----------
+echo -e "${YELLOW}🔐 Генерация ключей ноды...${NC}"
+
+if [ -f "$NODE_KP" ] || [ -f "$CALLBACK_KP" ] || [ -f "$IDENTITY_PEM" ]; then
+  echo -e "${RED}⚠ Внимание: ключевые файлы уже существуют в $WORKDIR:${NC}"
+  ls -1 node-keypair.json callback-kp.json identity.pem 2>/dev/null || true
+  read -r -p "$(echo -e "${YELLOW}Использовать существующие ключи? [y/N]: ${NC}")" reuse_keys
+  if [[ ! "$reuse_keys" =~ ^[Yy]$ ]]; then
+    echo -e "${YELLOW}♻ Удаляю старые ключи и создаю новые...${NC}"
+    rm -f "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$NODE_PUB_FILE" "$CALLBACK_PUB_FILE"
+  else
+    echo -e "${GREEN}✅ Используем уже существующие ключи.${NC}"
+  fi
+fi
+
+if [ ! -f "$NODE_KP" ]; then
+  echo -e "${YELLOW}➡ Генерирую node-keypair.json...${NC}"
+  solana-keygen new --outfile "$NODE_KP" --no-bip39-passphrase
+fi
+
+if [ ! -f "$CALLBACK_KP" ]; then
+  echo -e "${YELLOW}➡ Генерирую callback-kp.json...${NC}"
+  solana-keygen new --outfile "$CALLBACK_KP" --no-bip39-passphrase
+fi
+
+if [ ! -f "$IDENTITY_PEM" ]; then
+  echo -e "${YELLOW}➡ Генерирую identity.pem (Ed25519)...${NC}"
+  openssl genpkey -algorithm Ed25519 -out "$IDENTITY_PEM"
+fi
+
+echo -e "${YELLOW}📄 Сохраняю публичные ключи...${NC}"
+solana address --keypair "$NODE_KP" > "$NODE_PUB_FILE"
+solana address --keypair "$CALLBACK_KP" > "$CALLBACK_PUB_FILE"
+
+NODE_PUBKEY=$(cat "$NODE_PUB_FILE")
+CALLBACK_PUBKEY=$(cat "$CALLBACK_PUB_FILE")
+
+echo -e "${GREEN}✅ Публичный ключ ноды:      ${CYAN}$NODE_PUBKEY${NC}"
+echo -e "${GREEN}✅ Публичный ключ callback:  ${CYAN}$CALLBACK_PUBKEY${NC}"
+
+echo -e "${YELLOW}📦 Делаю простой бэкап ключей...${NC}"
+mkdir -p "$WORKDIR/backup_keys"
+cp "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$WORKDIR/backup_keys/" 2>/dev/null || true
+echo -e "${GREEN}✅ Бэкап в: ${CYAN}$WORKDIR/backup_keys${NC}"
+
+# ---------- Шаг 4: Node Offset ----------
+echo -e "${YELLOW}🔢 Генерация уникального Node Offset...${NC}"
+
+NODE_OFFSET=""
+if [ -f "$ENV_FILE" ]; then
+  # Попробуем прочитать существующий
+  NODE_OFFSET=$(grep -E '^NODE_OFFSET=' "$ENV_FILE" | tail -n1 | cut -d= -f2 | tr -d '"')
+fi
+
+if [ -n "$NODE_OFFSET" ]; then
+  echo -e "${YELLOW}ℹ В .env уже найден NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+  read -r -p "$(echo -e "${YELLOW}Использовать его? [Y/n]: ${NC}")" use_existing_offset
+  if [[ "$use_existing_offset" =~ ^[Nn]$ ]]; then
+    NODE_OFFSET=""
+  fi
+fi
+
+attempt=0
+max_attempts=10
+
+while [ -z "$NODE_OFFSET" ] && [ $attempt -lt $max_attempts ]; do
+  attempt=$((attempt + 1))
+  CANDIDATE=$(shuf -i 10000000-99999999 -n 1)
+  echo -e "${YELLOW}➡ Пробую NODE_OFFSET=${CYAN}$CANDIDATE${NC} (попытка $attempt)..."
+
+  # Если arcium arx-info завершился с кодом 0 — offset занят
+  # Если не 0 — считаем, что свободен (или RPC тупит — но другого метода нет)
+  if arcium arx-info "$CANDIDATE" --rpc-url "$RPC_URL" >/dev/null 2>&1; then
+    echo -e "${RED}❌ Offset $CANDIDATE уже используется. Пробую другой...${NC}"
+  else
+    NODE_OFFSET="$CANDIDATE"
+  fi
+done
+
+if [ -z "$NODE_OFFSET" ]; then
+  echo -e "${RED}❌ Не удалось подобрать свободный NODE_OFFSET. Попробуй позже или вручную.${NC}"
+  exit 1
+fi
+
+echo -e "${GREEN}✅ Выбран NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+
+# ---------- Сохранение .env ----------
+echo -e "${YELLOW}🧾 Обновляю .env...${NC}"
+touch "$ENV_FILE"
+
+# Удалим старые строки, если есть
+sed -i '/^NODE_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
+sed -i '/^RPC_URL=/d' "$ENV_FILE" 2>/dev/null || true
+sed -i '/^WSS_URL=/d' "$ENV_FILE" 2>/dev/null || true
+sed -i '/^NODE_PUBKEY=/d' "$ENV_FILE" 2>/dev/null || true
+sed -i '/^CALLBACK_PUBKEY=/d' "$ENV_FILE" 2>/dev/null || true
+
+{
+  echo "NODE_OFFSET=$NODE_OFFSET"
+  echo "RPC_URL=$RPC_URL"
+  echo "WSS_URL=$WSS_URL"
+  echo "NODE_PUBKEY=$NODE_PUBKEY"
+  echo "CALLBACK_PUBKEY=$CALLBACK_PUBKEY"
+} >> "$ENV_FILE"
+
+echo -e "${GREEN}✅ .env обновлён: ${CYAN}$ENV_FILE${NC}"
+
+# ---------- Шаг 5: Airdrop Devnet SOL ----------
+echo -e "${YELLOW}💸 Airdrop Devnet SOL для аккаунтов ноды...${NC}"
+
+airdrop_with_retry() {
+  local pubkey="$1"
+  local label="$2"
+  local tries=0
+  local max_tries=3
+
+  while [ $tries -lt $max_tries ]; do
+    tries=$((tries + 1))
+    echo -e "${YELLOW}➡ Airdrop для ${label} (${CYAN}$pubkey${YELLOW}), попытка $tries...${NC}"
+    if solana airdrop 2 "$pubkey" -u devnet >/dev/null 2>&1; then
+      sleep 2
+      BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
+      if [ -n "$BAL" ]; then
+        echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
+        return 0
+      fi
+    fi
+    echo -e "${RED}⚠ Не удалось получить SOL для ${label}, пробую ещё раз...${NC}"
+    sleep 3
+  done
+
+  echo -e "${RED}❌ Airdrop для ${label} не удался после $max_tries попыток.${NC}"
+  echo -e "${YELLOW}👉 Можешь вручную получить Devnet SOL на сайте:${NC}"
+  echo -e "${CYAN}https://faucet.solana.com/${NC}"
+  echo -e "${YELLOW}И используй адрес: ${CYAN}$pubkey${NC}"
+  return 1
+}
+
+airdrop_with_retry "$NODE_PUBKEY" "Node Authority"
+airdrop_with_retry "$CALLBACK_PUBKEY" "Callback Authority"
+
+# ---------- Шаг 6: init-arx-accs ----------
+echo -e "${YELLOW}🧩 On-chain инициализация аккаунтов ноды (init-arx-accs)...${NC}"
+
+SERVER_IP=$(curl -s https://api.ipify.org)
+if [ -z "$SERVER_IP" ]; then
+  echo -e "${RED}❌ Не удалось определить публичный IP через api.ipify.org.${NC}"
+  read -r -p "$(echo -e "${YELLOW}Введи IP вручную: ${NC}")" SERVER_IP
+fi
+
+echo -e "${GREEN}✅ Публичный IP ноды: ${CYAN}$SERVER_IP${NC}"
+
+tries=0
+max_tries=3
+INIT_OK=0
+
+while [ $tries -lt $max_tries ]; do
+  tries=$((tries + 1))
+  echo -e "${YELLOW}➡ Запуск init-arx-accs (попытка $tries)...${NC}"
+
+  if arcium init-arx-accs \
+      --keypair-path "$NODE_KP" \
+      --callback-keypair-path "$CALLBACK_KP" \
+      --peer-keypair-path "$IDENTITY_PEM" \
+      --node-offset "$NODE_OFFSET" \
+      --ip-address "$SERVER_IP" \
+      --rpc-url "$RPC_URL"; then
+    INIT_OK=1
+    break
+  else
+    echo -e "${RED}⚠ init-arx-accs завершился с ошибкой.${NC}"
+    echo -e "${YELLOW}Проверяю доступность RPC...${NC}"
+    if ! curl -s --max-time 5 "$RPC_URL" >/dev/null 2>&1; then
+      echo -e "${RED}❌ RPC ${RPC_URL} не отвечает.${NC}"
+    fi
+    sleep 5
+  fi
+done
+
+if [ "$INIT_OK" -ne 1 ]; then
+  echo -e "${RED}❌ Не удалось инициализировать on-chain аккаунты ноды после $max_tries попыток.${NC}"
+  echo -e "${YELLOW}Проверь RPC, баланс аккаунтов и попробуй ещё раз вручную.${NC}"
+  exit 1
+fi
+
+echo -e "${GREEN}✅ On-chain аккаунты ноды успешно инициализированы.${NC}"
+
+# ---------- Шаг 7: node-config.toml ----------
+echo -e "${YELLOW}🧾 Генерация node-config.toml...${NC}"
+
+cat > "$CFG_FILE" <<EOF
+[node]
+offset = $NODE_OFFSET
+hardware_claim = 0
+starting_epoch = 0
+ending_epoch = 9223372036854775807
+
+[network]
+address = "0.0.0.0"
+
+[solana]
+endpoint_rpc = "$RPC_URL"
+endpoint_wss = "$WSS_URL"
+cluster = "Devnet"
+commitment.commitment = "confirmed"
+EOF
+
+echo -e "${GREEN}✅ node-config.toml создан: ${CYAN}$CFG_FILE${NC}"
+
+# ---------- Шаг 8: Кластер ----------
+echo -e "${YELLOW}🧬 Настройка кластера Arcium...${NC}"
+echo -e "${YELLOW}Что делаем с кластером?${NC}"
+echo -e "${CYAN}[1] Создать свой кластер"
+echo -e "[2] Присоединиться к существующему"
+echo -e "[3] Пропустить этот шаг (сделаешь позже)${NC}"
+
+read -r -p "$(echo -e "${YELLOW}➡ Введи выбор [1/2/3]: ${NC}")" cluster_choice
+
+CLUSTER_OFFSET=""
+
+case "$cluster_choice" in
+  1)
+    echo -e "${YELLOW}🔧 Создание собственного кластера...${NC}"
+    CLUSTER_OFFSET=$(shuf -i 10000000-99999999 -n 1)
+    echo -e "${YELLOW}➡ Попробую CLUSTER_OFFSET=${CYAN}$CLUSTER_OFFSET${NC}"
+
+    if arcium init-cluster \
+        --keypair-path "$NODE_KP" \
+        --offset "$CLUSTER_OFFSET" \
+        --max-nodes 10 \
+        --rpc-url "$RPC_URL"; then
+      echo -e "${GREEN}✅ Кластер создан с offset=${CYAN}$CLUSTER_OFFSET${NC}"
+      sed -i '/^CLUSTER_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
+      echo "CLUSTER_OFFSET=$CLUSTER_OFFSET" >> "$ENV_FILE"
+    else
+      echo -e "${RED}⚠ Не удалось создать кластер. Можно будет попробовать позже вручную.${NC}"
+    fi
+    ;;
+  2)
+    echo -e "${YELLOW}🔗 Присоединение к существующему кластеру...${NC}"
+    read -r -p "$(echo -e "${YELLOW}➡ Введи CLUSTER_OFFSET кластера: ${NC}")" CLUSTER_OFFSET
+    if [ -n "$CLUSTER_OFFSET" ]; then
+      if arcium join-cluster true \
+          --keypair-path "$NODE_KP" \
+          --node-offset "$NODE_OFFSET" \
+          --cluster-offset "$CLUSTER_OFFSET" \
+          --rpc-url "$RPC_URL"; then
+        echo -e "${GREEN}✅ Нода успешно присоединена к кластеру ${CYAN}$CLUSTER_OFFSET${NC}"
+        sed -i '/^CLUSTER_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
+        echo "CLUSTER_OFFSET=$CLUSTER_OFFSET" >> "$ENV_FILE"
+      else
+        echo -e "${RED}⚠ Ошибка при присоединении к кластеру. Можно повторить позже вручную.${NC}"
+      fi
+    else
+      echo -e "${RED}⚠ Пустой CLUSTER_OFFSET, шаг пропущен.${NC}"
+    fi
+    ;;
+  3|*)
+    echo -e "${YELLOW}⏭ Шаг с кластером пропущен. Ты сможешь создать или присоединиться позже вручную.${NC}"
+    ;;
+esac
+
+# ---------- Шаг 9: Docker запуск ----------
+echo -e "${YELLOW}🐳 Запуск ARX-ноды в Docker...${NC}"
+
+mkdir -p "$LOGS_DIR"
+touch "$LOGS_DIR/arx.log"
+
+# Если контейнер уже есть — остановим/удалим
+if docker ps -a --format '{{.Names}}' | grep -q '^arx-node$'; then
+  echo -e "${YELLOW}♻ Обнаружен существующий контейнер arx-node. Останавливаю и удаляю...${NC}"
+  docker stop arx-node >/dev/null 2>&1 || true
+  docker rm arx-node >/dev/null 2>&1 || true
+fi
+
+echo -e "${YELLOW}📦 Подтягиваю образ arcium/arx-node (если не скачан)...${NC}"
+docker pull arcium/arx-node
+
+echo -e "${YELLOW}🚀 Запускаю контейнер arx-node...${NC}"
+
+docker run -d \
+  --name arx-node \
+  -e NODE_IDENTITY_FILE=/usr/arx-node/node-keys/node_identity.pem \
+  -e NODE_KEYPAIR_FILE=/usr/arx-node/node-keys/node_keypair.json \
+  -e OPERATOR_KEYPAIR_FILE=/usr/arx-node/node-keys/operator_keypair.json \
+  -e CALLBACK_AUTHORITY_KEYPAIR_FILE=/usr/arx-node/node-keys/callback_authority_keypair.json \
+  -e NODE_CONFIG_PATH=/usr/arx-node/arx/node_config.toml \
+  -v "$CFG_FILE:/usr/arx-node/arx/node_config.toml" \
+  -v "$NODE_KP:/usr/arx-node/node-keys/node_keypair.json:ro" \
+  -v "$NODE_KP:/usr/arx-node/node-keys/operator_keypair.json:ro" \
+  -v "$CALLBACK_KP:/usr/arx-node/node-keys/callback_authority_keypair.json:ro" \
+  -v "$IDENTITY_PEM:/usr/arx-node/node-keys/node_identity.pem:ro" \
+  -v "$LOGS_DIR:/usr/arx-node/logs" \
+  -p 8080:8080 \
+  arcium/arx-node
+
+if ! docker ps --format '{{.Names}}' | grep -q '^arx-node$'; then
+  echo -e "${RED}❌ Контейнер arx-node не запустился. Проверь docker logs arx-node.${NC}"
+  exit 1
+fi
+
+echo -e "${GREEN}✅ Контейнер arx-node запущен.${NC}"
+
+# ---------- alias для логов ----------
+if ! grep -q 'arcium-logs' "$HOME/.bashrc" 2>/dev/null; then
+  echo "alias arcium-logs='docker logs -f arx-node'" >> "$HOME/.bashrc"
+  echo -e "${GREEN}✅ Добавлен alias ${CYAN}arcium-logs${GREEN} в ~/.bashrc${NC}"
+fi
+
+# ---------- Шаг 10: Проверка работы ----------
+echo -e "${YELLOW}🔎 Проверка статуса ноды...${NC}"
+sleep 5
+
+echo -e "${YELLOW}➡ arcium arx-info ${NODE_OFFSET}${NC}"
+arcium arx-info "$NODE_OFFSET" --rpc-url "$RPC_URL" || echo -e "${RED}⚠ arx-info вернул ошибку, проверь выше.${NC}"
+
+echo -e "${YELLOW}➡ arcium arx-active ${NODE_OFFSET}${NC}"
+arcium arx-active "$NODE_OFFSET" --rpc-url "$RPC_URL" || echo -e "${RED}⚠ arx-active вернул ошибку, проверь выше.${NC}"
+
+echo -e "${YELLOW}➡ docker logs (первые строки)...${NC}"
+docker logs --tail 30 arx-node || true
+
+echo -e "${YELLOW}➡ Проверяю порт 8080 (локальный healthcheck, если доступен)...${NC}"
+if curl -sSf http://127.0.0.1:8080/health >/dev/null 2>&1; then
+  echo -e "${GREEN}✅ Эндпоинт /health на 8080 отвечает.${NC}"
+else
+  echo -e "${YELLOW}ℹ Не удалось получить /health. Возможно, нода ещё стартует или эндпоинт другой — смотри docker logs.${NC}"
+fi
+
+echo -e "${GREEN}🎉 Установка и базовая настройка Arcium Testnet Node завершена.${NC}"
+echo -e "${YELLOW}Полезные команды:${NC}"
+echo -e "  ${CYAN}cd $WORKDIR${NC}"
+echo -e "  ${CYAN}arcium-logs${NC}           — смотреть логи контейнера"
+echo -e "  ${CYAN}docker logs -f arx-node${NC} — напрямую логи docker"
+echo -e "  ${CYAN}arcium arx-info $NODE_OFFSET --rpc-url $RPC_URL${NC}"
+echo -e "  ${CYAN}arcium arx-active $NODE_OFFSET --rpc-url $RPC_URL${NC}"
