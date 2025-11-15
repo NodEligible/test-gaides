@@ -400,7 +400,7 @@ docker run -d \
   -v "$CALLBACK_KP:/usr/arx-node/node-keys/callback_authority_keypair.json:ro" \
   -v "$IDENTITY_PEM:/usr/arx-node/node-keys/node_identity.pem:ro" \
   -v "$LOGS_DIR:/usr/arx-node/logs" \
-  -p 8080:8080 \
+  -p 8088:8080 \
   arcium/arx-node
 
 if ! docker ps --format '{{.Names}}' | grep -q '^arx-node$'; then
@@ -429,9 +429,9 @@ arcium arx-active "$NODE_OFFSET" --rpc-url "$RPC_URL" || echo -e "${RED}⚠ arx-
 echo -e "${YELLOW}➡ docker logs (первые строки)...${NC}"
 docker logs --tail 30 arx-node || true
 
-echo -e "${YELLOW}➡ Проверяю порт 8080 (локальный healthcheck, если доступен)...${NC}"
-if curl -sSf http://127.0.0.1:8080/health >/dev/null 2>&1; then
-  echo -e "${GREEN}✅ Эндпоинт /health на 8080 отвечает.${NC}"
+echo -e "${YELLOW}➡ Проверяю порт 8088 (локальный healthcheck, если доступен)...${NC}"
+if curl -sSf http://127.0.0.1:8088/health >/dev/null 2>&1; then
+  echo -e "${GREEN}✅ Эндпоинт /health на 8088 отвечает.${NC}"
 else
   echo -e "${YELLOW}ℹ Не удалось получить /health. Возможно, нода ещё стартует или эндпоинт другой — смотри docker logs.${NC}"
 fi
