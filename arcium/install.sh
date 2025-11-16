@@ -31,7 +31,7 @@ source $HOME/.cargo/env
 sleep 3
 
 echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
-curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
+yes | sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev)"
 export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
 sleep 3
