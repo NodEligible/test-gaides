@@ -12,86 +12,75 @@ echo -e "${YELLOW}🔢 Генерация уникального Node Offset...$
 
 NODE_OFFSET=""
 attempt=0
-max_attempts=50  # увеличил чтобы наверняка
+max_attempts=10   # рестриктуємо 10 спроб, щоб не зависало
 
-while [ -z "$NODE_OFFSET" ] && [ $attempt -lt $max_attempts ]; do
+while [ $attempt -lt $max_attempts ]; do
   attempt=$((attempt + 1))
   CANDIDATE=$(shuf -i 10000000-99999999 -n 1)
 
-  echo -e "${YELLOW}➡ Пробую NODE_OFFSET=${CYAN}$CANDIDATE${YELLOW} (попытка $attempt)...${NC}"
+  echo -e "${YELLOW}➡ Проверка OFFSET=${CYAN}$CANDIDATE${YELLOW} (попытка $attempt/${max_attempts})...${NC}"
 
   OUTPUT=$(arcium arx-info "$CANDIDATE" --rpc-url "$RPC_URL" 2>&1)
   EXIT_CODE=$?
 
-  # --- RPC не отвечает ---
+  # --- RPC не отвечает --- считаем попытку, не зацикливаемся!
   if echo "$OUTPUT" | grep -qi "rpc" || [ $EXIT_CODE -ne 0 ]; then
-    echo -e "${YELLOW}⚠ RPC не отвечает, повторяю...${NC}"
-    sleep 1
+    echo -e "${RED}⚠ RPC ошибка, продолжаю...${NC}"
     continue
   fi
 
-  # --- Вильный Offset ---
+  # --- Свободный offset ---
   if echo "$OUTPUT" | grep -q "Error: Account info not found"; then
     NODE_OFFSET="$CANDIDATE"
+    echo -e "${GREEN}✅ Найден свободный NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
     break
   fi
 
-  # --- Зайнятий Offset ---
+  # --- Занятый offset ---
   if echo "$OUTPUT" | grep -q "Node authority"; then
-    echo -e "${RED}❌ Offset $CANDIDATE занят.${NC}"
+    echo -e "${RED}❌ Offset занят, пробую другой...${NC}"
     continue
   fi
 
-  # --- Непонятный ответ ---
-  echo -e "${YELLOW}⚠ Неизвестный ответ от arx-info, повтор...${NC}"
+  # --- Неизвестный ответ ---
+  echo -e "${YELLOW}⚠ Неизвестный ответ, продолжаю...${NC}"
   echo "$OUTPUT" | head -n 5
-  sleep 1
-
 done
 
-# Если автоматический подбор не нашел свободный OFFSET
+
+# === РУЧНОЙ РЕЖИМ ===
 if [ -z "$NODE_OFFSET" ]; then
-  echo -e "${RED}❌ Автоматически подобрать NODE_OFFSET не удалось.${NC}"
-  echo -e "${YELLOW}🔧 Переходим в ручной режим выбора OFFSET.${NC}"
+  echo -e "${RED}❌ Автоматически подобрать свободный OFFSET не удалось за $max_attempts попыток.${NC}"
+  echo -e "${YELLOW}🔧 Переход в ручной режим ввода OFFSET.${NC}"
 
   while true; do
-    read -r -p "$(echo -e "${YELLOW}➡ Введи 8-значный NODE_OFFSET вручную: ${NC}")" MANUAL_OFFSET
+    read -r -p "$(echo -e "${YELLOW}➡ Введите 8-значный NODE_OFFSET: ${NC}")" MANUAL_OFFSET
 
-    # Проверка что это число и что 8 цифр
     if [[ ! "$MANUAL_OFFSET" =~ ^[0-9]{8}$ ]]; then
-      echo -e "${RED}⚠ Неверный формат. Нужно ровно 8 цифр.${NC}"
+      echo -e "${RED}⚠ Неверный формат — нужно ровно 8 цифр.${NC}"
       continue
     fi
-
-    echo -e "${YELLOW}🔍 Проверяю OFFSET ${CYAN}$MANUAL_OFFSET${NC}..."
 
     OUTPUT=$(arcium arx-info "$MANUAL_OFFSET" --rpc-url "$RPC_URL" 2>&1)
-    EXIT_CODE=$?
 
-    # Ошибки RPC
-    if echo "$OUTPUT" | grep -qi "rpc" || [ $EXIT_CODE -ne 0 ]; then
-      echo -e "${RED}⚠ RPC недоступен. Попробуй снова.${NC}"
-      continue
-    fi
-
-    # Свободный OFFSET
+    # свободен
     if echo "$OUTPUT" | grep -q "Error: Account info not found"; then
       NODE_OFFSET="$MANUAL_OFFSET"
       echo -e "${GREEN}✅ OFFSET свободен и принят: ${CYAN}$NODE_OFFSET${NC}"
       break
     fi
 
-    # Занятый
+    # занят
     if echo "$OUTPUT" | grep -q "Node authority"; then
-      echo -e "${RED}❌ OFFSET занят. Попробуй другой.${NC}"
+      echo -e "${RED}❌ OFFSET занят, попробуйте другой.${NC}"
       continue
     fi
 
-    # Им неизвестный ответ
-    echo -e "${RED}⚠ Непредвиденный ответ, попробуй другой OFFSET:${NC}"
+    echo -e "${RED}⚠ Неизвестный ответ, попробуйте другой:${NC}"
     echo "$OUTPUT"
   done
 fi
 
-echo -e "${GREEN}✅ Использую NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+echo -e "${GREEN}✨ Итоговый NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+
 
