@@ -10,21 +10,31 @@ NC='\033[0m'
 echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
 sudo apt update && sudo apt upgrade -y
 
+sleep 3
+
 echo -e "${YELLOW}📦 Установка необходимых пакетов...${NC}"
 sudo apt install -y \
   curl wget git tmux htop unzip build-essential pkg-config \
   libssl-dev clang make jq
 
+sleep 3
+
 echo -e "${YELLOW}🐳 Установка Docker...${NC}"
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
+
+sleep 3
 
 echo -e "${YELLOW}🦀 Установка Rust...${NC}"
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 source $HOME/.cargo/env
 
+sleep 3
+
 echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
 curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
 export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+
+sleep 3
 
 echo -e "${GREEN}✅ Проверка версий...${NC}"
 solana --version
@@ -76,6 +86,8 @@ for cmd in solana docker arcium curl openssl; do
   require_cmd "$cmd"
 done
 echo -e "${GREEN}✅ Все необходимые инструменты найдены.${NC}"
+
+sleep 3
 
 # ---------- Шаг 2: рабочая директория ----------
 echo -e "${YELLOW}📁 Создаю рабочую директорию ноды...${NC}"
