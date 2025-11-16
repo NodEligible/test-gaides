@@ -205,60 +205,63 @@ sleep 3
 echo -e "${YELLOW}🔢 Генерация уникального Node Offset...${NC}"
 
 NODE_OFFSET=""
-if [ -f "$ENV_FILE" ]; then
-  NODE_OFFSET=$(grep -E '^NODE_OFFSET=' "$ENV_FILE" | tail -n1 | cut -d= -f2 | tr -d '"')
-fi
-
-sleep 2
-
-if [ -n "$NODE_OFFSET" ]; then
-  echo -e "${YELLOW}ℹ Найден NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
-  read -r -p "$(echo -e "${YELLOW}Использовать его? [Y/n]: ${NC}")" use_existing
-  if [[ "$use_existing" =~ ^[Nn]$ ]]; then
-    NODE_OFFSET=""
-  fi
-fi
-
 attempt=0
-max_attempts=20
+max_attempts=10
 
-while [ -z "$NODE_OFFSET" ] && [ $attempt -lt $max_attempts ]; do
+while [ $attempt -lt $max_attempts ]; do
   attempt=$((attempt + 1))
   CANDIDATE=$(shuf -i 10000000-99999999 -n 1)
-  echo -e "${YELLOW}➡ Пробую NODE_OFFSET=${CYAN}$CANDIDATE${YELLOW} (попытка $attempt)...${NC}"
+
+  echo -e "${YELLOW}➡ Проверка OFFSET=${CYAN}$CANDIDATE${YELLOW} (попытка $attempt/${max_attempts})...${NC}"
 
   OUTPUT=$(arcium arx-info "$CANDIDATE" --rpc-url "$RPC_URL" 2>&1)
   EXIT_CODE=$?
 
-  # RPC тупит / нет ответа
-  if echo "$OUTPUT" | grep -qi "rpc" || [ $EXIT_CODE -ne 0 ]; then
-    echo -e "${YELLOW}⚠ RPC не отвечает, повторяю попытку...${NC}"
-    sleep 2
-    continue
-  fi
-
-  # Offset свободен
-  if echo "$OUTPUT" | grep -q "account does not exist"; then
+  if echo "$OUTPUT" | grep -q "Error: Account info not found"; then
     NODE_OFFSET="$CANDIDATE"
+    echo -e "${GREEN}✅ Найден свободный NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
     break
   fi
 
-  # Offset занят
   if echo "$OUTPUT" | grep -q "Node authority"; then
-    echo -e "${RED}❌ Offset $CANDIDATE уже используется.${NC}"
+    echo -e "${RED}❌ Offset занят.${NC}"
     continue
   fi
 
-  # На всякий случай fallback
-  echo -e "${YELLOW}⚠ Неизвестный ответ, пробую заново...${NC}"
+  echo -e "${YELLOW}⚠ Неизвестный ответ:${NC}"
+  echo "$OUTPUT"
 done
 
 if [ -z "$NODE_OFFSET" ]; then
-  echo -e "${RED}❌ Не удалось подобрать свободный NODE_OFFSET.${NC}"
-  exit 1
+  echo -e "${RED}❌ Автоматически не нашли. Переход в ручной режим.${NC}"
+
+  while true; do
+    read -r -p "➡ Введите 8-значный OFFSET: " MANUAL_OFFSET
+
+    if [[ ! "$MANUAL_OFFSET" =~ ^[0-9]{8}$ ]]; then
+      echo -e "${RED}⚠ Неверный формат.${NC}"
+      continue
+    fi
+
+    OUTPUT=$(arcium arx-info "$MANUAL_OFFSET" --rpc-url "$RPC_URL" 2>&1)
+
+    if echo "$OUTPUT" | grep -q "Error: Account info not found"; then
+      NODE_OFFSET="$MANUAL_OFFSET"
+      echo -e "${GREEN}✔ OFFSET свободен: ${CYAN}$NODE_OFFSET${NC}"
+      break
+    fi
+
+    if echo "$OUTPUT" | grep -q "Node authority"; then
+      echo -e "${RED}❌ OFFSET занят.${NC}"
+      continue
+    fi
+
+    echo -e "${RED}⚠ Неизвестный ответ:${NC}"
+    echo "$OUTPUT"
+  done
 fi
 
-echo -e "${GREEN}✅ Найден свободный NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+echo -e "${GREEN}✨ Итоговый OFFSET: ${CYAN}$NODE_OFFSET${NC}"
 
 # ---------- Сохранение .env ----------
 echo -e "${YELLOW}🧾 Обновляю .env...${NC}"
