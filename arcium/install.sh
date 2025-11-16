@@ -44,6 +44,21 @@ docker --version
 
 echo -e "${GREEN}🎉 Подготовка завершена! Можно перейти к установке Arcium.${NC}"
 
+echo -e "${YELLOW}🧩 Установка Arcium Tooling...${NC}"
+
+curl --proto '=https' --tlsv1.2 -sSfL https://install.arcium.com/ | bash
+
+# Добавляем Arcium и Cargo в PATH
+export PATH="$HOME/.arcium/bin:$HOME/.cargo/bin:$PATH"
+echo 'export PATH="$HOME/.arcium/bin:$PATH"' >> ~/.bashrc
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+
+sleep 2
+
+echo -e "${GREEN}✅ Arcium CLI установлен.${NC}"
+arcium --version || echo -e "${RED}⚠ Arcium не найден после установки.${NC}"
+arcup --version || true
+
 # ---------- Общие переменные ----------
 WORKDIR="$HOME/arcium-node-setup"
 ENV_FILE="$WORKDIR/.env"
