@@ -134,15 +134,22 @@ if [ -f "$NODE_KP" ] || [ -f "$CALLBACK_KP" ] || [ -f "$IDENTITY_PEM" ]; then
   fi
 fi
 
+sleep 3
+
 if [ ! -f "$NODE_KP" ]; then
   echo -e "${YELLOW}➡ Генерирую node-keypair.json...${NC}"
   solana-keygen new --outfile "$NODE_KP" --no-bip39-passphrase
 fi
 
+sleep 3
+
 if [ ! -f "$CALLBACK_KP" ]; then
   echo -e "${YELLOW}➡ Генерирую callback-kp.json...${NC}"
   solana-keygen new --outfile "$CALLBACK_KP" --no-bip39-passphrase
 fi
+
+
+sleep 3
 
 if [ ! -f "$IDENTITY_PEM" ]; then
   echo -e "${YELLOW}➡ Генерирую identity.pem (Ed25519)...${NC}"
@@ -164,6 +171,8 @@ mkdir -p "$WORKDIR/backup_keys"
 cp "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$WORKDIR/backup_keys/" 2>/dev/null || true
 echo -e "${GREEN}✅ Бэкап в: ${CYAN}$WORKDIR/backup_keys${NC}"
 
+sleep 3
+
 # ---------- Шаг 4: Node Offset ----------
 echo -e "${YELLOW}🔢 Генерация уникального Node Offset...${NC}"
 
@@ -172,6 +181,8 @@ if [ -f "$ENV_FILE" ]; then
   # Попробуем прочитать существующий
   NODE_OFFSET=$(grep -E '^NODE_OFFSET=' "$ENV_FILE" | tail -n1 | cut -d= -f2 | tr -d '"')
 fi
+
+sleep 3
 
 if [ -n "$NODE_OFFSET" ]; then
   echo -e "${YELLOW}ℹ В .env уже найден NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
@@ -226,6 +237,8 @@ sed -i '/^CALLBACK_PUBKEY=/d' "$ENV_FILE" 2>/dev/null || true
 
 echo -e "${GREEN}✅ .env обновлён: ${CYAN}$ENV_FILE${NC}"
 
+sleep 3
+
 # ---------- Шаг 5: Airdrop Devnet SOL ----------
 echo -e "${YELLOW}💸 Airdrop Devnet SOL для аккаунтов ноды...${NC}"
 
@@ -239,7 +252,7 @@ airdrop_with_retry() {
     tries=$((tries + 1))
     echo -e "${YELLOW}➡ Airdrop для ${label} (${CYAN}$pubkey${YELLOW}), попытка $tries...${NC}"
     if solana airdrop 2 "$pubkey" -u devnet >/dev/null 2>&1; then
-      sleep 2
+      sleep 10
       BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
       if [ -n "$BAL" ]; then
         echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
@@ -259,6 +272,8 @@ airdrop_with_retry() {
 
 airdrop_with_retry "$NODE_PUBKEY" "Node Authority"
 airdrop_with_retry "$CALLBACK_PUBKEY" "Callback Authority"
+
+sleep 3
 
 # ---------- Шаг 6: init-arx-accs ----------
 echo -e "${YELLOW}🧩 On-chain инициализация аккаунтов ноды (init-arx-accs)...${NC}"
@@ -306,6 +321,8 @@ fi
 
 echo -e "${GREEN}✅ On-chain аккаунты ноды успешно инициализированы.${NC}"
 
+sleep 2
+
 # ---------- Шаг 7: node-config.toml ----------
 echo -e "${YELLOW}🧾 Генерация node-config.toml...${NC}"
 
@@ -327,6 +344,8 @@ commitment.commitment = "confirmed"
 EOF
 
 echo -e "${GREEN}✅ node-config.toml создан: ${CYAN}$CFG_FILE${NC}"
+
+sleep 3
 
 # ---------- Шаг 8: Кластер ----------
 echo -e "${YELLOW}🧬 Настройка кластера Arcium...${NC}"
@@ -381,6 +400,8 @@ case "$cluster_choice" in
     ;;
 esac
 
+sleep 3
+
 # ---------- Шаг 9: Docker запуск ----------
 echo -e "${YELLOW}🐳 Запуск ARX-ноды в Docker...${NC}"
 
@@ -396,6 +417,8 @@ fi
 
 echo -e "${YELLOW}📦 Подтягиваю образ arcium/arx-node (если не скачан)...${NC}"
 docker pull arcium/arx-node
+
+sleep 3
 
 echo -e "${YELLOW}🚀 Запускаю контейнер arx-node...${NC}"
 
@@ -439,7 +462,7 @@ echo -e "${YELLOW}➡ arcium arx-active ${NODE_OFFSET}${NC}"
 arcium arx-active "$NODE_OFFSET" --rpc-url "$RPC_URL" || echo -e "${RED}⚠ arx-active вернул ошибку, проверь выше.${NC}"
 
 echo -e "${YELLOW}➡ docker logs (первые строки)...${NC}"
-docker logs --tail 30 arx-node || true
+docker logs --tail 100 arx-node || true
 
 echo -e "${YELLOW}➡ Проверяю порт 8088 (локальный healthcheck, если доступен)...${NC}"
 if curl -sSf http://127.0.0.1:8088/health >/dev/null 2>&1; then
