@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "--- Removing Arcium ---"
 
 # Remove arcup binary
