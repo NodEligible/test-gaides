@@ -137,57 +137,67 @@ echo -e "${GREEN}✅ WSS:  ${CYAN}$WSS_URL${NC}"
 # ---------- Шаг 3: генерация ключей ----------
 echo -e "${YELLOW}🔐 Генерация ключей ноды...${NC}"
 
-if [ -f "$NODE_KP" ] || [ -f "$CALLBACK_KP" ] || [ -f "$IDENTITY_PEM" ]; then
-  echo -e "${RED}⚠ Внимание: ключевые файлы уже существуют в $WORKDIR:${NC}"
-  ls -1 node-keypair.json callback-kp.json identity.pem 2>/dev/null || true
-  read -r -p "$(echo -e "${YELLOW}Использовать существующие ключи? [y/N]: ${NC}")" reuse_keys
-  if [[ ! "$reuse_keys" =~ ^[Yy]$ ]]; then
+BACKUP_DIR="/root/arcium_backup"
+mkdir -p "$BACKUP_DIR"
+
+# Проверяем существующие ключи (как в рабочей папке, так и в backup)
+EXISTING_KEYS=0
+for f in "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" \
+         "$BACKUP_DIR/node-keypair.json" "$BACKUP_DIR/callback-kp.json" "$BACKUP_DIR/identity.pem"; do
+  if [ -f "$f" ]; then
+    EXISTING_KEYS=1
+    break
+  fi
+done
+
+if [ "$EXISTING_KEYS" -eq 1 ]; then
+  echo -e "${RED}⚠ Найдены существующие ключи:${NC}"
+
+  # Показываем из рабочей папки
+  ls -1 "$WORKDIR"/node-keypair.json "$WORKDIR"/callback-kp.json "$WORKDIR"/identity.pem 2>/dev/null || true
+
+  # Показываем из backup
+  echo -e "${YELLOW}📁 Также есть бекапы ключей в: ${CYAN}$BACKUP_DIR${NC}"
+  ls -1 "$BACKUP_DIR"/*.json "$BACKUP_DIR"/*.pem 2>/dev/null || true
+
+  read -r -p "$(echo -e "${YELLOW}Использовать существующие ключи из бекапа? [Y/n]: ${NC}")" reuse_keys
+  if [[ "$reuse_keys" =~ ^[Nn]$ ]]; then
     echo -e "${YELLOW}♻ Удаляю старые ключи и создаю новые...${NC}"
+
     rm -f "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$NODE_PUB_FILE" "$CALLBACK_PUB_FILE"
+    rm -f "$BACKUP_DIR"/node-keypair.json "$BACKUP_DIR"/callback-kp.json "$BACKUP_DIR"/identity.pem
   else
-    echo -e "${GREEN}✅ Используем уже существующие ключи.${NC}"
+    echo -e "${GREEN}✅ Используем существующие ключи из бекапа.${NC}"
+
+    # Если в backup есть нужные файлы — копируем обратно в воркдир
+    [ -f "$BACKUP_DIR/node-keypair.json" ] && cp "$BACKUP_DIR/node-keypair.json" "$NODE_KP"
+    [ -f "$BACKUP_DIR/callback-kp.json" ] && cp "$BACKUP_DIR/callback-kp.json" "$CALLBACK_KP"
+    [ -f "$BACKUP_DIR/identity.pem" ] && cp "$BACKUP_DIR/identity.pem" "$IDENTITY_PEM"
   fi
 fi
 
-sleep 3
-
-if [ ! -f "$NODE_KP" ]; then
+# Генерация новых ключей (если не найдены)
+[ ! -f "$NODE_KP" ] && {
   echo -e "${YELLOW}➡ Генерирую node-keypair.json...${NC}"
   solana-keygen new --outfile "$NODE_KP" --no-bip39-passphrase
-fi
+}
 
-sleep 3
-
-if [ ! -f "$CALLBACK_KP" ]; then
+[ ! -f "$CALLBACK_KP" ] && {
   echo -e "${YELLOW}➡ Генерирую callback-kp.json...${NC}"
   solana-keygen new --outfile "$CALLBACK_KP" --no-bip39-passphrase
-fi
+}
 
-
-sleep 3
-
-if [ ! -f "$IDENTITY_PEM" ]; then
+[ ! -f "$IDENTITY_PEM" ] && {
   echo -e "${YELLOW}➡ Генерирую identity.pem (Ed25519)...${NC}"
   openssl genpkey -algorithm Ed25519 -out "$IDENTITY_PEM"
-fi
+}
 
-echo -e "${YELLOW}📄 Сохраняю публичные ключи...${NC}"
-solana address --keypair "$NODE_KP" > "$NODE_PUB_FILE"
-solana address --keypair "$CALLBACK_KP" > "$CALLBACK_PUB_FILE"
-
-NODE_PUBKEY=$(cat "$NODE_PUB_FILE")
-CALLBACK_PUBKEY=$(cat "$CALLBACK_PUB_FILE")
-
-echo -e "${GREEN}✅ Публичный ключ ноды:      ${CYAN}$NODE_PUBKEY${NC}"
-echo -e "${GREEN}✅ Публичный ключ callback:  ${CYAN}$CALLBACK_PUBKEY${NC}"
-
-echo -e "${YELLOW}📦 Делаю простой бэкап ключей...${NC}"
-BACKUP_DIR="/root/backup_keys"
-mkdir -p "$BACKUP_DIR"
-
+# Бекап ключей в новую директорию
+echo -e "${YELLOW}📦 Создаю бекап ключей...${NC}"
 cp "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$BACKUP_DIR/" 2>/dev/null || true
+chmod 600 "$BACKUP_DIR"/* 2>/dev/null || true
 
-echo -e "${GREEN}✅ Бэкап сохранён в: ${CYAN}$BACKUP_DIR${NC}"
+echo -e "${GREEN}✅ Бекап сохранён в: ${CYAN}$BACKUP_DIR${NC}"
 
 sleep 3
 
