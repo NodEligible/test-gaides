@@ -193,43 +193,59 @@ echo -e "${YELLOW}🔢 Генерация уникального Node Offset...$
 
 NODE_OFFSET=""
 if [ -f "$ENV_FILE" ]; then
-  # Попробуем прочитать существующий
   NODE_OFFSET=$(grep -E '^NODE_OFFSET=' "$ENV_FILE" | tail -n1 | cut -d= -f2 | tr -d '"')
 fi
 
-sleep 3
+sleep 2
 
 if [ -n "$NODE_OFFSET" ]; then
-  echo -e "${YELLOW}ℹ В .env уже найден NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
-  read -r -p "$(echo -e "${YELLOW}Использовать его? [Y/n]: ${NC}")" use_existing_offset
-  if [[ "$use_existing_offset" =~ ^[Nn]$ ]]; then
+  echo -e "${YELLOW}ℹ Найден NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+  read -r -p "$(echo -e "${YELLOW}Использовать его? [Y/n]: ${NC}")" use_existing
+  if [[ "$use_existing" =~ ^[Nn]$ ]]; then
     NODE_OFFSET=""
   fi
 fi
 
 attempt=0
-max_attempts=10
+max_attempts=20
 
 while [ -z "$NODE_OFFSET" ] && [ $attempt -lt $max_attempts ]; do
   attempt=$((attempt + 1))
   CANDIDATE=$(shuf -i 10000000-99999999 -n 1)
-  echo -e "${YELLOW}➡ Пробую NODE_OFFSET=${CYAN}$CANDIDATE${NC} (попытка $attempt)..."
+  echo -e "${YELLOW}➡ Пробую NODE_OFFSET=${CYAN}$CANDIDATE${YELLOW} (попытка $attempt)...${NC}"
 
-  # Если arcium arx-info завершился с кодом 0 — offset занят
-  # Если не 0 — считаем, что свободен (или RPC тупит — но другого метода нет)
-  if arcium arx-info "$CANDIDATE" --rpc-url "$RPC_URL" >/dev/null 2>&1; then
-    echo -e "${RED}❌ Offset $CANDIDATE уже используется. Пробую другой...${NC}"
-  else
-    NODE_OFFSET="$CANDIDATE"
+  OUTPUT=$(arcium arx-info "$CANDIDATE" --rpc-url "$RPC_URL" 2>&1)
+  EXIT_CODE=$?
+
+  # RPC тупит / нет ответа
+  if echo "$OUTPUT" | grep -qi "rpc" || [ $EXIT_CODE -ne 0 ]; then
+    echo -e "${YELLOW}⚠ RPC не отвечает, повторяю попытку...${NC}"
+    sleep 2
+    continue
   fi
+
+  # Offset свободен
+  if echo "$OUTPUT" | grep -q "account does not exist"; then
+    NODE_OFFSET="$CANDIDATE"
+    break
+  fi
+
+  # Offset занят
+  if echo "$OUTPUT" | grep -q "Node authority"; then
+    echo -e "${RED}❌ Offset $CANDIDATE уже используется.${NC}"
+    continue
+  fi
+
+  # На всякий случай fallback
+  echo -e "${YELLOW}⚠ Неизвестный ответ, пробую заново...${NC}"
 done
 
 if [ -z "$NODE_OFFSET" ]; then
-  echo -e "${RED}❌ Не удалось подобрать свободный NODE_OFFSET. Попробуй позже или вручную.${NC}"
+  echo -e "${RED}❌ Не удалось подобрать свободный NODE_OFFSET.${NC}"
   exit 1
 fi
 
-echo -e "${GREEN}✅ Выбран NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
+echo -e "${GREEN}✅ Найден свободный NODE_OFFSET=${CYAN}$NODE_OFFSET${NC}"
 
 # ---------- Сохранение .env ----------
 echo -e "${YELLOW}🧾 Обновляю .env...${NC}"
