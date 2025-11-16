@@ -182,9 +182,12 @@ echo -e "${GREEN}✅ Публичный ключ ноды:      ${CYAN}$NODE_PUB
 echo -e "${GREEN}✅ Публичный ключ callback:  ${CYAN}$CALLBACK_PUBKEY${NC}"
 
 echo -e "${YELLOW}📦 Делаю простой бэкап ключей...${NC}"
-mkdir -p "$WORKDIR/backup_keys"
-cp "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$WORKDIR/backup_keys/" 2>/dev/null || true
-echo -e "${GREEN}✅ Бэкап в: ${CYAN}$WORKDIR/backup_keys${NC}"
+BACKUP_DIR="/root/backup_keys"
+mkdir -p "$BACKUP_DIR"
+
+cp "$NODE_KP" "$CALLBACK_KP" "$IDENTITY_PEM" "$BACKUP_DIR/" 2>/dev/null || true
+
+echo -e "${GREEN}✅ Бэкап сохранён в: ${CYAN}$BACKUP_DIR${NC}"
 
 sleep 3
 
