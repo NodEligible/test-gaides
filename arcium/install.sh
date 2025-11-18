@@ -7,6 +7,20 @@ BLUE='\033[38;5;81m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+echo -e "${YELLOW}🔓 Открываю порт 8088/tcp...${NC}"
+
+# --- UFW ---
+if command -v ufw >/dev/null 2>&1; then
+  ufw allow 8088/tcp >/dev/null 2>&1
+fi
+
+# --- iptables ---
+if command -v iptables >/dev/null 2>&1; then
+  iptables -A INPUT -p tcp --dport 8088 -j ACCEPT 2>/dev/null
+fi
+
+echo -e "${GREEN}✔ Порт 8088 открыт${NC}"
+
 echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
 sudo apt update && sudo apt upgrade -y
 
@@ -109,6 +123,9 @@ echo -e "${YELLOW}📁 Создаю рабочую директорию ноды
 mkdir -p "$WORKDIR"
 cd "$WORKDIR" || { echo -e "${RED}❌ Не удалось перейти в $WORKDIR${NC}"; exit 1; }
 echo -e "${GREEN}✅ Рабочая папка: ${CYAN}$WORKDIR${NC}"
+
+# ---------- даем права ----------
+chmod 700 /root/arcium-node-setup
 
 # ---------- Загрузка/выбор RPC ----------
 echo -e "${YELLOW}🌐 Настройка RPC для Solana Devnet...${NC}"
