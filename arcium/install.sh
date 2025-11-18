@@ -73,6 +73,11 @@ echo -e "${GREEN}✅ Arcium CLI установлен.${NC}"
 arcium --version || echo -e "${RED}⚠ Arcium не найден после установки.${NC}"
 arcup --version || true
 
+
+# ---------- Для бекапа ----------
+SOURCE_DIR="$HOME/arcium-node-setup"
+BACKUP_DIR="$HOME/arcium-backup"
+
 # ---------- Общие переменные ----------
 WORKDIR="$HOME/arcium-node-setup"
 ENV_FILE="$WORKDIR/.env"
@@ -492,6 +497,38 @@ if ! docker ps --format '{{.Names}}' | grep -q '^arx-node$'; then
 fi
 
 echo -e "${GREEN}✅ Контейнер arx-node запущен.${NC}"
+
+# ---------- Делаем бекап файлов ----------
+echo -e "${YELLOW}🔍 Проверка директории ноды...${NC}"
+if [ ! -d "$SOURCE_DIR" ]; then
+  echo -e "${RED}❌ Ошибка: директория $SOURCE_DIR не найдена.${NC}"
+  exit 1
+fi
+
+echo -e "${YELLOW}📦 Пересоздаю папку бекапа...${NC}"
+rm -rf "$BACKUP_DIR"
+mkdir -p "$BACKUP_DIR"
+
+FILES=(
+  "identity.pem"
+  "node-keypair.json"
+  "callback-kp.json"
+  ".env"
+  "node-config.toml"
+)
+
+echo -e "${YELLOW}📁 Копирую файлы...${NC}"
+for FILE in "${FILES[@]}"; do
+  if [ -f "$SOURCE_DIR/$FILE" ]; then
+    cp "$SOURCE_DIR/$FILE" "$BACKUP_DIR/"
+    echo -e "  ➕ $FILE"
+  else
+    echo -e "  ⚠️ Файл отсутствует: $FILE"
+  fi
+done
+
+echo -e "${GREEN}✅ Бекап завершен!"
+echo -e "${GREEN}📁 Файлы сохранены в: $BACKUP_DIR${NC}"
 
 # ---------- alias для логов ----------
 if ! grep -q 'arcium-logs' "$HOME/.bashrc" 2>/dev/null; then
