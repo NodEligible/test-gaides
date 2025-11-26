@@ -8,6 +8,9 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${YELLOW}Установка дополнительных програм скрыта, просто ждите...${NC}"
+
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/nodejs.sh) &>/dev/null
+
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/main.sh) &>/dev/null
 
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/ufw.sh) &>/dev/null
@@ -97,7 +100,7 @@ set -euo pipefail
 ROOT=$PWD
 
 # GenRL Swarm version to use
-GENRL_TAG="v0.1.1"
+GENRL_TAG="0.1.11"
 
 export IDENTITY_PATH
 export GENSYN_RESET_CONFIG
@@ -105,7 +108,9 @@ export CONNECT_TO_TESTNET=true
 export ORG_ID
 export HF_HUB_DOWNLOAD_TIMEOUT=120  # 2 minutes
 export SWARM_CONTRACT="0xFaD7C5e93f28257429569B854151A1B8DCD404c2"
+export PRG_CONTRACT="0x51D4db531ae706a6eC732458825465058fA23a35"
 export HUGGINGFACE_ACCESS_TOKEN="None"
+export PRG_GAME=true
 
 # Path to an RSA private key. If this path does not exist, a new key pair will be created.
 # Remove this file if you want a new PeerID.
@@ -155,7 +160,7 @@ echo_red() {
 ROOT_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 
 errnotify() {
-    echo_red ">> При запуске rl-swarm обнаружена ошибка. См. $ROOT/журналы для полных журналов."
+    echo_red ">> An error was detected while running rl-swarm. See $ROOT/logs for full logs."
 }
 
 trap errnotify ERR
@@ -177,13 +182,13 @@ mkdir -p "$ROOT/logs"
 
 if [ "$CONNECT_TO_TESTNET" = true ]; then
     # Run modal_login server.
-    echo "Пожалуйста, войдите в систему, чтобы создать кошелек на сервере Ethereum."
+    echo "Please login to create an Ethereum Server Wallet"
     cd modal-login
     # Check if the yarn command exists; if not, install Yarn.
 
     # Node.js + NVM setup
     if ! command -v node > /dev/null 2>&1; then
-        echo "Node.js Не найдено. Установка NVM и последней версии Node.js..."
+        echo "Node.js not found. Installing NVM and latest Node.js..."
         export NVM_DIR="$HOME/.nvm"
         if [ ! -d "$NVM_DIR" ]; then
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -192,18 +197,18 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
         [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
         nvm install node &>/dev/null
     else
-        echo "Node.js уже установлен: $(node -v)"
+        echo "Node.js is already installed: $(node -v)"
     fi
 
     if ! command -v yarn > /dev/null 2>&1; then
         # Detect Ubuntu (including WSL Ubuntu) and install Yarn accordingly
         if grep -qi "ubuntu" /etc/os-release 2> /dev/null || uname -r | grep -qi "microsoft"; then
-            echo "Обнаружен Ubuntu или WSL Ubuntu. Установка Yarn через apt..."
+            echo "Detected Ubuntu or WSL Ubuntu. Installing Yarn via apt..."
             curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
             echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
             sudo apt install -y yarn > /dev/null 2>&1
         else
-            echo "Yarn не найден. Глобальная установка Yarn с помощью npm (без редактирования профиля)…"
+            echo "Yarn not found. Installing Yarn globally with npm (no profile edits)…"
             # This lands in $NVM_DIR/versions/node/<ver>/bin which is already on PATH
             npm install -g --silent yarn
         fi
@@ -212,16 +217,18 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
     ENV_FILE="$ROOT"/modal-login/.env
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS version
-        sed -i '' "3s/.*/SMART_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+        sed -i '' "3s/.*/SWARM_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+        sed -i '' "4s/.*/PRG_CONTRACT_ADDRESS=$PRG_CONTRACT/" "$ENV_FILE"
     else
         # Linux version
-        sed -i "3s/.*/SMART_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+        sed -i "3s/.*/SWARM_CONTRACT_ADDRESS=$SWARM_CONTRACT/" "$ENV_FILE"
+        sed -i "4s/.*/PRG_CONTRACT_ADDRESS=$PRG_CONTRACT/" "$ENV_FILE"
     fi
 
 
     # Docker image already builds it, no need to again.
     if [ -z "$DOCKER" ]; then
-        yarn install --immutable --silent
+        yarn install --immutable --silent > /dev/null 2>&1
         echo "Building server"
         yarn build > "$ROOT/logs/yarn.log" 2>&1
     fi
@@ -243,14 +250,14 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
     echo "Your ORG_ID is set to: $ORG_ID"
 
     # Wait until the API key is activated by the client
-    echo "Ожидание активации ключа API..."
+    echo "Waiting for API key to become activated..."
     while true; do
         STATUS=$(curl -s "http://localhost:3000/api/get-api-key-status?orgId=$ORG_ID")
         if [[ "$STATUS" == "activated" ]]; then
-            echo "API-ключ активирован! Продолжаем!..."
+            echo "API key is activated! Proceeding..."
             break
         else
-            echo "Ожидание активации ключа API..."
+            echo "Waiting for API key to be activated..."
             sleep 5
         fi
     done
@@ -264,9 +271,11 @@ echo_green ">> Ставим библиотеки с помощью pip..."
 pip install --upgrade pip &>/dev/null
 
 # echo_green ">> Installing GenRL..."
-pip install gensyn-genrl==0.1.4
+#pip install "trl<0.20.0"
+echo_green ">> Installing GenRL..."
+pip install gensyn-genrl==${GENRL_TAG}
 pip install reasoning-gym>=0.1.20 # for reasoning gym env
-pip install trl # for grpo config, will be deprecated soon
+#pip install trl # for grpo config, will be deprecated soon
 pip install hivemind@git+https://github.com/gensyn-ai/hivemind@639c964a8019de63135a2594663b5bec8e5356dd # We need the latest, 1.1.11 is broken
 
 
@@ -277,9 +286,9 @@ if [ -f "$ROOT/configs/rg-swarm.yaml" ]; then
     # Use cmp -s for a silent comparison. If different, backup and copy.
     if ! cmp -s "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"; then
         if [ -z "$GENSYN_RESET_CONFIG" ]; then
-            echo_green ">> Найдены различия в файле rg-swarm.yaml. Если вы хотите восстановить настройки по умолчанию, задайте для параметра GENSYN_RESET_CONFIG непустое значение.."
+            echo_green ">> Found differences in rg-swarm.yaml. If you would like to reset to the default, set GENSYN_RESET_CONFIG to a non-empty value."
         else
-            echo_green ">> Найдены различия в rg-swarm.yaml. Резервное копирование существующей конфигурации."
+            echo_green ">> Found differences in rg-swarm.yaml. Backing up existing config."
             mv "$ROOT/configs/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml.bak"
             cp "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"
         fi
@@ -296,34 +305,39 @@ fi
 
 echo_green ">> Done!"
 
-HF_TOKEN=${HF_TOKEN:-""}
-if [ -n "${HF_TOKEN}" ]; then # Check if HF_TOKEN is already set and use if so. Else give user a prompt to choose.
-    HUGGINGFACE_ACCESS_TOKEN=${HF_TOKEN}
-else
-    echo -en $GREEN_TEXT
-    read -p ">> Хотите ли вы перенести модели, которые вы обучаете в RL-рое, в Hugging Face Hub? [y/N] " yn
-    echo -en $RESET_TEXT
-    yn=${yn:-N} # Default to "N" if the user presses Enter
-    case $yn in
-        [Yy]*) read -p "Введите свой токен доступа Hugging Face: " HUGGINGFACE_ACCESS_TOKEN ;;
-        [Nn]*) HUGGINGFACE_ACCESS_TOKEN="None" ;;
-        *) echo ">>> Ответ не был дан, поэтому НИ ОДНА модель не будет отправлена в Hugging Face Hub." && HUGGINGFACE_ACCESS_TOKEN="None" ;;
-    esac
-fi
+echo -en $GREEN_TEXT
+read -p ">> Would you like to push models you train in the RL swarm to the Hugging Face Hub? [y/N] " yn
+echo -en $RESET_TEXT
+yn=${yn:-N} # Default to "N" if the user presses Enter
+case $yn in
+    [Yy]*) read -p "Enter your Hugging Face access token: " HUGGINGFACE_ACCESS_TOKEN ;;
+    [Nn]*) HUGGINGFACE_ACCESS_TOKEN="None" ;;
+    *) echo ">>> No answer was given, so NO models will be pushed to Hugging Face Hub" && HUGGINGFACE_ACCESS_TOKEN="None" ;;
+esac
 
 echo -en $GREEN_TEXT
-read -p ">> Введите имя модели, которую вы хотите использовать, в формате huggingface repo/name или нажмите [Enter], чтобы использовать модель по умолчанию. " MODEL_NAME
+read -p ">> Enter the name of the model you want to use in huggingface repo/name format, or press [Enter] to use the default model. " MODEL_NAME
 echo -en $RESET_TEXT
 
 # Only export MODEL_NAME if user provided a non-empty value
 if [ -n "$MODEL_NAME" ]; then
     export MODEL_NAME
-    echo_green ">> Использование модели: $MODEL_NAME"
+    echo_green ">> Using model: $MODEL_NAME"
 else
-    echo_green ">>Использование модели по умолчанию из конфигурации"
+    echo_green ">> Using default model from config"
 fi
 
-echo_green ">> Удачи в рое!"
+echo -en $GREEN_TEXT
+read -p ">> Would you like your model to participate in the AI Prediction Market? [Y/n] " yn
+if [ "$yn" = "n" ] || [ "$yn" = "N" ]; then
+    PRG_GAME=false
+    echo_green ">> Playing PRG game: false"
+else
+    echo_green ">> Playing PRG game: true"
+fi
+echo -en $RESET_TEXT
+
+echo_green ">> Good luck in the swarm!"
 # end official script part
 
 # делаем скрипт для будущего systemd сервиса
@@ -401,6 +415,7 @@ Restart=always
 RestartSec=5
 StandardOutput=append:$LOG_FILE
 StandardError=append:$ERROR_LOG_FILE
+LimitNOFILE=65535
 
 [Install]
 WantedBy=multi-user.target
@@ -414,5 +429,5 @@ sudo systemctl start gensyn.service
 sleep 10
 [ -f "$ROOT/swarm.pem" ] && cp "$ROOT/swarm.pem" "/root/swarm.pem.backup"
 
-echo "systemd сервис создан и запущен."
 echo -e "${GREEN}Установка завершена.${NC}"
+echo "Смотреть логи можно командой: tail -n 100 -f $ERROR_LOG_FILE"
