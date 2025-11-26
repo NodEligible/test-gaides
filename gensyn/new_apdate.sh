@@ -270,7 +270,6 @@ fi
 echo_green ">> Ставим библиотеки с помощью pip..."
 pip install --upgrade pip &>/dev/null
 
-
 #-------------------------------------------------------------------------------------------------------
 # Ollama already running as part of the docker compose file
 if [ -z "$DOCKER" ]; then
