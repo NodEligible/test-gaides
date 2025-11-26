@@ -327,6 +327,14 @@ else
     echo_green ">> Using default model from config"
 fi
 
+#logout to prevent weird env issues, if it fails unset and try again
+if ! hf auth logout > /dev/null 2>&1; then
+    unset HF_TOKEN
+    unset HUGGING_FACE_HUB_TOKEN
+    # if it fails a second time, report stderr
+    hf auth logout > /dev/null 2>&1
+fi
+
 echo -en $GREEN_TEXT
 read -p ">> Would you like your model to participate in the AI Prediction Market? [Y/n] " yn
 if [ "$yn" = "n" ] || [ "$yn" = "N" ]; then
