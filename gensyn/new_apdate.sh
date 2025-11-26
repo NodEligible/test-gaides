@@ -270,11 +270,8 @@ fi
 echo_green ">> Ставим библиотеки с помощью pip..."
 pip install --upgrade pip &>/dev/null
 
-# echo_green ">> Installing GenRL..."
-#pip install "trl<0.20.0"
-#-------------------------------------------------------------------------------------------------------
-echo_green ">> Installing GenRL..."
 
+#-------------------------------------------------------------------------------------------------------
 # Ollama already running as part of the docker compose file
 if [ -z "$DOCKER" ]; then
     echo_green ">> Installing Ollama requires 'sudo' privileges. As an alternative, please use the Docker installation path as described in README.md"
