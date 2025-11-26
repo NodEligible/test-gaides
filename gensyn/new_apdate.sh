@@ -363,9 +363,42 @@ echo -en $RESET_TEXT
 echo_green ">> Good luck in the swarm!"
 echo_blue ">> And remember to star the repo on GitHub! --> https://github.com/gensyn-ai/rl-swarm"
 
+# делаем скрипт для systemd сервиса
+OUTPUT_SCRIPT="$ROOT/gensyn_service.sh"
+
+cat <<EOF > "$OUTPUT_SCRIPT"
+#!/bin/bash
+
+ROOT="$ROOT"
+cd "\$ROOT" || exit 1
+
+source /root/.profile
+source .venv/bin/activate
+
+export IDENTITY_PATH
+export GENSYN_RESET_CONFIG
+export CONNECT_TO_TESTNET=true
+export ORG_ID
+export HF_HUB_DOWNLOAD_TIMEOUT=120
+export SWARM_CONTRACT="0xFaD7C5e93f28257429569B854151A1B8DCD404c2"
+export HUGGINGFACE_ACCESS_TOKEN="None"
+
+DEFAULT_IDENTITY_PATH="\$ROOT/swarm.pem"
+IDENTITY_PATH=\${IDENTITY_PATH:-\$DEFAULT_IDENTITY_PATH}
+
+GENSYN_RESET_CONFIG=\${GENSYN_RESET_CONFIG:-""}
+ORG_ID=\$(awk 'BEGIN { FS = "\"" } !/^[ \t]*[{}]/ { print \$(NF - 1); exit }' modal-login/temp-data/userData.json)
+
+pkill next-server
+
+cd modal-login
+yarn start >> "\$ROOT/logs/yarn.log" 2>&1 &
+
+cd ..
+
 python -m code_gen_exp.runner.swarm_launcher \
-    --config-path "$ROOT/code_gen_exp/config" \
-    --config-name "code-gen-swarm.yaml" 
+    --config-path "\$ROOT/code_gen_exp/config" \
+    --config-name "code-gen-swarm.yaml"
 
 wait
 EOF
