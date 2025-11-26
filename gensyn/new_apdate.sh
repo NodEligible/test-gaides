@@ -272,30 +272,53 @@ pip install --upgrade pip &>/dev/null
 
 # echo_green ">> Installing GenRL..."
 #pip install "trl<0.20.0"
+#-------------------------------------------------------------------------------------------------------
 echo_green ">> Installing GenRL..."
-pip install gensyn-genrl==${GENRL_TAG}
-pip install reasoning-gym>=0.1.20 # for reasoning gym env
-#pip install trl # for grpo config, will be deprecated soon
-pip install hivemind@git+https://github.com/gensyn-ai/hivemind@639c964a8019de63135a2594663b5bec8e5356dd # We need the latest, 1.1.11 is broken
 
+# Ollama already running as part of the docker compose file
+if [ -z "$DOCKER" ]; then
+    echo_green ">> Installing Ollama requires 'sudo' privileges. As an alternative, please use the Docker installation path as described in README.md"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # Install brew if not already installed
+        if ! command -v brew > /dev/null 2>&1; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
+        # Install ollama if not already installed
+        if ! command -v ollama > /dev/null 2>&1; then
+            brew install ollama
+        fi
+    else
+        # Install ollama if not already installed
+        if ! command -v ollama > /dev/null 2>&1; then
+            curl -fsSL https://ollama.com/install.sh | sh -s -- -y
+        fi
+    fi
+    # Start ollama server if not already running, check by running ollama list
+    if ! ollama list > /dev/null 2>&1; then
+        echo ">> Starting ollama server..."
+        nohup ollama serve > /tmp/ollama.log 2>&1 &
+    fi
+fi
+
+pip install -r code_gen_exp/requirements.txt
 
 if [ ! -d "$ROOT/configs" ]; then
     mkdir "$ROOT/configs"
 fi  
-if [ -f "$ROOT/configs/rg-swarm.yaml" ]; then
+if [ -f "$ROOT/configs/code-gen-swarm.yaml" ]; then
     # Use cmp -s for a silent comparison. If different, backup and copy.
-    if ! cmp -s "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"; then
+    if ! cmp -s "$ROOT/code_gen_exp/config/code-gen-swarm.yaml" "$ROOT/configs/code-gen-swarm.yaml"; then
         if [ -z "$GENSYN_RESET_CONFIG" ]; then
-            echo_green ">> Found differences in rg-swarm.yaml. If you would like to reset to the default, set GENSYN_RESET_CONFIG to a non-empty value."
+            echo_green ">> Found differences in code-gen-swarm.yaml. If you would like to reset to the default, set GENSYN_RESET_CONFIG to a non-empty value."
         else
-            echo_green ">> Found differences in rg-swarm.yaml. Backing up existing config."
-            mv "$ROOT/configs/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml.bak"
-            cp "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"
+            echo_green ">> Found differences in code-gen-swarm.yaml. Backing up existing config."
+            mv "$ROOT/configs/code-gen-swarm.yaml" "$ROOT/configs/code-gen-swarm.yaml.bak"
+            cp "$ROOT/code_gen_exp/config/code-gen-swarm.yaml" "$ROOT/configs/code-gen-swarm.yaml"
         fi
     fi
 else
     # If the config doesn't exist, just copy it.
-    cp "$ROOT/rgym_exp/config/rg-swarm.yaml" "$ROOT/configs/rg-swarm.yaml"
+    cp "$ROOT/code_gen_exp/config/code-gen-swarm.yaml" "$ROOT/configs/code-gen-swarm.yaml"
 fi
 
 if [ -n "$DOCKER" ]; then
@@ -304,6 +327,7 @@ if [ -n "$DOCKER" ]; then
 fi
 
 echo_green ">> Done!"
+
 
 echo -en $GREEN_TEXT
 read -p ">> Would you like to push models you train in the RL swarm to the Hugging Face Hub? [y/N] " yn
@@ -314,6 +338,7 @@ case $yn in
     [Nn]*) HUGGINGFACE_ACCESS_TOKEN="None" ;;
     *) echo ">>> No answer was given, so NO models will be pushed to Hugging Face Hub" && HUGGINGFACE_ACCESS_TOKEN="None" ;;
 esac
+
 
 echo -en $GREEN_TEXT
 read -p ">> Enter the name of the model you want to use in huggingface repo/name format, or press [Enter] to use the default model. " MODEL_NAME
@@ -326,7 +351,6 @@ if [ -n "$MODEL_NAME" ]; then
 else
     echo_green ">> Using default model from config"
 fi
-
 #logout to prevent weird env issues, if it fails unset and try again
 if ! hf auth logout > /dev/null 2>&1; then
     unset HF_TOKEN
@@ -335,58 +359,17 @@ if ! hf auth logout > /dev/null 2>&1; then
     hf auth logout > /dev/null 2>&1
 fi
 
-echo -en $GREEN_TEXT
-read -p ">> Would you like your model to participate in the AI Prediction Market? [Y/n] " yn
-if [ "$yn" = "n" ] || [ "$yn" = "N" ]; then
-    PRG_GAME=false
-    echo_green ">> Playing PRG game: false"
-else
-    echo_green ">> Playing PRG game: true"
-fi
 echo -en $RESET_TEXT
-
 echo_green ">> Good luck in the swarm!"
-# end official script part
+echo_blue ">> And remember to star the repo on GitHub! --> https://github.com/gensyn-ai/rl-swarm"
 
-# делаем скрипт для будущего systemd сервиса
-OUTPUT_SCRIPT="$ROOT/gensyn_service.sh"
-
-cat <<EOF > "$OUTPUT_SCRIPT"
-#!/bin/bash
-
-# Set working directory
-ROOT="$ROOT"
-cd "\$ROOT" || exit 1
-
-source /root/.profile
-source .venv/bin/activate
-
-export IDENTITY_PATH
-export GENSYN_RESET_CONFIG
-export CONNECT_TO_TESTNET=true
-export ORG_ID
-export HF_HUB_DOWNLOAD_TIMEOUT=120  # 2 minutes
-export SWARM_CONTRACT="0xFaD7C5e93f28257429569B854151A1B8DCD404c2"
-export HUGGINGFACE_ACCESS_TOKEN="None"
-
-DEFAULT_IDENTITY_PATH="$ROOT"/swarm.pem
-IDENTITY_PATH=${IDENTITY_PATH:-$DEFAULT_IDENTITY_PATH}
-
-GENSYN_RESET_CONFIG=${GENSYN_RESET_CONFIG:-""}
-ORG_ID=$(awk 'BEGIN { FS = "\"" } !/^[ \t]*[{}]/ { print $(NF - 1); exit }' modal-login/temp-data/userData.json)
-
-pkill next-server
-
-cd modal-login
-yarn start >> "$ROOT/logs/yarn.log" 2>&1 & # Run in background and log output
-
-cd ..
-python -m rgym_exp.runner.swarm_launcher \
-    --config-path "$ROOT/rgym_exp/config" \
-    --config-name "rg-swarm.yaml"
+python -m code_gen_exp.runner.swarm_launcher \
+    --config-path "$ROOT/code_gen_exp/config" \
+    --config-name "code-gen-swarm.yaml" 
 
 wait
 EOF
+#-------------------------------------------------------------------------------------------------------
 chmod +x "$OUTPUT_SCRIPT"
 echo "Скрипт для systemd сервиса создан: $OUTPUT_SCRIPT"
 
