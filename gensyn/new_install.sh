@@ -326,6 +326,8 @@ if [ -n "$MODEL_NAME" ]; then
 else
     echo_green ">> Using default model from config"
 fi
+#logout to prevent weird env issues
+hf auth logout > /dev/null 2>&1
 
 echo -en $GREEN_TEXT
 read -p ">> Would you like your model to participate in the AI Prediction Market? [Y/n] " yn
