@@ -506,48 +506,75 @@ sleep 3
 read -p "➡️  Нажмите Enter, чтобы продолжить..."
 # -------------------------------------------------------------
 
-# ---------- Шаг 9: Docker запуск ----------
-echo -e "${YELLOW}🐳 Запуск ARX-ноды в Docker...${NC}"
+# ---------- Шаг 9: Docker Compose запуск ----------
+echo -e "${YELLOW}🐳 Запуск ARX-ноды через Docker Compose...${NC}"
 
 mkdir -p "$LOGS_DIR"
 touch "$LOGS_DIR/arx.log"
 
-# Если контейнер уже есть — остановим/удалим
+# Удаляем старый контейнер, если существует
 if docker ps -a --format '{{.Names}}' | grep -q '^arx-node$'; then
   echo -e "${YELLOW}♻ Обнаружен существующий контейнер arx-node. Останавливаю и удаляю...${NC}"
   docker stop arx-node >/dev/null 2>&1 || true
   docker rm arx-node >/dev/null 2>&1 || true
 fi
 
-echo -e "${YELLOW}📦 Подтягиваю образ arcium/arx-node (если не скачан)...${NC}"
-docker pull arcium/arx-node
+# Создаем docker-compose.yml рядом с конфигами
+COMPOSE_FILE="$WORKDIR/docker-compose.yml"
+
+echo -e "${YELLOW}📄 Создаю docker-compose.yml...${NC}"
+
+cat > "$COMPOSE_FILE" <<EOF
+version: "3.8"
+
+services:
+  arx-node:
+    image: arcium/arx-node
+    container_name: arx-node
+    restart: always
+
+    ports:
+      - "8088:8080"
+
+    environment:
+      NODE_IDENTITY_FILE: /usr/arx-node/node-keys/node_identity.pem
+      NODE_KEYPAIR_FILE: /usr/arx-node/node-keys/node_keypair.json
+      OPERATOR_KEYPAIR_FILE: /usr/arx-node/node-keys/operator_keypair.json
+      CALLBACK_AUTHORITY_KEYPAIR_FILE: /usr/arx-node/node-keys/callback_authority_keypair.json
+      NODE_CONFIG_PATH: /usr/arx-node/arx/node_config.toml
+
+    volumes:
+      - ./node_config.toml:/usr/arx-node/arx/node_config.toml
+      - ./node-keypair.json:/usr/arx-node/node-keys/node_keypair.json:ro
+      - ./node-keypair.json:/usr/arx-node/node-keys/operator_keypair.json:ro
+      - ./callback-kp.json:/usr/arx-node/node-keys/callback_authority_keypair.json:ro
+      - ./identity.pem:/usr/arx-node/node-keys/node_identity.pem:ro
+      - ./arx-node-logs:/usr/arx-node/logs
+
+    command: ["--log-file", "/usr/arx-node/logs/arx.log"]
+EOF
+
+echo -e "${GREEN}✅ docker-compose.yml создан.${NC}"
+
+# Копируем конфиги в compose-директорию
+cp "$CFG_FILE" "$WORKDIR/node_config.toml"
+cp "$NODE_KP" "$WORKDIR/node-keypair.json"
+cp "$CALLBACK_KP" "$WORKDIR/callback-kp.json"
+cp "$IDENTITY_PEM" "$WORKDIR/identity.pem"
+
+mkdir -p "$WORKDIR/arx-node-logs"
+
+echo -e "${YELLOW}🚀 Запускаю arx-node через Docker Compose...${NC}"
+
+cd "$WORKDIR" && docker compose up -d
 
 sleep 3
 
-echo -e "${YELLOW}🚀 Запускаю контейнер arx-node...${NC}"
-
-docker run -d \
-  --name arx-node \
-  -e NODE_IDENTITY_FILE=/usr/arx-node/node-keys/node_identity.pem \
-  -e NODE_KEYPAIR_FILE=/usr/arx-node/node-keys/node_keypair.json \
-  -e OPERATOR_KEYPAIR_FILE=/usr/arx-node/node-keys/operator_keypair.json \
-  -e CALLBACK_AUTHORITY_KEYPAIR_FILE=/usr/arx-node/node-keys/callback_authority_keypair.json \
-  -e NODE_CONFIG_PATH=/usr/arx-node/arx/node_config.toml \
-  -v "$CFG_FILE:/usr/arx-node/arx/node_config.toml" \
-  -v "$NODE_KP:/usr/arx-node/node-keys/node_keypair.json:ro" \
-  -v "$NODE_KP:/usr/arx-node/node-keys/operator_keypair.json:ro" \
-  -v "$CALLBACK_KP:/usr/arx-node/node-keys/callback_authority_keypair.json:ro" \
-  -v "$IDENTITY_PEM:/usr/arx-node/node-keys/node_identity.pem:ro" \
-  -v "$LOGS_DIR:/usr/arx-node/logs" \
-  -p 8088:8080 \
-  arcium/arx-node
-
+# Проверка запуска
 if ! docker ps --format '{{.Names}}' | grep -q '^arx-node$'; then
-  echo -e "${RED}❌ Контейнер arx-node не запустился. Проверь docker logs arx-node.${NC}"
+  echo -e "${RED}❌ arx-node НЕ запущена! Проверь docker logs arx-node.${NC}"
   exit 1
 fi
-
-echo -e "${GREEN}✅ Контейнер arx-node запущен.${NC}"
 
 # ---------- Делаем бекап файлов ----------
 echo -e "${YELLOW}🔍 Проверка директории ноды...${NC}"
