@@ -600,36 +600,7 @@ done
 echo -e "${GREEN}✅ Бекап завершен!"
 echo -e "${GREEN}📁 Файлы сохранены в: $BACKUP_DIR${NC}"
 
-# ---------- alias для логов ----------
-if ! grep -q 'arcium-logs' "$HOME/.bashrc" 2>/dev/null; then
-  echo "alias arcium-logs='docker logs -f arx-node'" >> "$HOME/.bashrc"
-  echo -e "${GREEN}✅ Добавлен alias ${CYAN}arcium-logs${GREEN} в ~/.bashrc${NC}"
-fi
+sleep 1
 
-# ---------- Шаг 10: Проверка работы ----------
-echo -e "${YELLOW}🔎 Проверка статуса ноды...${NC}"
-sleep 5
+echo -e "${GREEN}🎉 Установка Arcium Testnet Node завершена.${NC}"
 
-echo -e "${YELLOW}➡ arcium arx-info ${NODE_OFFSET}${NC}"
-arcium arx-info "$NODE_OFFSET" --rpc-url "$RPC_URL" || echo -e "${RED}⚠ arx-info вернул ошибку, проверь выше.${NC}"
-
-echo -e "${YELLOW}➡ arcium arx-active ${NODE_OFFSET}${NC}"
-arcium arx-active "$NODE_OFFSET" --rpc-url "$RPC_URL" || echo -e "${RED}⚠ arx-active вернул ошибку, проверь выше.${NC}"
-
-echo -e "${YELLOW}➡ docker logs (первые строки)...${NC}"
-docker logs --tail 100 arx-node || true
-
-echo -e "${YELLOW}➡ Проверяю порт 8088 (локальный healthcheck, если доступен)...${NC}"
-if curl -sSf http://127.0.0.1:8088/health >/dev/null 2>&1; then
-  echo -e "${GREEN}✅ Эндпоинт /health на 8088 отвечает.${NC}"
-else
-  echo -e "${YELLOW}ℹ Не удалось получить /health. Возможно, нода ещё стартует или эндпоинт другой — смотри docker logs.${NC}"
-fi
-
-echo -e "${GREEN}🎉 Установка и базовая настройка Arcium Testnet Node завершена.${NC}"
-echo -e "${YELLOW}Полезные команды:${NC}"
-echo -e "  ${CYAN}cd $WORKDIR${NC}"
-echo -e "  ${CYAN}arcium-logs${NC}           — смотреть логи контейнера"
-echo -e "  ${CYAN}docker logs -f arx-node${NC} — напрямую логи docker"
-echo -e "  ${CYAN}arcium arx-info $NODE_OFFSET --rpc-url $RPC_URL${NC}"
-echo -e "  ${CYAN}arcium arx-active $NODE_OFFSET --rpc-url $RPC_URL${NC}"
