@@ -278,33 +278,84 @@ echo -e "${YELLOW}💸 Airdrop Devnet SOL для аккаунтов ноды...$
 airdrop_with_retry() {
   local pubkey="$1"
   local label="$2"
-  local tries=0
-  local max_tries=3
 
-  while [ $tries -lt $max_tries ]; do
-    tries=$((tries + 1))
+  for tries in {1..5}; do
     echo -e "${YELLOW}➡ Airdrop для ${label} (${CYAN}$pubkey${YELLOW}), попытка $tries...${NC}"
-    if solana airdrop 2 "$pubkey" -u devnet >/dev/null 2>&1; then
-      sleep 10
-      BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
-      if [ -n "$BAL" ]; then
-        echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
-        return 0
-      fi
+
+    OUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
+
+    if echo "$OUT" | grep -q "Signature:"; then
+      echo -e "${GREEN}⏳ Транзакция отправлена. Проверяю баланс...${NC}"
+
+      for i in {1..5}; do
+        BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
+        if [[ "$BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+          echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
+          return 0
+        fi
+        sleep 2
+      done
+
+      echo -e "${RED}⚠ Баланс не обновился, пробую снова...${NC}"
+    else
+      echo -e "${RED}⚠ Ошибка faucet, повтор...${NC}"
     fi
-    echo -e "${RED}⚠ Не удалось получить SOL для ${label}, пробую ещё раз...${NC}"
-    sleep 3
+    sleep 2
   done
 
-  echo -e "${RED}❌ Airdrop для ${label} не удался после $max_tries попыток.${NC}"
-  echo -e "${YELLOW}👉 Можешь вручную получить Devnet SOL на сайте:${NC}"
-  echo -e "${CYAN}https://faucet.solana.com/${NC}"
-  echo -e "${YELLOW}И используй адрес: ${CYAN}$pubkey${NC}"
+  echo -e "${RED}❌ Не удалось получить SOL для ${label}.${NC}"
   return 1
 }
 
+# -----------------------------------------
+# 1. Airdrop только для Node Authority
+# -----------------------------------------
+airdrop_node "$NODE_PUBKEY" "Node Authority"
+
+echo
+echo -e "${CYAN}📘 Теперь необходимо вручную получить SOL на Callback Authority.${NC}"
+echo -e "${CYAN}🔗 Перейдите на сайт: ${GREEN}https://solfaucet.com/${NC}"
+echo
+echo -e "${YELLOW}➡ Вставьте этот адрес:${NC}"
+echo -e "${GREEN}$CALLBACK_PUBKEY${NC}"
+echo
+echo -e "${YELLOW}➡ В Amount укажите: ${GREEN}2 SOL${NC}"
+echo -e "${YELLOW}➡ Выберите сеть: ${GREEN}DEVNET${NC}"
+echo -e "${YELLOW}➡ Нажмите кнопку: ${GREEN}Request Airdrop${NC}"
+echo
+echo -e "${CYAN}⏳ Ожидаю 60 секунд, чтобы баланс обновился...${NC}"
+sleep 60
+
+# -----------------------------------------
+# 2. Автоматическая проверка баланса Callback Authority
+# -----------------------------------------
+echo
+echo -e "${YELLOW}🔍 Проверяю баланс Callback Authority...${NC}"
+
+CB_BAL=$(solana balance "$CALLBACK_PUBKEY" -u devnet 2>/dev/null | awk '{print $1}')
+
+if [[ "$CB_BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+  echo -e "${GREEN}💰 Баланс Callback Authority: ${CYAN}${CB_BAL} SOL${NC}"
+else
+  echo -e "${RED}⚠ Не удалось получить баланс. Возможно SOL ещё не пришли.${NC}"
+fi
+
 airdrop_with_retry "$NODE_PUBKEY" "Node Authority"
 airdrop_with_retry "$CALLBACK_PUBKEY" "Callback Authority"
+
+# -----------------------------------------
+# 3. Спросить пользователя — продолжать ли установку
+# -----------------------------------------
+echo
+read -rp "Продолжить установку? [Y/n]: " ans
+ans=${ans:-Y}
+
+if [[ "$ans" =~ ^[Yy]$ ]]; then
+  echo -e "${GREEN}✔ Продолжаем установку...${NC}"
+else
+  echo -e "${RED}✖ Установка остановлена пользователем.${NC}"
+  exit 1
+fi
 
 sleep 3
 
