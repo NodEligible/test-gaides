@@ -510,7 +510,7 @@ read -p "➡️  Нажмите Enter, чтобы продолжить..."
 echo -e "${YELLOW}🐳 Запуск ARX-ноды через Docker Compose...${NC}"
 
 mkdir -p "$LOGS_DIR"
-touch "$LOGS_DIR/arx.log"
+# touch "$LOGS_DIR/arx.log"
 
 # Удаляем старый контейнер, если существует
 if docker ps -a --format '{{.Names}}' | grep -q '^arx-node$'; then
