@@ -347,15 +347,15 @@ airdrop_with_retry "$CALLBACK_PUBKEY" "Callback Authority"
 # 3. Спросить пользователя — продолжать ли установку
 # -----------------------------------------
 echo
-read -rp "Продолжить установку? [Y/n]: " ans
-ans=${ans:-Y}
+# read -rp "Продолжить установку? [Y/n]: " ans
+# ans=${ans:-Y}
 
-if [[ "$ans" =~ ^[Yy]$ ]]; then
-  echo -e "${GREEN}✔ Продолжаем установку...${NC}"
-else
-  echo -e "${RED}✖ Установка остановлена пользователем.${NC}"
-  exit 1
-fi
+# if [[ "$ans" =~ ^[Yy]$ ]]; then
+#   echo -e "${GREEN}✔ Продолжаем установку...${NC}"
+# else
+#   echo -e "${RED}✖ Установка остановлена пользователем.${NC}"
+#   exit 1
+# fi
 
 sleep 3
 
