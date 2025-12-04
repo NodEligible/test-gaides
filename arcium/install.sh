@@ -519,7 +519,7 @@ if docker ps -a --format '{{.Names}}' | grep -q '^arx-node$'; then
   docker rm arx-node >/dev/null 2>&1 || true
 fi
 
-# Создаем docker-compose.yml рядом с конфигами
+# Создаём docker-compose.yml рядом с файлами ноды
 COMPOSE_FILE="$WORKDIR/docker-compose.yml"
 
 echo -e "${YELLOW}📄 Создаю docker-compose.yml...${NC}"
@@ -544,7 +544,7 @@ services:
       NODE_CONFIG_PATH: /usr/arx-node/arx/node_config.toml
 
     volumes:
-      - ./node_config.toml:/usr/arx-node/arx/node_config.toml
+      - ./node-config.toml:/usr/arx-node/arx/node_config.toml
       - ./node-keypair.json:/usr/arx-node/node-keys/node_keypair.json:ro
       - ./node-keypair.json:/usr/arx-node/node-keys/operator_keypair.json:ro
       - ./callback-kp.json:/usr/arx-node/node-keys/callback_authority_keypair.json:ro
@@ -555,14 +555,6 @@ services:
 EOF
 
 echo -e "${GREEN}✅ docker-compose.yml создан.${NC}"
-
-# Копируем конфиги в compose-директорию
-cp "$CFG_FILE" "$WORKDIR/node_config.toml"
-cp "$NODE_KP" "$WORKDIR/node-keypair.json"
-cp "$CALLBACK_KP" "$WORKDIR/callback-kp.json"
-cp "$IDENTITY_PEM" "$WORKDIR/identity.pem"
-
-mkdir -p "$WORKDIR/arx-node-logs"
 
 echo -e "${YELLOW}🚀 Запускаю arx-node через Docker Compose...${NC}"
 
