@@ -550,8 +550,6 @@ services:
       - ./callback-kp.json:/usr/arx-node/node-keys/callback_authority_keypair.json:ro
       - ./identity.pem:/usr/arx-node/node-keys/node_identity.pem:ro
       - ./arx-node-logs:/usr/arx-node/logs
-
-    command: ["--log-file", "/usr/arx-node/logs/arx.log"]
 EOF
 
 echo -e "${GREEN}✅ docker-compose.yml создан.${NC}"
