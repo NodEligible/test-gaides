@@ -89,13 +89,20 @@ anchor --version || { echo -e "${RED}❌ Anchor CLI не установился!
 echo -e "${GREEN}✔️ Anchor готов к работе.${NC}"
 
 echo -e "${CYAN}🔑 Устанавливаем Solana CLI...${NC}"
-curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash -s -- -y
+
+export DEBIAN_FRONTEND=noninteractive
+
+curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev -o solana.sh
+bash solana.sh -y
+rm solana.sh
 
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
 echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
 
 solana --version || { echo -e "${RED}❌ Solana CLI не установился!"; exit 1; }
+
 echo -e "${GREEN}✔️ Solana CLI установлен.${NC}"
+
 
 echo -e "${GREEN}======================================="
 echo "     Все дополнительные программы установлены!"
