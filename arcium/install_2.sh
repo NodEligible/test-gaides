@@ -296,17 +296,22 @@ echo -e "${YELLOW}💸 Airdrop Devnet SOL для аккаунтов ноды...$
 airdrop_with_retry() {
   local pubkey="$1"
   local label="$2"
+  local tries=0
+  local max_tries=5
 
-  for tries in {1..5}; do
+  while [ $tries -lt $max_tries ]; do
+    tries=$((tries + 1))
+
     echo -e "${YELLOW}➡ Airdrop для ${label} (${CYAN}$pubkey${YELLOW}), попытка $tries...${NC}"
 
-    OUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
+    AIRDROP_OUTPUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
+    AIRDROP_CODE=$?
 
-    if echo "$OUT" | grep -q "Signature:"; then
-      echo -e "${GREEN}⏳ Транзакция отправлена. Жду подтверждения баланса (до 60 сек)...${NC}"
+    # Если команда вообще выполнилась (код возврата = 0)
+    if [ $AIRDROP_CODE -eq 0 ]; then
+      echo -e "${GREEN}⏳ Airdrop отправлен. Проверяю баланс...${NC}"
 
-      # ждём до 60 секунд, проверяя каждые 6 сек
-      for i in {1..10}; do
+      for i in {1..5}; do
         BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
 
         if [[ "$BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
@@ -314,23 +319,24 @@ airdrop_with_retry() {
           return 0
         fi
 
-        sleep 6
+        sleep 2
       done
 
-      echo -e "${RED}⚠ Баланс не обновился в течение 60 секунд, пробую снова...${NC}"
-    else
-      echo -e "${RED}⚠ Ошибка faucet, повтор через 5 секунд...${NC}"
+      echo -e "${RED}⚠ Баланс пока не обновился. Пробую снова...${NC}"
+      sleep 2
+      continue
     fi
 
-    sleep 5
+    echo -e "${RED}⚠ Faucet вернул ошибку, повтор через 3 сек...${NC}"
+    sleep 3
   done
 
-  echo -e "${RED}❌ Не удалось получить SOL для ${label} после всех попыток.${NC}"
+  echo -e "${RED}❌ Не удалось выполнить airdrop для ${label}.${NC}"
   return 1
 }
 
 # -----------------------------------------
-# Airdrop только для Node Authority (авто)
+# 1. Airdrop только для Node Authority
 # -----------------------------------------
 airdrop_with_retry "$NODE_PUBKEY" "Node Authority"
 
@@ -349,7 +355,7 @@ echo -e "${CYAN}⏳ Ожидаю 60 секунд, чтобы баланс обн
 sleep 60
 
 # -----------------------------------------
-# Автоматическая проверка баланса Callback Authority
+# 2. Автоматическая проверка баланса Callback Authority
 # -----------------------------------------
 echo
 echo -e "${YELLOW}🔍 Проверяю баланс Callback Authority...${NC}"
