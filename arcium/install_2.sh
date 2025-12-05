@@ -652,6 +652,7 @@ FILES=(
   "identity.pem"
   "node-keypair.json"
   "callback-kp.json"
+  "bls-keypair.json"
   ".env"
   "node-config.toml"
 )
