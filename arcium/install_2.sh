@@ -95,53 +95,6 @@ curl https://sh.rustup.rs -sSf | sh -s -- -y
 source "$HOME/.cargo/env"
 sleep 3
 
-# ---------- Локальная GLIBC 2.39 ----------
-echo -e "${YELLOW}🧬 Установка локальной GLIBC 2.39 для Arcium...${NC}"
-
-echo -e "${YELLOW}📦 Проверка локальной GLIBC 2.39...${NC}"
-
-GLIBC_DIR="$WORKDIR/glibc-2.39"
-
-# Проверяем, существует ли корректная установка
-if [ -d "$GLIBC_DIR" ] && [ -f "$GLIBC_DIR/lib/ld-linux-x86-64.so.2" ]; then
-    echo -e "${GREEN}✔ GLIBC 2.39 уже установлена, пропускаю компиляцию.${NC}"
-else
-    echo -e "${YELLOW}📦 Скачиваю и компилирую GLIBC 2.39... (это займёт 5–15 минут)${NC}"
-
-    apt install -y bison texinfo gawk
-
-    rm -rf /tmp/glibc-2.39*
-    rm -rf "$GLIBC_DIR"
-
-    cd /tmp
-    wget https://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz -O glibc-2.39.tar.gz
-    tar -xf glibc-2.39.tar.gz
-    cd glibc-2.39
-
-    mkdir build
-    cd build
-
-    ../configure --prefix="$GLIBC_DIR"
-    make -j"$(nproc)"
-    make install
-
-    echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
-fi
-
-# ❗ Не изменяем глобальный LD_LIBRARY_PATH — иначе bash ломается
-echo -e "${GREEN}✔ Локальная GLIBC готова (используется только через wrapper).${NC}"
-
-# Создаем wrapper безопасно (использует GLIBC только для нужных бинарников)
-cat <<EOF >/usr/local/bin/arcium-glibc-wrap
-#!/bin/bash
-export LD_LIBRARY_PATH="$GLIBC_DIR/lib"
-exec "\$@"
-EOF
-
-chmod +x /usr/local/bin/arcium-glibc-wrap
-
-echo -e "${GREEN}🔧 Wrapper arcium-glibc-wrap создан и безопасен.${NC}"
-
 # ---------- Solana CLI ----------
 echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
 
