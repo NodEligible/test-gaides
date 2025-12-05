@@ -232,6 +232,19 @@ solana-keygen new --outfile "$CALLBACK_KP" --no-bip39-passphrase >> /dev/null
 echo -e "${YELLOW}➡ Генерирую identity.pem (Ed25519)...${NC}"
 openssl genpkey -algorithm Ed25519 -out "$IDENTITY_PEM" >/dev/null 2>&1
 
+# ---------- Генерация BLS keypair ----------
+echo -e "${YELLOW}➡ Генерирую BLS keypair (bls-keypair.json)...${NC}"
+
+BLS_KP="$WORKDIR/bls-keypair.json"
+rm -f "$BLS_KP"
+
+if arcium generate-bls-keypair --output "$BLS_KP"; then
+  echo -e "${GREEN}🔐 BLS ключ успешно создан: ${CYAN}$BLS_KP${NC}"
+else
+  echo -e "${RED}❌ Не удалось создать BLS keypair. Проверь установлен ли Arcium CLI.${NC}"
+  exit 1
+fi
+
 # Получаем публичные ключи
 NODE_PUBKEY=$(solana address --keypair "$NODE_KP")
 CALLBACK_PUBKEY=$(solana address --keypair "$CALLBACK_KP")
