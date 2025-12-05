@@ -33,12 +33,6 @@ CALLBACK_PUB_FILE="$WORKDIR/callback-pubkey.txt"
 DEFAULT_RPC="https://api.devnet.solana.com"
 DEFAULT_WSS="wss://api.devnet.solana.com"
 
-echo -e "${BLUE}"
-echo "======================================="
-echo "      Установка ноды Arcium Testnet"
-echo "======================================="
-echo -e "${NC}"
-
 echo -e "${YELLOW}🔧 Подготавливаем систему...${NC}"
 sudo apt update -y && sudo apt upgrade -y
 
