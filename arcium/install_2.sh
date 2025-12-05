@@ -439,10 +439,11 @@ while [ $tries -lt $max_tries ]; do
   tries=$((tries + 1))
   echo -e "${YELLOW}➡ Запуск init-arx-accs (попытка $tries)...${NC}"
 
-  if arcium init-arx-accs \
+if arcium init-arx-accs \
       --keypair-path "$NODE_KP" \
       --callback-keypair-path "$CALLBACK_KP" \
       --peer-keypair-path "$IDENTITY_PEM" \
+      --bls-keypair-path "$WORKDIR/bls-keypair.json" \
       --node-offset "$NODE_OFFSET" \
       --ip-address "$SERVER_IP" \
       --rpc-url "$RPC_URL"; then
