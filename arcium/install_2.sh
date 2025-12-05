@@ -111,11 +111,11 @@ if [ ! -d "$GLIBC_DIR" ]; then
   tar -xf glibc-2.39.tar.gz
   cd glibc-2.39
 
-  mkdir build && cd build
+  mkdir build && cd build &>/dev/null
 
   ../configure --prefix="$GLIBC_DIR"
   make -j"$(nproc)"
-  make install
+  make install &>/dev/null
 
   echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
 else
