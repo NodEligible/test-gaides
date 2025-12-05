@@ -358,25 +358,29 @@ airdrop_with_retry() {
     OUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
 
     if echo "$OUT" | grep -q "Signature:"; then
-      echo -e "${GREEN}⏳ Транзакция отправлена. Проверяю баланс...${NC}"
+      echo -e "${GREEN}⏳ Транзакция отправлена. Жду подтверждения баланса (до 60 сек)...${NC}"
 
-      for i in {1..5}; do
+      # ждём до 60 секунд, проверяя каждые 6 сек
+      for i in {1..10}; do
         BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
+
         if [[ "$BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
           echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
           return 0
         fi
-        sleep 2
+
+        sleep 6
       done
 
-      echo -e "${RED}⚠ Баланс не обновился, пробую снова...${NC}"
+      echo -e "${RED}⚠ Баланс не обновился в течение 60 секунд, пробую снова...${NC}"
     else
-      echo -e "${RED}⚠ Ошибка faucet, повтор...${NC}"
+      echo -e "${RED}⚠ Ошибка faucet, повтор через 5 секунд...${NC}"
     fi
-    sleep 2
+
+    sleep 5
   done
 
-  echo -e "${RED}❌ Не удалось получить SOL для ${label}.${NC}"
+  echo -e "${RED}❌ Не удалось получить SOL для ${label} после всех попыток.${NC}"
   return 1
 }
 
