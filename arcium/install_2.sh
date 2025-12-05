@@ -57,18 +57,6 @@ echo -e "${GREEN}✅ Рабочая папка: ${CYAN}$WORKDIR${NC}"
 # ---------- Права на папку ----------
 chmod 700 "$WORKDIR"
 
-# ---------- Открываем порт 8088 ----------
-echo -e "${YELLOW}🔓 Открываю порт 8088/tcp...${NC}"
-
-if command -v ufw >/dev/null 2>&1; then
-  ufw allow 8088/tcp >/dev/null 2>&1 || true
-fi
-
-if command -v iptables >/dev/null 2>&1; then
-  iptables -A INPUT -p tcp --dport 8088 -j ACCEPT 2>/dev/null || true
-fi
-
-echo -e "${GREEN}✔ Порт 8088 открыт (если firewall включен).${NC}"
 
 # ---------- Обновление системы ----------
 echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
@@ -106,33 +94,7 @@ EOF
 
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
 
-echo -e "${GREEN}✅ Проверка версий...${NC}"
-solana --version || { echo -e "${RED}❌ Solana CLI не установлена.${NC}"; exit 1; }
-rustc --version || { echo -e "${RED}❌ Rust не установлен.${NC}"; exit 1; }
-cargo --version || { echo -e "${RED}❌ Cargo не установлен.${NC}"; exit 1; }
-docker --version || { echo -e "${RED}❌ Docker не установлен.${NC}"; exit 1; }
 
-echo -e "${GREEN}🎉 Подготовка окружения завершена! Переходим к установке Arcium.${NC}"
-
-# ---------- Arcium Tooling с GLIBC 2.39 ----------
-echo -e "${YELLOW}🧩 Установка Arcium Tooling с поддержкой GLIBC 2.39...${NC}"
-
-ARCIUM_INSTALL_SCRIPT="/tmp/arcium-install.sh"
-curl --proto '=https' --tlsv1.2 -sSfL https://install.arcium.com/ -o "$ARCIUM_INSTALL_SCRIPT"
-chmod +x "$ARCIUM_INSTALL_SCRIPT"
-
-# Запускаем инсталлер через wrapper, чтобы он использовал новую GLIBC
-arcium-glibc-wrap bash "$ARCIUM_INSTALL_SCRIPT"
-
-# Добавляем Arcium и Cargo в PATH (на будущее)
-if ! grep -q '.arcium/bin' "$HOME/.bashrc" 2>/dev/null; then
-  echo 'export PATH="$HOME/.arcium/bin:$PATH"' >> "$HOME/.bashrc"
-fi
-if ! grep -q '.cargo/bin' "$HOME/.bashrc" 2>/dev/null; then
-  echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.bashrc"
-fi
-
-export PATH="$HOME/.arcium/bin:$HOME/.cargo/bin:$PATH"
 
 sleep 2
 
@@ -140,7 +102,12 @@ echo -e "${GREEN}✅ Проверяем Arcium CLI...${NC}"
 arcium --version || echo -e "${RED}⚠ Arcium не найден после установки (проверь логи инсталлера).${NC}"
 arcup --version || true
 
-echo -e "${GREEN}✅ Базовая подготовка (Docker, Rust, Solana, GLIBC 2.39, Arcium Tooling) завершена.${NC}"
+
+echo -e "${GREEN}✅ Проверка версий...${NC}"
+solana --version || { echo -e "${RED}❌ Solana CLI не установлена.${NC}"; exit 1; }
+rustc --version || { echo -e "${RED}❌ Rust не установлен.${NC}"; exit 1; }
+cargo --version || { echo -e "${RED}❌ Cargo не установлен.${NC}"; exit 1; }
+docker --version || { echo -e "${RED}❌ Docker не установлен.${NC}"; exit 1; }
 
 echo -e "${YELLOW}🔍 Проверка необходимых инструментов...${NC}"
 for cmd in solana docker arcium curl openssl; do
