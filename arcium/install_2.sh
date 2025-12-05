@@ -63,7 +63,7 @@ echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$
 
 echo -e "${GREEN}✔️ Node.js и Yarn успешно установлены.${NC}"
 
-echo -e "${YELLOW}🦀 Устанавливаем Rust (автоматический выбор 1)...${NC}"
+echo -e "${YELLOW}🦀 Устанавливаем Rust...${NC}"
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rust.sh
 sh rust.sh -y --default-toolchain stable
