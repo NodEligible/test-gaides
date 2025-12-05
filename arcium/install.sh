@@ -8,91 +8,6 @@ BLUE='\033[38;5;81m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-echo -e "${YELLOW}🔓 Открываю порт 8088/tcp...${NC}"
-
-# --- UFW ---
-if command -v ufw >/dev/null 2>&1; then
-  ufw allow 8088/tcp >/dev/null 2>&1
-fi
-
-# --- iptables ---
-if command -v iptables >/dev/null 2>&1; then
-  iptables -A INPUT -p tcp --dport 8088 -j ACCEPT 2>/dev/null
-fi
-
-echo -e "${GREEN}✔ Порт 8088 открыт${NC}"
-
-echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
-sudo apt update && sudo apt upgrade -y
-
-sleep 3
-
-echo -e "${YELLOW}📦 Установка необходимых пакетов...${NC}"
-sudo apt install -y \
-  curl wget git tmux htop unzip build-essential pkg-config \
-  libssl-dev clang make jq
-
-sleep 3
-
-echo -e "${YELLOW}🐳 Установка Docker...${NC}"
-bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
-
-sleep 3
-
-echo -e "${YELLOW}🦀 Установка Rust...${NC}"
-curl https://sh.rustup.rs -sSf | sh -s -- -y
-source $HOME/.cargo/env
-
-sleep 3
-
-echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
-yes | bash -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev)"
-export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
-
-sleep 3
-
-echo -e "${GREEN}✅ Проверка версий...${NC}"
-solana --version
-rustc --version
-cargo --version
-docker --version
-
-echo -e "${GREEN}🎉 Подготовка завершена! Можно перейти к установке Arcium.${NC}"
-
-echo -e "${YELLOW}🧩 Установка Arcium Tooling...${NC}"
-
-curl --proto '=https' --tlsv1.2 -sSfL https://install.arcium.com/ | bash
-
-# Добавляем Arcium и Cargo в PATH
-export PATH="$HOME/.arcium/bin:$HOME/.cargo/bin:$PATH"
-echo 'export PATH="$HOME/.arcium/bin:$PATH"' >> ~/.bashrc
-echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
-
-sleep 2
-
-echo -e "${GREEN}✅ Arcium CLI установлен.${NC}"
-arcium --version || echo -e "${RED}⚠ Arcium не найден после установки.${NC}"
-arcup --version || true
-
-
-# ---------- Для бекапа ----------
-SOURCE_DIR="$HOME/arcium-node-setup"
-BACKUP_DIR="$HOME/arcium-backup"
-
-# ---------- Общие переменные ----------
-WORKDIR="$HOME/arcium-node-setup"
-ENV_FILE="$WORKDIR/.env"
-CFG_FILE="$WORKDIR/node-config.toml"
-LOGS_DIR="$WORKDIR/arx-node-logs"
-NODE_KP="$WORKDIR/node-keypair.json"
-CALLBACK_KP="$WORKDIR/callback-kp.json"
-IDENTITY_PEM="$WORKDIR/identity.pem"
-NODE_PUB_FILE="$WORKDIR/node-pubkey.txt"
-CALLBACK_PUB_FILE="$WORKDIR/callback-pubkey.txt"
-
-DEFAULT_RPC="https://api.devnet.solana.com"
-DEFAULT_WSS="wss://api.devnet.solana.com"
-
 # ---------- Хелперы ----------
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -113,8 +28,161 @@ print_header() {
   echo -e "${NC}"
 }
 
-# ---------- Проверка инструментов ----------
+# ---------- Для бекапа ----------
+SOURCE_DIR="$HOME/arcium-node-setup"
+BACKUP_DIR="$HOME/arcium-backup"
+
+# ---------- Общие переменные ----------
+WORKDIR="$HOME/arcium-node-setup"
+ENV_FILE="$WORKDIR/.env"
+CFG_FILE="$WORKDIR/node-config.toml"
+LOGS_DIR="$WORKDIR/arx-node-logs"
+NODE_KP="$WORKDIR/node-keypair.json"
+CALLBACK_KP="$WORKDIR/callback-kp.json"
+IDENTITY_PEM="$WORKDIR/identity.pem"
+NODE_PUB_FILE="$WORKDIR/node-pubkey.txt"
+CALLBACK_PUB_FILE="$WORKDIR/callback-pubkey.txt"
+
+DEFAULT_RPC="https://api.devnet.solana.com"
+DEFAULT_WSS="wss://api.devnet.solana.com"
+
 print_header
+
+# ---------- Шаг 2: рабочая директория ----------
+echo -e "${YELLOW}📁 Создаю рабочую директорию ноды...${NC}"
+mkdir -p "$WORKDIR"
+cd "$WORKDIR" || { echo -e "${RED}❌ Не удалось перейти в $WORKDIR${NC}"; exit 1; }
+echo -e "${GREEN}✅ Рабочая папка: ${CYAN}$WORKDIR${NC}"
+
+# ---------- Права на папку ----------
+chmod 700 "$WORKDIR"
+
+# ---------- Открываем порт 8088 ----------
+echo -e "${YELLOW}🔓 Открываю порт 8088/tcp...${NC}"
+
+if command -v ufw >/dev/null 2>&1; then
+  ufw allow 8088/tcp >/dev/null 2>&1 || true
+fi
+
+if command -v iptables >/dev/null 2>&1; then
+  iptables -A INPUT -p tcp --dport 8088 -j ACCEPT 2>/dev/null || true
+fi
+
+echo -e "${GREEN}✔ Порт 8088 открыт (если firewall включен).${NC}"
+
+# ---------- Обновление системы ----------
+echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
+apt update && apt upgrade -y
+sleep 3
+
+# ---------- Базовые пакеты ----------
+echo -e "${YELLOW}📦 Установка необходимых пакетов...${NC}"
+apt install -y \
+  curl wget git tmux htop unzip build-essential pkg-config \
+  libssl-dev clang make jq
+sleep 3
+
+# ---------- Docker ----------
+echo -e "${YELLOW}🐳 Установка Docker...${NC}"
+bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
+sleep 3
+
+# ---------- Rust ----------
+echo -e "${YELLOW}🦀 Установка Rust...${NC}"
+curl https://sh.rustup.rs -sSf | sh -s -- -y
+# подключаем cargo в текущую сессию
+# shellcheck disable=SC1090
+source "$HOME/.cargo/env"
+sleep 3
+
+# ---------- Локальная GLIBC 2.39 ----------
+echo -e "${YELLOW}🧬 Установка локальной GLIBC 2.39 для Arcium...${NC}"
+
+GLIBC_DIR="$WORKDIR/glibc-2.39"
+
+if [ ! -d "$GLIBC_DIR" ]; then
+  echo -e "${YELLOW}📦 Скачиваю и компилирую GLIBC 2.39... (это займёт 5–15 минут)${NC}"
+  cd /tmp
+
+  wget https://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz -O glibc-2.39.tar.gz
+  tar -xf glibc-2.39.tar.gz
+  cd glibc-2.39
+
+  mkdir build && cd build
+
+  ../configure --prefix="$GLIBC_DIR"
+  make -j"$(nproc)"
+  make install
+
+  echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
+else
+  echo -e "${GREEN}✔ Локальная GLIBC 2.39 уже установлена: ${CYAN}$GLIBC_DIR${NC}"
+fi
+
+# Добавляем локальную GLIBC в окружение
+if ! grep -q "LD_LIBRARY_PATH=\"$GLIBC_DIR/lib" "$HOME/.bashrc" 2>/dev/null; then
+  echo "export LD_LIBRARY_PATH=\"$GLIBC_DIR/lib:\$LD_LIBRARY_PATH\"" >> "$HOME/.bashrc"
+fi
+export LD_LIBRARY_PATH="$GLIBC_DIR/lib:$LD_LIBRARY_PATH"
+
+echo -e "${GREEN}✔ LD_LIBRARY_PATH обновлён и активирован.${NC}"
+
+# Wrapper для запуска любых бинарников с новой GLIBC
+cat >/usr/local/bin/arcium-glibc-wrap <<EOF
+#!/bin/bash
+export LD_LIBRARY_PATH="$GLIBC_DIR/lib:\$LD_LIBRARY_PATH"
+exec "\$@"
+EOF
+
+chmod +x /usr/local/bin/arcium-glibc-wrap
+echo -e "${GREEN}🔧 Создан wrapper arcium-glibc-wrap для запуска зависимых бинарников (Anchor/Surfpool/арcium-инсталлер).${NC}"
+
+# ---------- Solana CLI ----------
+echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
+
+SOLANA_INSTALL_SCRIPT="/tmp/solana-install.sh"
+curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev -o "$SOLANA_INSTALL_SCRIPT"
+bash "$SOLANA_INSTALL_SCRIPT" <<EOF
+y
+EOF
+
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+echo -e "${GREEN}✅ Проверка версий...${NC}"
+solana --version || { echo -e "${RED}❌ Solana CLI не установлена.${NC}"; exit 1; }
+rustc --version || { echo -e "${RED}❌ Rust не установлен.${NC}"; exit 1; }
+cargo --version || { echo -e "${RED}❌ Cargo не установлен.${NC}"; exit 1; }
+docker --version || { echo -e "${RED}❌ Docker не установлен.${NC}"; exit 1; }
+
+echo -e "${GREEN}🎉 Подготовка окружения завершена! Переходим к установке Arcium.${NC}"
+
+# ---------- Arcium Tooling с GLIBC 2.39 ----------
+echo -e "${YELLOW}🧩 Установка Arcium Tooling с поддержкой GLIBC 2.39...${NC}"
+
+ARCIUM_INSTALL_SCRIPT="/tmp/arcium-install.sh"
+curl --proto '=https' --tlsv1.2 -sSfL https://install.arcium.com/ -o "$ARCIUM_INSTALL_SCRIPT"
+chmod +x "$ARCIUM_INSTALL_SCRIPT"
+
+# Запускаем инсталлер через wrapper, чтобы он использовал новую GLIBC
+arcium-glibc-wrap bash "$ARCIUM_INSTALL_SCRIPT"
+
+# Добавляем Arcium и Cargo в PATH (на будущее)
+if ! grep -q '.arcium/bin' "$HOME/.bashrc" 2>/dev/null; then
+  echo 'export PATH="$HOME/.arcium/bin:$PATH"' >> "$HOME/.bashrc"
+fi
+if ! grep -q '.cargo/bin' "$HOME/.bashrc" 2>/dev/null; then
+  echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.bashrc"
+fi
+
+export PATH="$HOME/.arcium/bin:$HOME/.cargo/bin:$PATH"
+
+sleep 2
+
+echo -e "${GREEN}✅ Проверяем Arcium CLI...${NC}"
+arcium --version || echo -e "${RED}⚠ Arcium не найден после установки (проверь логи инсталлера).${NC}"
+arcup --version || true
+
+echo -e "${GREEN}✅ Базовая подготовка (Docker, Rust, Solana, GLIBC 2.39, Arcium Tooling) завершена.${NC}"
 
 echo -e "${YELLOW}🔍 Проверка необходимых инструментов...${NC}"
 for cmd in solana docker arcium curl openssl; do
@@ -123,15 +191,6 @@ done
 echo -e "${GREEN}✅ Все необходимые инструменты найдены.${NC}"
 
 sleep 3
-
-# ---------- Шаг 2: рабочая директория ----------
-echo -e "${YELLOW}📁 Создаю рабочую директорию ноды...${NC}"
-mkdir -p "$WORKDIR"
-cd "$WORKDIR" || { echo -e "${RED}❌ Не удалось перейти в $WORKDIR${NC}"; exit 1; }
-echo -e "${GREEN}✅ Рабочая папка: ${CYAN}$WORKDIR${NC}"
-
-# ---------- даем права ----------
-chmod 700 /root/arcium-node-setup
 
 # ---------- Загрузка/выбор RPC ----------
 echo -e "${YELLOW}🌐 Настройка RPC для Solana Devnet...${NC}"
