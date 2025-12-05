@@ -98,49 +98,54 @@ sleep 3
 # ---------- Локальная GLIBC 2.39 ----------
 echo -e "${YELLOW}🧬 Установка локальной GLIBC 2.39 для Arcium...${NC}"
 
-echo -e "${YELLOW}📦 Устанавливаю дополнительные зависимости для сборки GLIBC...${NC}"
-apt install -y bison texinfo gawk
+echo -e "${YELLOW}📦 Проверка локальной GLIBC 2.39...${NC}"
 
 GLIBC_DIR="$WORKDIR/glibc-2.39"
 
-# Удаляем предыдущие следы, чтобы избежать ошибок
-rm -rf /tmp/glibc-2.39*
-rm -rf "$GLIBC_DIR"
+# Если GLIBC уже установлена — пропускаем
+if [ -d "$GLIBC_DIR" ] && [ -f "$GLIBC_DIR/lib/ld-linux-x86-64.so.2" ]; then
+    echo -e "${GREEN}✔ GLIBC 2.39 уже установлена, пропускаю компиляцию.${NC}"
+else
+    echo -e "${YELLOW}📦 Скачиваю и компилирую GLIBC 2.39... (это займёт 5–15 минут)${NC}"
 
-echo -e "${YELLOW}📦 Скачиваю и компилирую GLIBC 2.39... (это займёт 5–15 минут)${NC}"
-cd /tmp
+    apt install -y bison texinfo gawk
 
-wget https://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz -O glibc-2.39.tar.gz
-tar -xf glibc-2.39.tar.gz
-cd glibc-2.39
+    rm -rf /tmp/glibc-2.39*
+    rm -rf "$GLIBC_DIR"
 
-mkdir build && cd build
+    cd /tmp
+    wget https://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz -O glibc-2.39.tar.gz
+    tar -xf glibc-2.39.tar.gz
+    cd glibc-2.39
 
-../configure --prefix="$GLIBC_DIR"
-make -j"$(nproc)"
-make install
+    mkdir build
+    cd build
 
-echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
+    ../configure --prefix="$GLIBC_DIR"
+    make -j"$(nproc)"
+    make install
 
-# Добавляем локальную GLIBC в окружение
-if ! grep -q "LD_LIBRARY_PATH=\"$GLIBC_DIR/lib" "$HOME/.bashrc" 2>/dev/null; then
-  echo "export LD_LIBRARY_PATH=\"$GLIBC_DIR/lib:\${LD_LIBRARY_PATH:-}\"" >> "$HOME/.bashrc"
+    echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
 fi
 
+# Обновляем LD_LIBRARY_PATH
+if ! grep -q "$GLIBC_DIR/lib" "$HOME/.bashrc"; then
+    echo "export LD_LIBRARY_PATH=\"$GLIBC_DIR/lib:\${LD_LIBRARY_PATH:-}\"" >> "$HOME/.bashrc"
+fi
 export LD_LIBRARY_PATH="$GLIBC_DIR/lib:${LD_LIBRARY_PATH:-}"
 
 echo -e "${GREEN}✔ LD_LIBRARY_PATH обновлён и активирован.${NC}"
 
-# Wrapper
-cat >/usr/local/bin/arcium-glibc-wrap <<EOF
+# Создаем wrapper безопасно
+cat <<EOF >/usr/local/bin/arcium-glibc-wrap
 #!/bin/bash
 export LD_LIBRARY_PATH="$GLIBC_DIR/lib:\${LD_LIBRARY_PATH:-}"
 exec "\$@"
 EOF
 
 chmod +x /usr/local/bin/arcium-glibc-wrap
-echo -e "${GREEN}🔧 Создан wrapper arcium-glibc-wrap${NC}"
 
+echo -e "${GREEN}🔧 Wrapper arcium-glibc-wrap создан.${NC}"
 
 # ---------- Solana CLI ----------
 echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
