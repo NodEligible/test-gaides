@@ -103,42 +103,44 @@ apt install -y bison texinfo gawk
 
 GLIBC_DIR="$WORKDIR/glibc-2.39"
 
-if [ ! -d "$GLIBC_DIR" ]; then
-  echo -e "${YELLOW}📦 Скачиваю и компилирую GLIBC 2.39... (это займёт 5–15 минут)${NC}"
-  cd /tmp
+# Удаляем предыдущие следы, чтобы избежать ошибок
+rm -rf /tmp/glibc-2.39*
+rm -rf "$GLIBC_DIR"
 
-  wget https://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz -O glibc-2.39.tar.gz
-  tar -xf glibc-2.39.tar.gz
-  cd glibc-2.39
+echo -e "${YELLOW}📦 Скачиваю и компилирую GLIBC 2.39... (это займёт 5–15 минут)${NC}"
+cd /tmp
 
-  mkdir build && cd build &>/dev/null
+wget https://ftp.gnu.org/gnu/libc/glibc-2.39.tar.gz -O glibc-2.39.tar.gz
+tar -xf glibc-2.39.tar.gz
+cd glibc-2.39
 
-  ../configure --prefix="$GLIBC_DIR"
-  make -j"$(nproc)"
-  make install &>/dev/null
+mkdir build && cd build
 
-  echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
-else
-  echo -e "${GREEN}✔ Локальная GLIBC 2.39 уже установлена: ${CYAN}$GLIBC_DIR${NC}"
-fi
+../configure --prefix="$GLIBC_DIR"
+make -j"$(nproc)"
+make install
+
+echo -e "${GREEN}✅ GLIBC 2.39 установлена в: ${CYAN}$GLIBC_DIR${NC}"
 
 # Добавляем локальную GLIBC в окружение
 if ! grep -q "LD_LIBRARY_PATH=\"$GLIBC_DIR/lib" "$HOME/.bashrc" 2>/dev/null; then
-  echo "export LD_LIBRARY_PATH=\"$GLIBC_DIR/lib:\$LD_LIBRARY_PATH\"" >> "$HOME/.bashrc"
+  echo "export LD_LIBRARY_PATH=\"$GLIBC_DIR/lib:\${LD_LIBRARY_PATH:-}\"" >> "$HOME/.bashrc"
 fi
-export LD_LIBRARY_PATH="$GLIBC_DIR/lib:$LD_LIBRARY_PATH"
+
+export LD_LIBRARY_PATH="$GLIBC_DIR/lib:${LD_LIBRARY_PATH:-}"
 
 echo -e "${GREEN}✔ LD_LIBRARY_PATH обновлён и активирован.${NC}"
 
-# Wrapper для запуска любых бинарников с новой GLIBC
+# Wrapper
 cat >/usr/local/bin/arcium-glibc-wrap <<EOF
 #!/bin/bash
-export LD_LIBRARY_PATH="$GLIBC_DIR/lib:\$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$GLIBC_DIR/lib:\${LD_LIBRARY_PATH:-}"
 exec "\$@"
 EOF
 
 chmod +x /usr/local/bin/arcium-glibc-wrap
-echo -e "${GREEN}🔧 Создан wrapper arcium-glibc-wrap для запуска зависимых бинарников (Anchor/Surfpool/арcium-инсталлер).${NC}"
+echo -e "${GREEN}🔧 Создан wrapper arcium-glibc-wrap${NC}"
+
 
 # ---------- Solana CLI ----------
 echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
