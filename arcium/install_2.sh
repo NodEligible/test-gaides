@@ -77,11 +77,17 @@ echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
 rustc --version || { echo -e "${RED}❌ Rust не установился!"; exit 1; }
 echo -e "${GREEN}✔️ Rust установлен.${NC}"
 
-echo -e "${YELLOW}📦 Устанавливаем Anchor CLI...${NC}"
+echo -e "${YELLOW}📦 Устанавливаем Anchor CLI (Просто ждите)...${NC}"
 git clone https://github.com/coral-xyz/anchor.git
 cd anchor
 git checkout v0.31.1
-cargo install --path cli --force
+
+# скрываем весь вывод, но НЕ скрываем ошибки установки Cargo
+if ! cargo install --path cli --force >/dev/null 2>&1; then
+    echo -e "${RED}❌ Ошибка установки Anchor CLI.${NC}"
+    exit 1
+fi
+
 cd ..
 rm -rf anchor
 
