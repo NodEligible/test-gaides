@@ -128,7 +128,7 @@ sleep 3
 # ---------- Загрузка/выбор RPC ----------
 echo -e "${YELLOW}🌐 Настройка RPC для Solana Devnet...${NC}"
 RPC_URL="$DEFAULT_RPC"
-WSS_URL="$DEFAULT_WSS$
+WSS_URL="$DEFAULT_WSS"
 
 echo -e "${YELLOW}По умолчанию будет использован публичный RPC:${NC}"
 echo -e "  ${CYAN}$DEFAULT_RPC${NC}"
