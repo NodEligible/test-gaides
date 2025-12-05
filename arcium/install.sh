@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 YELLOW='\e[0;33m'
 GREEN='\033[0;32m'
@@ -45,7 +46,7 @@ source $HOME/.cargo/env
 sleep 3
 
 echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
-yes | sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev)"
+yes | bash -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev)"
 export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
 sleep 3
