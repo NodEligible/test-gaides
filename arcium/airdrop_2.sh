@@ -53,11 +53,10 @@ airdrop_with_retry() {
   return 1
 }
 
-
 # -----------------------------------------
 # 1. Airdrop только для Node Authority
 # -----------------------------------------
-airdrop_node "$NODE_PUBKEY" "Node Authority"
+airdrop_with_retry "$NODE_PUBKEY" "Node Authority"
 
 echo
 echo -e "${CYAN}📘 Теперь необходимо вручную получить SOL на Callback Authority.${NC}"
