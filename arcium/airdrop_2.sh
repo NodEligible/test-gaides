@@ -6,42 +6,53 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-NODE_PUBKEY="E1GQBoudCZjPDK4U28XxyYQDKhwaMGQYKUKNp2tedeFQ"
-CALLBACK_PUBKEY="7PiBDzmXBpfCYP5zZ69SHfdKnMud6QdaAVmDnMLjy7Aa"
+NODE_PUBKEY="FHX6un8FPFVyCbap3LizBygSecQbFwgZYj7wPcZiAVd6"
+CALLBACK_PUBKEY="8SkiLqHKnfnARnuNj9Xn54qn2BYxLj768x8fAoNbyw7B"
 
 echo -e "${YELLOW}💸 Тестируем Airdrop SOL для Node Authority...${NC}"
 
-airdrop_node() {
+airdrop_with_retry() {
   local pubkey="$1"
   local label="$2"
+  local tries=0
+  local max_tries=5
 
-  for tries in {1..5}; do
+  while [ $tries -lt $max_tries ]; do
+    tries=$((tries + 1))
+
     echo -e "${YELLOW}➡ Airdrop для ${label} (${CYAN}$pubkey${YELLOW}), попытка $tries...${NC}"
 
-    OUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
+    AIRDROP_OUTPUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
+    AIRDROP_CODE=$?
 
-    if echo "$OUT" | grep -q "Signature:"; then
-      echo -e "${GREEN}⏳ Транзакция отправлена. Проверяю баланс...${NC}"
+    # Если команда вообще выполнилась (код возврата = 0)
+    if [ $AIRDROP_CODE -eq 0 ]; then
+      echo -e "${GREEN}⏳ Airdrop отправлен. Проверяю баланс...${NC}"
 
       for i in {1..5}; do
         BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
+
         if [[ "$BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
           echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
           return 0
         fi
+
         sleep 2
       done
 
-      echo -e "${RED}⚠ Баланс не обновился, пробую снова...${NC}"
-    else
-      echo -e "${RED}⚠ Ошибка faucet, повтор...${NC}"
+      echo -e "${RED}⚠ Баланс пока не обновился. Пробую снова...${NC}"
+      sleep 2
+      continue
     fi
-    sleep 2
+
+    echo -e "${RED}⚠ Faucet вернул ошибку, повтор через 3 сек...${NC}"
+    sleep 3
   done
 
-  echo -e "${RED}❌ Не удалось получить SOL для ${label}.${NC}"
+  echo -e "${RED}❌ Не удалось выполнить airdrop для ${label}.${NC}"
   return 1
 }
+
 
 # -----------------------------------------
 # 1. Airdrop только для Node Authority
