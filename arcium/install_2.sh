@@ -8,25 +8,12 @@ BLUE='\033[38;5;81m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# ---------- Хелперы ----------
-require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo -e "${RED}❌ Не найдена команда: $1. Установи её перед запуском этого скрипта.${NC}"
-    exit 1
-  fi
-}
+echo -e "${BLUE}"
+echo "======================================="
+echo "      Arcium Testnet Node Setup"
+echo "======================================="
+echo -e "${NC}"
 
-pause() {
-  read -r -p "$(echo -e "${YELLOW}⏯ Нажми Enter для продолжения...${NC}")" _
-}
-
-print_header() {
-  echo -e "${BLUE}"
-  echo "======================================="
-  echo "      Arcium Testnet Node Setup"
-  echo "======================================="
-  echo -e "${NC}"
-}
 
 # ---------- Для бекапа ----------
 SOURCE_DIR="$HOME/arcium-node-setup"
@@ -46,74 +33,95 @@ CALLBACK_PUB_FILE="$WORKDIR/callback-pubkey.txt"
 DEFAULT_RPC="https://api.devnet.solana.com"
 DEFAULT_WSS="wss://api.devnet.solana.com"
 
-print_header
+echo -e "${BLUE}"
+echo "======================================="
+echo "      Установка ноды Arcium Testnet"
+echo "======================================="
+echo -e "${NC}"
 
-# ---------- Шаг 2: рабочая директория ----------
-echo -e "${YELLOW}📁 Создаю рабочую директорию ноды...${NC}"
-mkdir -p "$WORKDIR"
-cd "$WORKDIR" || { echo -e "${RED}❌ Не удалось перейти в $WORKDIR${NC}"; exit 1; }
-echo -e "${GREEN}✅ Рабочая папка: ${CYAN}$WORKDIR${NC}"
+echo -e "${YELLOW}🔧 Подготавливаем систему...${NC}"
+sudo apt update -y && sudo apt upgrade -y
 
-# ---------- Права на папку ----------
-chmod 700 "$WORKDIR"
+echo -e "${YELLOW}📦 Устанавливаем базовые пакеты...${NC}"
+sudo apt install -y curl git wget jq make gcc nano tmux htop \
+    build-essential unzip pkg-config libssl-dev libleveldb-dev \
+    libudev-dev protobuf-compiler autoconf automake ncdu lz4 clang
 
-
-# ---------- Обновление системы ----------
-echo -e "${YELLOW}⚙️ Обновление системы...${NC}"
-apt update && apt upgrade -y
-sleep 3
-
-# ---------- Базовые пакеты ----------
-echo -e "${YELLOW}📦 Установка необходимых пакетов...${NC}"
-apt install -y \
-  curl wget git tmux htop unzip build-essential pkg-config \
-  libssl-dev clang make jq
-sleep 3
-
-# ---------- Docker ----------
-echo -e "${YELLOW}🐳 Установка Docker...${NC}"
+echo -e "${CYAN}🐳 Устанавливаем Docker...${NC}"
 bash <(curl -s https://raw.githubusercontent.com/NodEligible/programs/refs/heads/main/docker.sh)
-sleep 3
 
-# ---------- Rust ----------
-echo -e "${YELLOW}🦀 Установка Rust...${NC}"
-curl https://sh.rustup.rs -sSf | sh -s -- -y
-# подключаем cargo в текущую сессию
-# shellcheck disable=SC1090
+echo -e "${YELLOW}📌 Устанавливаем Node.js 22 и Yarn...${NC}"
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
+sudo apt install -y nodejs
+
+if ! node -v; then
+    echo -e "${RED}❌ Node.js не установился!${NC}"
+    exit 1
+fi
+
+npm install -g yarn
+yarn -v || { echo -e "${RED}❌ Yarn не установился!"; exit 1; }
+
+# Устанавливаем Yarn Classic
+curl -o- -L https://yarnpkg.com/install.sh | bash
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> ~/.bashrc
+
+echo -e "${GREEN}✔️ Node.js и Yarn успешно установлены.${NC}"
+
+echo -e "${YELLOW}🦀 Устанавливаем Rust (автоматический выбор 1)...${NC}"
+
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rust.sh
+sh rust.sh -y --default-toolchain stable
+rm rust.sh
+
 source "$HOME/.cargo/env"
-sleep 3
+export PATH="$HOME/.cargo/bin:$PATH"
+echo 'source $HOME/.cargo/env' >> ~/.bashrc
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
 
-# ---------- Solana CLI ----------
-echo -e "${YELLOW}🌞 Установка Solana CLI...${NC}"
+rustc --version || { echo -e "${RED}❌ Rust не установился!"; exit 1; }
+echo -e "${GREEN}✔️ Rust установлен.${NC}"
 
-SOLANA_INSTALL_SCRIPT="/tmp/solana-install.sh"
-curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev -o "$SOLANA_INSTALL_SCRIPT"
-bash "$SOLANA_INSTALL_SCRIPT" <<EOF
-y
-EOF
+echo -e "${YELLOW}📦 Устанавливаем Anchor CLI...${NC}"
+git clone https://github.com/coral-xyz/anchor.git
+cd anchor
+git checkout v0.31.1
+cargo install --path cli --force
+cd ..
+rm -rf anchor
+
+anchor --version || { echo -e "${RED}❌ Anchor CLI не установился!"; exit 1; }
+echo -e "${GREEN}✔️ Anchor готов к работе.${NC}"
+
+echo -e "${CYAN}🔑 Устанавливаем Solana CLI...${NC}"
+curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash -s -- -y
 
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+echo 'export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"' >> ~/.bashrc
 
+solana --version || { echo -e "${RED}❌ Solana CLI не установился!"; exit 1; }
+echo -e "${GREEN}✔️ Solana CLI установлен.${NC}"
 
+echo -e "${GREEN}======================================="
+echo "     Все дополнительные программы установлены!"
+echo "=======================================${NC}"
 
-sleep 2
+sleep 1
 
-echo -e "${GREEN}✅ Проверяем Arcium CLI...${NC}"
-arcium --version || echo -e "${RED}⚠ Arcium не найден после установки (проверь логи инсталлера).${NC}"
-arcup --version || true
+echo -e "${CYAN}📁 Создаём рабочую директорию Arcium...${NC}"
 
+mkdir -p $HOME/arcium-node-setup
+cd $HOME/arcium-node-setup
 
-echo -e "${GREEN}✅ Проверка версий...${NC}"
-solana --version || { echo -e "${RED}❌ Solana CLI не установлена.${NC}"; exit 1; }
-rustc --version || { echo -e "${RED}❌ Rust не установлен.${NC}"; exit 1; }
-cargo --version || { echo -e "${RED}❌ Cargo не установлен.${NC}"; exit 1; }
-docker --version || { echo -e "${RED}❌ Docker не установлен.${NC}"; exit 1; }
+echo -e "${YELLOW}⚙️ Устанавливаем Arcium CLI...${NC}"
+curl --proto '=https' --tlsv1.2 -sSfL https://arcium-install.arcium.workers.dev/ | bash
 
-echo -e "${YELLOW}🔍 Проверка необходимых инструментов...${NC}"
-for cmd in solana docker arcium curl openssl; do
-  require_cmd "$cmd"
-done
-echo -e "${GREEN}✅ Все необходимые инструменты найдены.${NC}"
+echo -e "${GREEN}🔍 Проверяем версии Arcium...${NC}"
+arcium --version
+arcup --version
+
+echo -e "${GREEN}✨ Установка завершена! Продолжаем настройку.${NC}"
 
 sleep 3
 
