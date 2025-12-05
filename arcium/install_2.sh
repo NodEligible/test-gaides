@@ -238,7 +238,7 @@ echo -e "${YELLOW}➡ Генерирую BLS keypair (bls-keypair.json)...${NC}"
 BLS_KP="$WORKDIR/bls-keypair.json"
 rm -f "$BLS_KP"
 
-if arcium generate-bls-keypair --output "$BLS_KP"; then
+if arcium gen-bls-key "$BLS_KP"; then
   echo -e "${GREEN}🔐 BLS ключ успешно создан: ${CYAN}$BLS_KP${NC}"
 else
   echo -e "${RED}❌ Не удалось создать BLS keypair. Проверь установлен ли Arcium CLI.${NC}"
@@ -456,7 +456,7 @@ if arcium init-arx-accs \
       --keypair-path "$NODE_KP" \
       --callback-keypair-path "$CALLBACK_KP" \
       --peer-keypair-path "$IDENTITY_PEM" \
-      --bls-keypair-path "$WORKDIR/bls-keypair.json" \
+      --bls-keypair-path "$BLS_KP" \
       --node-offset "$NODE_OFFSET" \
       --ip-address "$SERVER_IP" \
       --rpc-url "$RPC_URL"; then
@@ -604,21 +604,22 @@ services:
     restart: always
 
     ports:
-      - "8088:8080"
+      - "8001:8001"
+      - "8002:8002"
 
     environment:
       NODE_IDENTITY_FILE: /usr/arx-node/node-keys/node_identity.pem
       NODE_KEYPAIR_FILE: /usr/arx-node/node-keys/node_keypair.json
-      OPERATOR_KEYPAIR_FILE: /usr/arx-node/node-keys/operator_keypair.json
       CALLBACK_AUTHORITY_KEYPAIR_FILE: /usr/arx-node/node-keys/callback_authority_keypair.json
+      BLS_PRIVATE_KEY_FILE: /usr/arx-node/node-keys/bls-keypair.json
       NODE_CONFIG_PATH: /usr/arx-node/arx/node_config.toml
 
     volumes:
       - ./node-config.toml:/usr/arx-node/arx/node_config.toml
       - ./node-keypair.json:/usr/arx-node/node-keys/node_keypair.json:ro
-      - ./node-keypair.json:/usr/arx-node/node-keys/operator_keypair.json:ro
       - ./callback-kp.json:/usr/arx-node/node-keys/callback_authority_keypair.json:ro
       - ./identity.pem:/usr/arx-node/node-keys/node_identity.pem:ro
+      - ./bls-keypair.json:/usr/arx-node/node-keys/bls-keypair.json:ro
       - ./arx-node-logs:/usr/arx-node/logs
 EOF
 
