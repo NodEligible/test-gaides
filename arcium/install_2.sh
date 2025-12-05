@@ -313,17 +313,17 @@ airdrop_with_retry() {
 
       for i in {1..5}; do
         BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
-
+         
         if [[ "$BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
           echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
           return 0
         fi
 
-        sleep 2
+        sleep 10
       done
 
       echo -e "${RED}⚠ Баланс пока не обновился. Пробую снова...${NC}"
-      sleep 2
+      sleep 5
       continue
     fi
 
