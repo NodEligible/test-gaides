@@ -387,7 +387,7 @@ if arcium init-arx-accs \
     INIT_OK=1
     break
   else
-    echo -e "${RED}⚠ init-arx-accs завершился с ошибкой.${NC}$
+    echo -e "${RED}⚠ init-arx-accs завершился с ошибкой.${NC}"
     echo -e "${YELLOW}Проверяю доступность RPC...${NC}"
     if ! curl -s --max-time 5 "$RPC_URL" >/dev/null 2>&1; then
       echo -e "${RED}❌ RPC ${RPC_URL} не отвечает.${NC}"
