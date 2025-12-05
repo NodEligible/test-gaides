@@ -478,7 +478,7 @@ case "$cluster_choice" in
           --node-offset "$NODE_OFFSET" \
           --cluster-offset "$CLUSTER_OFFSET" \
           --rpc-url "$RPC_URL"; then
-        echo -e "${GREEN}✅ Нода успешно присоединена к кластеру ${CYAN}$CLUSTER_OFFSET${NC}$
+        echo -e "${GREEN}✅ Нода успешно присоединена к кластеру ${CYAN}$CLUSTER_OFFSET${NC}"
         sed -i '/^CLUSTER_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
         echo "CLUSTER_OFFSET=$CLUSTER_OFFSET" >> "$ENV_FILE"
       else
