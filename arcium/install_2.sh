@@ -98,6 +98,9 @@ sleep 3
 # ---------- Локальная GLIBC 2.39 ----------
 echo -e "${YELLOW}🧬 Установка локальной GLIBC 2.39 для Arcium...${NC}"
 
+echo -e "${YELLOW}📦 Устанавливаю дополнительные зависимости для сборки GLIBC...${NC}"
+apt install -y bison texinfo gawk
+
 GLIBC_DIR="$WORKDIR/glibc-2.39"
 
 if [ ! -d "$GLIBC_DIR" ]; then
