@@ -126,6 +126,9 @@ echo -e "${CYAN}📁 Создаём рабочую директорию Arcium..
 mkdir -p $HOME/arcium-node-setup
 cd $HOME/arcium-node-setup
 
+# Даємо права
+chmod 700 /root/arcium-node-setup
+
 echo -e "${YELLOW}⚙️ Устанавливаем Arcium CLI...${NC}"
 curl --proto '=https' --tlsv1.2 -sSfL https://arcium-install.arcium.workers.dev/ | bash
 
