@@ -349,7 +349,7 @@ echo
 echo -e "${YELLOW}➡ Вставьте этот адрес:${NC}"
 echo -e "${GREEN}$CALLBACK_PUBKEY${NC}"
 echo
-echo -e "${YELLOW}➡ В Amount укажите: ${GREEN}2 SOL${NC}"
+echo -e "${YELLOW}➡ В Airdrop укажите: ${GREEN}2 SOL${NC}"
 echo -e "${YELLOW}➡ Выберите сеть: ${GREEN}DEVNET${NC}"
 echo
 echo -e "${CYAN}⏳ Ожидаю 60 секунд, чтобы баланс обновился...${NC}"
