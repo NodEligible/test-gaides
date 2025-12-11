@@ -482,42 +482,99 @@ CLUSTER_OFFSET=""
 case "$cluster_choice" in
   1)
     echo -e "${YELLOW}🔧 Создание собственного кластера...${NC}"
+
+    # Генерируем offset для кластера
     CLUSTER_OFFSET=$(shuf -i 10000000-99999999 -n 1)
     echo -e "${YELLOW}➡ Попробую CLUSTER_OFFSET=${CYAN}$CLUSTER_OFFSET${NC}"
 
+    # Создание кластера
     if arcium init-cluster \
         --keypair-path "$NODE_KP" \
         --offset "$CLUSTER_OFFSET" \
         --max-nodes 10 \
         --rpc-url "$RPC_URL"; then
+
       echo -e "${GREEN}✅ Кластер создан с offset=${CYAN}$CLUSTER_OFFSET${NC}"
+
+      # Сохраняем CLUSTER_OFFSET в .env
       sed -i '/^CLUSTER_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
       echo "CLUSTER_OFFSET=$CLUSTER_OFFSET" >> "$ENV_FILE"
-    else
-      echo -e "${RED}⚠ Не удалось создать кластер. Можно будет попробовать позже вручную.${NC}"
-    fi
-    ;;
-  2)
-    echo -e "${YELLOW}🔗 Присоединение к существующему кластеру...${NC}"
-    read -r -p "$(echo -e "${YELLOW}➡ Введи CLUSTER_OFFSET кластера: ${NC}")" CLUSTER_OFFSET
-    if [ -n "$CLUSTER_OFFSET" ]; then
+
+      # Небольшая задержка
+      sleep 5
+      echo -e "${YELLOW}📨 Отправляю приглашение (propose-join-cluster)...${NC}"
+
+      # Invite node
+      if arcium propose-join-cluster \
+          --keypair-path "$NODE_KP" \
+          --cluster-offset "$CLUSTER_OFFSET" \
+          --node-offset "$NODE_OFFSET" \
+          --rpc-url "$RPC_URL"; then
+        echo -e "${GREEN}✅ Приглашение отправлено.${NC}"
+      else
+        echo -e "${RED}⚠ Ошибка: не удалось отправить приглашение.${NC}"
+      fi
+
+      echo -e "${YELLOW}⏳ Ожидаю подтверждение...${NC}"
+      sleep 5
+
+      echo -e "${YELLOW}🔗 Принимаю приглашение (join-cluster)...${NC}"
       if arcium join-cluster true \
           --keypair-path "$NODE_KP" \
           --node-offset "$NODE_OFFSET" \
           --cluster-offset "$CLUSTER_OFFSET" \
           --rpc-url "$RPC_URL"; then
-        echo -e "${GREEN}✅ Нода успешно присоединена к кластеру ${CYAN}$CLUSTER_OFFSET${NC}"
-        sed -i '/^CLUSTER_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
-        echo "CLUSTER_OFFSET=$CLUSTER_OFFSET" >> "$ENV_FILE"
+        echo -e "${GREEN}✅ Нода успешно присоединена к кластеру.${NC}"
       else
-        echo -e "${RED}⚠ Ошибка при присоединении к кластеру. Можно повторить позже вручную.${NC}"
+        echo -e "${RED}⚠ Ошибка: join-cluster не выполнен.${NC}"
       fi
+
     else
-      echo -e "${RED}⚠ Пустой CLUSTER_OFFSET, шаг пропущен.${NC}"
+      echo -e "${RED}⚠ Не удалось создать кластер. Этот шаг можно сделать позже вручную.${NC}"
     fi
     ;;
+
+  2)
+    echo -e "${YELLOW}🔗 Присоединение к существующему кластеру...${NC}"
+    read -r -p "$(echo -e "${YELLOW}➡ Введи CLUSTER_OFFSET кластера: ${NC}")" CLUSTER_OFFSET
+
+    if [ -n "$CLUSTER_OFFSET" ]; then
+
+      echo -e "${YELLOW}📨 Отправляю запрос на добавление...${NC}"
+      if arcium propose-join-cluster \
+          --keypair-path "$NODE_KP" \
+          --cluster-offset "$CLUSTER_OFFSET" \
+          --node-offset "$NODE_OFFSET" \
+          --rpc-url "$RPC_URL"; then
+        echo -e "${GREEN}✅ Приглашение отправлено.${NC}"
+      else
+        echo -e "${RED}⚠ Ошибка при отправке приглашения.${NC}"
+      fi
+
+      sleep 5
+
+      echo -e "${YELLOW}🔗 Принимаю приглашение...${NC}"
+      if arcium join-cluster true \
+          --keypair-path "$NODE_KP" \
+          --node-offset "$NODE_OFFSET" \
+          --cluster-offset "$CLUSTER_OFFSET" \
+          --rpc-url "$RPC_URL"; then
+
+        echo -e "${GREEN}✅ Нода успешно присоединена к кластеру.${NC}"
+        sed -i '/^CLUSTER_OFFSET=/d' "$ENV_FILE" 2>/dev/null || true
+        echo "CLUSTER_OFFSET=$CLUSTER_OFFSET" >> "$ENV_FILE"
+
+      else
+        echo -e "${RED}⚠ Ошибка join-cluster.${NC}"
+      fi
+
+    else
+      echo -e "${RED}⚠ Пустой CLUSTER_OFFSET. Пропуск.${NC}"
+    fi
+    ;;
+
   3|*)
-    echo -e "${YELLOW}⏭ Шаг с кластером пропущен. Ты сможешь создать или присоединиться позже вручную.${NC}"
+    echo -e "${YELLOW}⏭ Шаг пропущен. Кластер можно настроить позже вручную.${NC}"
     ;;
 esac
 
