@@ -310,27 +310,26 @@ airdrop_with_retry() {
     AIRDROP_OUTPUT=$(solana airdrop 2 "$pubkey" -u devnet 2>&1)
     AIRDROP_CODE=$?
 
-    # Если команда вообще выполнилась (код возврата = 0)
     if [ $AIRDROP_CODE -eq 0 ]; then
       echo -e "${GREEN}⏳ Airdrop отправлен. Проверяю баланс...${NC}"
 
-      for i in {1..5}; do
+      for i in {1..6}; do
         BAL=$(solana balance "$pubkey" -u devnet 2>/dev/null | awk '{print $1}')
-         
+
         if [[ "$BAL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
           echo -e "${GREEN}✅ Баланс ${label}: ${CYAN}${BAL} SOL${NC}"
           return 0
         fi
 
-        sleep 10
+        sleep 8
       done
 
-      echo -e "${RED}⚠ Баланс пока не обновился. Пробую снова...${NC}"
+      echo -e "${RED}⚠ Баланс пока не обновился. Пробую ещё раз...${NC}"
       sleep 5
       continue
     fi
 
-    echo -e "${RED}⚠ Faucet вернул ошибку, повтор через 3 сек...${NC}"
+    echo -e "${RED}⚠ Faucet вернул ошибку, повтор через 3 секунды...${NC}"
     sleep 3
   done
 
