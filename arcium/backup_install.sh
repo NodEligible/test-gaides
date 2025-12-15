@@ -151,8 +151,6 @@ if [ ! -d "$SOURCE_DIR" ]; then
   exit 1
 fi
 
-mkdir -p "$TARGET_DIR"
-
 echo -e "${YELLOW}📁 Копирую файлы в $TARGET_DIR ...${NC}"
 
 for FILE in "${FILES[@]}"; do
@@ -226,7 +224,6 @@ if ! docker ps --format '{{.Names}}' | grep -q '^arx-node$'; then
   echo -e "${RED}❌ arx-node НЕ запущена! Проверь docker logs arx-node.${NC}"
   exit 1
 fi
-
 
 sleep 1
 
