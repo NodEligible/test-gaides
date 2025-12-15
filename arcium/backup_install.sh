@@ -14,11 +14,6 @@ echo "  Arcium Testnet Node Backup Install"
 echo "======================================="
 echo -e "${NC}"
 
-
-# ---------- Для бекапа ----------
-SOURCE_DIR="$HOME/arcium-node-setup"
-BACKUP_DIR="$HOME/arcium-backup"
-
 # ---------- Общие переменные ----------
 WORKDIR="$HOME/arcium-node-setup"
 ENV_FILE="$WORKDIR/.env"
@@ -114,12 +109,8 @@ echo -e "${GREEN}=======================================${NC}"
 echo "     Все дополнительные программы установлены!"
 echo -e "${GREEN}=======================================${NC}"
 
-# -------------------------------------------------------------
-# Ручное подтверждение
-read -p "➡️  Нажмите Enter, чтобы продолжить..."
-# -------------------------------------------------------------
 
-sleep 1
+sleep 3
 
 echo -e "${CYAN}📁 Создаём рабочую директорию Arcium...${NC}"
 
@@ -139,6 +130,41 @@ arcup --version
 echo -e "${GREEN}✨ Установка завершена! Продолжаем настройку.${NC}"
 
 sleep 5
+
+SOURCE_DIR="$HOME/arcium-backup"
+TARGET_DIR="$HOME/arcium-node-setup"
+
+FILES=(
+  "identity.pem"
+  "node-keypair.json"
+  "callback-kp.json"
+  "bls-keypair.json"
+  ".env"
+  "node-config.toml"
+)
+
+echo -e "${YELLOW}♻️ Восстановление Arcium ноды из бекапа...${NC}"
+
+# ---------- Проверка ----------
+if [ ! -d "$SOURCE_DIR" ]; then
+  echo -e "${RED}❌ Папка бекапа не найдена: $SOURCE_DIR${NC}"
+  exit 1
+fi
+
+mkdir -p "$TARGET_DIR"
+
+echo -e "${YELLOW}📁 Копирую файлы в $TARGET_DIR ...${NC}"
+
+for FILE in "${FILES[@]}"; do
+  if [ -f "$SOURCE_DIR/$FILE" ]; then
+    cp -f "$SOURCE_DIR/$FILE" "$TARGET_DIR/"
+    echo -e "${GREEN}  ✔ $FILE восстановлен${NC}"
+  else
+    echo -e "${YELLOW}  ⚠️ Файл отсутствует в бекапе: $FILE${NC}"
+  fi
+done
+
+echo -e "${GREEN}✅ Восстановление завершено.${NC}"
 
 # ---------- Шаг 9: Docker Compose запуск ----------
 echo -e "${YELLOW}🐳 Запуск ARX-ноды через Docker Compose...${NC}"
@@ -201,39 +227,7 @@ if ! docker ps --format '{{.Names}}' | grep -q '^arx-node$'; then
   exit 1
 fi
 
-# ---------- Делаем бекап файлов ----------
-echo -e "${YELLOW}🔍 Проверка директории ноды...${NC}"
-if [ ! -d "$SOURCE_DIR" ]; then
-  echo -e "${RED}❌ Ошибка: директория $SOURCE_DIR не найдена.${NC}"
-  exit 1
-fi
-
-echo -e "${YELLOW}📦 Пересоздаю папку бекапа...${NC}"
-rm -rf "$BACKUP_DIR"
-mkdir -p "$BACKUP_DIR"
-
-FILES=(
-  "identity.pem"
-  "node-keypair.json"
-  "callback-kp.json"
-  "bls-keypair.json"
-  ".env"
-  "node-config.toml"
-)
-
-echo -e "${YELLOW}📁 Копирую файлы...${NC}"
-for FILE in "${FILES[@]}"; do
-  if [ -f "$SOURCE_DIR/$FILE" ]; then
-    cp "$SOURCE_DIR/$FILE" "$BACKUP_DIR/"
-    echo -e "  ➕ $FILE"
-  else
-    echo -e "  ⚠️ Файл отсутствует: $FILE"
-  fi
-done
-
-echo -e "${GREEN}✅ Бекап завершен!"
-echo -e "${GREEN}📁 Файлы сохранены в: $BACKUP_DIR${NC}"
 
 sleep 1
 
-echo -e "${GREEN}🎉 Установка Arcium Testnet Node завершена.${NC}"
+echo -e "${GREEN}🎉 Востановление Arcium Testnet Node завершено.${NC}"
